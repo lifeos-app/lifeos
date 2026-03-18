@@ -1,0 +1,450 @@
+/* ═══════════════════════════════════════════════════════════════
+   NLP Decomposer — AI Goal Planner Wizard
+   ═══════════════════════════════════════════════════════════════ */
+
+.nlp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: nlp-fade-in 0.2s ease;
+}
+
+@keyframes nlp-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.nlp-modal {
+  background: rgba(17, 24, 39, 0.95);
+  border: var(--border-strong);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 60px rgba(0, 212, 255, 0.08);
+  animation: nlp-slide-up 0.25s ease;
+}
+
+@keyframes nlp-slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Header */
+.nlp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: var(--border-subtle);
+}
+
+.nlp-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nlp-header-title h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #E2E8F0;
+}
+
+.nlp-sparkle {
+  color: #00D4FF;
+  animation: nlp-pulse 2s ease-in-out infinite;
+}
+
+@keyframes nlp-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.nlp-close {
+  background: none;
+  border: none;
+  color: #94A3B8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.nlp-close:hover {
+  color: #E2E8F0;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Steps */
+.nlp-step {
+  padding: 20px;
+  flex: 1;
+  overflow: auto;
+}
+
+/* Input Step */
+.nlp-prompt {
+  font-size: 18px;
+  font-weight: 600;
+  color: #E2E8F0;
+  margin: 0 0 12px;
+}
+
+.nlp-textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: var(--border-strong);
+  border-radius: var(--radius-md);
+  color: #E2E8F0;
+  font-size: 15px;
+  font-family: var(--font-body);
+  padding: 12px 14px;
+  resize: none;
+  outline: none;
+  transition: border-color var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.nlp-textarea:focus {
+  border-color: #00D4FF;
+  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.15);
+}
+
+.nlp-textarea::placeholder {
+  color: #5A7A9A;
+  transition: opacity var(--transition-default);
+}
+
+.nlp-error {
+  color: #F43F5E;
+  font-size: 13px;
+  margin: 8px 0 0;
+}
+
+/* Actions */
+.nlp-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: var(--border-subtle);
+}
+
+.nlp-btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #00D4FF, #39FF14);
+  color: #0A0E1A;
+  font-weight: 600;
+  font-size: 13px;
+  border: none;
+  border-radius: var(--radius-base);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.nlp-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+}
+
+.nlp-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nlp-btn-secondary {
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #94A3B8;
+  font-weight: 500;
+  font-size: 13px;
+  border: var(--border-default);
+  border-radius: var(--radius-base);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.nlp-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #E2E8F0;
+}
+
+/* Loading Step */
+.nlp-step-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  gap: 12px;
+}
+
+.nlp-spinner {
+  color: #00D4FF;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.nlp-loading-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #E2E8F0;
+  margin: 0;
+}
+
+.nlp-loading-sub {
+  font-size: 13px;
+  color: #5A7A9A;
+  margin: 0;
+}
+
+/* Preview Step */
+.nlp-preview-header {
+  margin-bottom: 12px;
+}
+
+.nlp-preview-count {
+  font-size: 14px;
+  color: #94A3B8;
+  margin: 0 0 4px;
+}
+
+.nlp-preview-count strong {
+  color: #00D4FF;
+}
+
+.nlp-preview-hint {
+  font-size: 12px;
+  color: #5A7A9A;
+  margin: 0;
+}
+
+.nlp-preview-scroll {
+  max-height: calc(90vh - 260px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.nlp-preview-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.nlp-preview-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+}
+
+/* Hierarchy Tree */
+.nlp-hierarchy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nlp-node {
+  border-left: 3px solid transparent;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+}
+
+.nlp-node-objective { padding-left: 8px; }
+.nlp-node-epic { margin-left: 12px; }
+.nlp-node-goal { margin-left: 24px; }
+.nlp-node-task { margin-left: 36px; }
+
+.nlp-node:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.nlp-excluded {
+  opacity: 0.35;
+}
+
+.nlp-node-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  flex-wrap: wrap;
+}
+
+.nlp-node-level {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  color: #0A0E1A;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.nlp-node-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #E2E8F0;
+  flex: 1;
+  min-width: 0;
+}
+
+.nlp-node-title > span:last-of-type {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nlp-node-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.nlp-node-desc {
+  font-size: 11px;
+  color: #5A7A9A;
+  margin: 2px 0 0 26px;
+  line-height: 1.4;
+}
+
+.nlp-node-date {
+  font-size: 10px;
+  color: #5A7A9A;
+  margin-left: 26px;
+}
+
+.nlp-edit-btn {
+  background: none;
+  border: none;
+  color: #5A7A9A;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 3px;
+  opacity: 0;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.nlp-node-header:hover .nlp-edit-btn {
+  opacity: 1;
+}
+
+.nlp-edit-btn:hover {
+  color: #00D4FF;
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.nlp-edit-input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid #00D4FF;
+  border-radius: var(--radius-xs);
+  color: #E2E8F0;
+  font-size: 13px;
+  padding: 2px 6px;
+  outline: none;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Checkbox */
+.nlp-checkbox {
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.nlp-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-xs);
+  transition: all var(--transition-fast);
+}
+
+.nlp-checked {
+  background: #00D4FF;
+  border-color: #00D4FF;
+  color: #0A0E1A;
+}
+
+.nlp-collapse-btn {
+  background: none;
+  border: none;
+  color: #5A7A9A;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  display: flex;
+}
+
+.nlp-collapse-btn:hover {
+  color: #E2E8F0;
+}
+
+/* Task metadata */
+.nlp-task-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.nlp-priority {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.nlp-duration {
+  font-size: 10px;
+  color: #5A7A9A;
+}
+
+.nlp-week {
+  font-size: 10px;
+  color: #5A7A9A;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+  .nlp-modal {
+    max-height: 95vh;
+    border-radius: var(--radius-lg);
+  }
+
+  .nlp-node-epic { margin-left: 6px; }
+  .nlp-node-goal { margin-left: 12px; }
+  .nlp-node-task { margin-left: 18px; }
+
+  .nlp-task-meta {
+    flex-basis: 100%;
+    margin-left: 22px;
+    margin-top: 2px;
+  }
+}

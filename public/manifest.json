@@ -1,0 +1,74 @@
+{
+  "name": "LifeOS — Free AI Life Operating System",
+  "short_name": "LifeOS",
+  "description": "Free AI-powered life operating system. Smart scheduling, habit tracking, goal setting, finance management, journaling, and health tracking — all in one app. The best free Notion alternative and personal operating system.",
+  "start_url": "/app/",
+  "scope": "/app/",
+  "id": "/app/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#050E1A",
+  "theme_color": "#050E1A",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["productivity", "lifestyle", "finance", "health", "utilities"],
+  "iarc_rating_id": "",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/app/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/app/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/app/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/app/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Schedule",
+      "short_name": "Schedule",
+      "description": "View and manage your daily AI-powered schedule",
+      "url": "/app/schedule",
+      "icons": [{ "src": "/app/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Habits",
+      "short_name": "Habits",
+      "description": "Track your daily habits and streaks",
+      "url": "/app/habits",
+      "icons": [{ "src": "/app/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Goals",
+      "short_name": "Goals",
+      "description": "Set and track your life goals",
+      "url": "/app/goals",
+      "icons": [{ "src": "/app/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Finances",
+      "short_name": "Finances",
+      "description": "Manage income, expenses, and budgets",
+      "url": "/app/finances",
+      "icons": [{ "src": "/app/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

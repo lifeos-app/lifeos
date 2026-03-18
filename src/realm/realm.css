@@ -1,0 +1,1542 @@
+/* ═══════════════════════════════════════════════════
+   THE REALM — Styles
+   ═══════════════════════════════════════════════════ */
+
+/* ── Hide AIChat + VoiceFAB when Realm is active ── */
+body.realm-active .ai-chat-fab,
+body.realm-active .voice-fab {
+  display: none !important;
+}
+
+/* ── Container ────────────────────────────────── */
+
+.realm-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 160px);
+  min-height: 400px;
+  max-height: 700px;
+  background: #0D0D2B;
+  border-radius: 12px;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ── Fullscreen Container ─────────────────────── */
+
+.realm-fullscreen-container {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  /* Handle safe areas on mobile (notch, rounded corners) */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  background: #0D0D2B;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  z-index: 9999;
+}
+
+/* ── Hide App Navigation in Fullscreen Mode ──── */
+
+body.realm-fullscreen-active .mobile-nav,
+body.realm-fullscreen-active .mobile-header,
+body.realm-fullscreen-active .desktop-header,
+body.realm-fullscreen-active .sidebar-wrap {
+  display: none !important;
+}
+
+body.realm-fullscreen-active .layout-main {
+  padding: 0 !important;
+}
+
+body.realm-fullscreen-active .layout-content {
+  padding: 0 !important;
+}
+
+.realm-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Fullscreen canvas fills entire viewport */
+.realm-fullscreen-container .realm-canvas {
+  width: 100vw;
+  height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+/* ── Loading ──────────────────────────────────── */
+
+.realm-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+  color: #8BA4BE;
+  font-family: monospace;
+}
+
+.realm-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #2A3A4A;
+  border-top-color: #FFD700;
+  border-radius: 50%;
+  animation: realm-spin 0.8s linear infinite;
+}
+
+@keyframes realm-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Portal Transition ────────────────────────── */
+
+.realm-portal-enter {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(100,200,255,0.8) 0%, transparent 70%);
+  animation: realm-portal-ripple 0.8s ease-out forwards;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@keyframes realm-portal-ripple {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* ── HUD ──────────────────────────────────────── */
+
+.realm-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.realm-hud-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  pointer-events: auto;
+}
+
+.realm-hud-btn {
+  background: rgba(13, 13, 43, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #8BA4BE;
+  padding: 6px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  backdrop-filter: blur(4px);
+  transition: all 0.15s;
+}
+
+.realm-hud-btn:active {
+  transform: scale(0.95);
+  background: rgba(13, 13, 43, 0.9);
+}
+
+.realm-hud-zone {
+  text-align: center;
+}
+
+.realm-hud-zone-name {
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: bold;
+  color: #FFD700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  letter-spacing: 1px;
+}
+
+.realm-hud-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.realm-hud-quests {
+  position: absolute;
+  top: 48px;
+  right: 12px;
+  background: rgba(139, 69, 19, 0.8);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-family: monospace;
+  font-size: 11px;
+  color: #FFD700;
+  pointer-events: auto;
+  backdrop-filter: blur(4px);
+}
+
+.realm-hud-controls {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(13, 13, 43, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-family: monospace;
+  font-size: 11px;
+  color: #5A7A9A;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  pointer-events: auto;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  animation: realm-fade-in 0.5s ease;
+}
+
+.realm-hud-dismiss {
+  color: #FF6B6B;
+  font-weight: bold;
+}
+
+/* ── Dialogue Box ─────────────────────────────── */
+
+.realm-dialogue-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.realm-dialogue-box {
+  background: linear-gradient(135deg, #1A1A3E 0%, #0D0D2B 100%);
+  border: 2px solid rgba(255, 215, 0, 0.4);
+  border-radius: 12px;
+  padding: 16px 20px;
+  width: 100%;
+  max-width: 500px;
+  min-height: 100px;
+  max-height: 30vh;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  animation: realm-dialogue-enter 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+@keyframes realm-dialogue-enter {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.realm-dialogue-name {
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: bold;
+  color: #FFD700;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.realm-dialogue-text {
+  font-family: monospace;
+  font-size: 13px;
+  color: #C8D6E5;
+  line-height: 1.6;
+  min-height: 40px;
+}
+
+.realm-dialogue-cursor {
+  animation: realm-blink 0.6s step-end infinite;
+  color: #FFD700;
+  margin-left: 2px;
+}
+
+@keyframes realm-blink {
+  50% { opacity: 0; }
+}
+
+.realm-dialogue-hint {
+  font-family: monospace;
+  font-size: 10px;
+  color: #5A7A9A;
+  text-align: right;
+  margin-top: 8px;
+}
+
+/* ── Dialogue Active: 40/60 Split ────────────── */
+
+/* Container becomes flex column (non-fullscreen only) */
+.realm-container.realm-dialogue-active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Canvas shrinks to top 40% (non-fullscreen only) */
+.realm-container.realm-dialogue-active .realm-canvas {
+  flex: 0 0 40%;
+  height: auto;
+  transition: flex 0.3s ease;
+}
+
+/* Backdrop stays fixed overlay in fullscreen — flex split was broken */
+.realm-fullscreen-container.realm-dialogue-active .realm-dialogue-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+/* Non-fullscreen: use flex split layout */
+.realm-container.realm-dialogue-active .realm-dialogue-backdrop {
+  position: relative;
+  inset: auto;
+  flex: 1;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 0;
+}
+
+/* Box fills panel in non-fullscreen */
+.realm-container.realm-dialogue-active .realm-dialogue-box {
+  max-width: none;
+  max-height: none;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  border: none;
+  border-top: 2px solid rgba(255, 215, 0, 0.4);
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  animation: none;
+}
+
+.realm-container.realm-dialogue-active .realm-dialogue-text {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* Short-screen adjustment (non-fullscreen only) */
+@media (max-height: 667px) {
+  .realm-container.realm-dialogue-active .realm-canvas {
+    flex: 0 0 35%;
+  }
+}
+
+/* ── Zone Transition ──────────────────────────── */
+
+.realm-zone-transition {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.realm-zone-transition--in {
+  animation: realm-fade-in 0.6s ease forwards;
+}
+
+.realm-zone-transition--hold {
+  opacity: 1;
+}
+
+.realm-zone-transition--out {
+  animation: realm-fade-out 0.6s ease forwards;
+}
+
+.realm-zone-transition-content {
+  text-align: center;
+}
+
+.realm-zone-transition-name {
+  font-family: monospace;
+  font-size: 28px;
+  font-weight: bold;
+  color: #FFD700;
+  text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+  letter-spacing: 3px;
+}
+
+.realm-zone-transition-desc {
+  font-family: monospace;
+  font-size: 13px;
+  color: #8BA4BE;
+  margin-top: 8px;
+}
+
+/* ── Animations ───────────────────────────────── */
+
+@keyframes realm-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes realm-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* ── Plant Info Panel ─────────────────────────── */
+
+.realm-plant-info {
+  max-width: 340px;
+}
+
+.realm-plant-info .realm-dialogue-text div {
+  font-family: monospace;
+  font-size: 12px;
+  color: #C8D6E5;
+}
+
+.realm-plant-info .realm-dialogue-text strong {
+  color: #FFD700;
+}
+
+/* ── Quest Board ─────────────────────────────── */
+
+.realm-quest-board {
+  max-width: 440px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.realm-quest-note {
+  background: rgba(139, 69, 19, 0.2);
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  position: relative;
+}
+
+.realm-quest-stamp {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%) rotate(-12deg);
+  color: #FF4500;
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: bold;
+  opacity: 0.8;
+  border: 2px solid #FF4500;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ── Minimap ─────────────────────────────────── */
+
+.realm-minimap {
+  position: absolute;
+  bottom: 48px;
+  right: 12px;
+  background: rgba(13, 13, 43, 0.85);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 6px;
+  padding: 4px;
+  z-index: 6;
+  pointer-events: auto;
+  backdrop-filter: blur(4px);
+  animation: realm-fade-in 0.3s ease;
+}
+
+/* ── Mobile Adjustments ───────────────────────── */
+
+@media (max-width: 600px) {
+  .realm-container {
+    height: calc(100vh - 140px);
+    border-radius: 0;
+  }
+
+  .realm-fullscreen-container {
+    /* Mobile fullscreen uses full viewport */
+  }
+
+  .realm-hud-zone-name {
+    font-size: 12px;
+  }
+
+  .realm-dialogue-box {
+    padding: 12px 16px;
+    min-height: 80px;
+    max-height: 35vh;
+  }
+
+  .realm-dialogue-text {
+    font-size: 12px;
+  }
+
+  .realm-zone-transition-name {
+    font-size: 22px;
+  }
+
+  .realm-hud-controls span {
+    font-size: 10px;
+  }
+
+  .realm-chat-overlay {
+    max-height: 55%;
+  }
+}
+
+/* ── HUD Chat Badge ─────────────────────────── */
+
+.realm-hud-chat-btn {
+  position: relative;
+}
+
+.realm-hud-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #FFD700;
+  color: #0D0D2B;
+  font-family: monospace;
+  font-size: 9px;
+  font-weight: bold;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0 3px;
+}
+
+/* ── Chat Overlay ────────────────────────────── */
+
+.realm-chat-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 50%;
+  background: rgba(13, 13, 43, 0.95);
+  border-top: 1px solid rgba(255, 215, 0, 0.3);
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  animation: realm-chat-slide-up 0.2s ease;
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+@keyframes realm-chat-slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.realm-chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.realm-chat-tabs {
+  display: flex;
+  gap: 2px;
+}
+
+.realm-chat-tab {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: #5A7A9A;
+  font-family: monospace;
+  font-size: 11px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.realm-chat-tab--active {
+  background: rgba(255, 215, 0, 0.15);
+  border-color: rgba(255, 215, 0, 0.4);
+  color: #FFD700;
+}
+
+.realm-chat-tab--disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.realm-chat-close {
+  background: transparent;
+  border: none;
+  color: #5A7A9A;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.realm-chat-close:hover {
+  color: #FF6B6B;
+}
+
+.realm-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 10px;
+  min-height: 60px;
+  max-height: 180px;
+}
+
+.realm-chat-empty {
+  color: #3A5A7A;
+  font-family: monospace;
+  font-size: 11px;
+  text-align: center;
+  padding: 16px 0;
+}
+
+.realm-chat-msg {
+  font-family: monospace;
+  font-size: 12px;
+  color: #C8D6E5;
+  padding: 2px 0;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.realm-chat-msg--emote {
+  font-style: italic;
+  color: #8BA4BE;
+}
+
+.realm-chat-msg-name {
+  color: #FFD700;
+  font-weight: bold;
+}
+
+.realm-chat-msg-text {
+  color: #C8D6E5;
+}
+
+.realm-chat-emotes {
+  display: flex;
+  gap: 4px;
+  padding: 4px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.realm-chat-emote-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 16px;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.realm-chat-emote-btn:active {
+  background: rgba(255, 215, 0, 0.15);
+}
+
+.realm-chat-input {
+  display: flex;
+  gap: 6px;
+  padding: 6px 10px 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.realm-chat-input input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  color: #C8D6E5;
+  font-family: monospace;
+  font-size: 12px;
+  padding: 5px 8px;
+  outline: none;
+}
+
+.realm-chat-input input:focus {
+  border-color: rgba(255, 215, 0, 0.4);
+}
+
+.realm-chat-input input.realm-chat-input--limited {
+  border-color: #FF6B6B;
+}
+
+.realm-chat-input input::placeholder {
+  color: #3A5A7A;
+}
+
+.realm-chat-send {
+  background: rgba(255, 215, 0, 0.15);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 4px;
+  color: #FFD700;
+  font-family: monospace;
+  font-size: 11px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.realm-chat-send:active {
+  background: rgba(255, 215, 0, 0.3);
+}
+
+/* ── Player Profile Card ────────────────────── */
+
+.realm-profile-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.realm-profile-card {
+  background: linear-gradient(135deg, #1A1A3E 0%, #0D0D2B 100%);
+  border: 2px solid rgba(255, 215, 0, 0.4);
+  border-radius: 12px;
+  padding: 16px 20px;
+  min-width: 200px;
+  max-width: 260px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  animation: realm-dialogue-enter 0.2s ease;
+  position: relative;
+}
+
+.realm-profile-close {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #5A7A9A;
+  font-size: 18px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.realm-profile-close:hover {
+  color: #FF6B6B;
+}
+
+.realm-profile-canvas {
+  display: block;
+  margin: 0 auto 8px;
+  image-rendering: pixelated;
+}
+
+.realm-profile-info {
+  margin-bottom: 12px;
+}
+
+.realm-profile-name {
+  font-family: monospace;
+  font-size: 15px;
+  font-weight: bold;
+  color: #FFD700;
+  margin-bottom: 2px;
+}
+
+.realm-profile-level {
+  font-family: monospace;
+  font-size: 12px;
+  color: #8BA4BE;
+}
+
+.realm-profile-status {
+  font-family: monospace;
+  font-size: 11px;
+  color: #5A7A9A;
+  margin-top: 4px;
+}
+
+.realm-profile-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.realm-profile-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: #8BA4BE;
+  font-family: monospace;
+  font-size: 11px;
+  padding: 5px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.realm-profile-btn:active {
+  background: rgba(255, 215, 0, 0.15);
+  border-color: rgba(255, 215, 0, 0.3);
+  color: #FFD700;
+}
+
+/* ══════════════════════════════════════════════════
+   World Map Overlay
+   ══════════════════════════════════════════════════ */
+
+.worldmap-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: realm-fade-in 0.25s ease;
+}
+
+.worldmap-container {
+  position: relative;
+  width: 92vw;
+  max-width: 520px;
+  height: 85vh;
+  max-height: 700px;
+  background: linear-gradient(180deg, rgba(13, 13, 43, 0.95) 0%, rgba(6, 6, 20, 0.98) 100%);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(255, 215, 0, 0.08);
+}
+
+.worldmap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+.worldmap-title {
+  margin: 0;
+  font-family: 'Georgia', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #FFD700;
+  letter-spacing: 1px;
+}
+
+.worldmap-close {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.worldmap-close:active {
+  background: rgba(255, 100, 100, 0.15);
+  color: #FF6B6B;
+}
+
+/* ── Map Area ── */
+.worldmap-area {
+  flex: 1;
+  position: relative;
+  margin: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  background: radial-gradient(ellipse at center, rgba(30, 30, 60, 0.5) 0%, rgba(10, 10, 30, 0.8) 100%);
+  overflow: hidden;
+}
+
+/* ── Connection Lines ── */
+.worldmap-connections {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.worldmap-path {
+  stroke: rgba(255, 215, 0, 0.2);
+  stroke-width: 0.4;
+  stroke-dasharray: 1.5 1;
+}
+.worldmap-path--locked {
+  stroke: rgba(100, 116, 139, 0.2);
+  stroke-dasharray: 0.8 1.2;
+}
+.worldmap-path--city {
+  stroke: rgba(255, 215, 0, 0.35);
+  stroke-width: 0.5;
+  stroke-dasharray: 1 0.8;
+}
+
+/* ── Zone Nodes ── */
+.worldmap-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 2;
+  transition: transform 0.15s;
+}
+.worldmap-node:active {
+  transform: translate(-50%, -50%) scale(0.92);
+}
+
+.worldmap-node-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(20, 20, 50, 0.9);
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFD700;
+  transition: all 0.2s;
+  position: relative;
+}
+.worldmap-node--current .worldmap-node-icon {
+  border-color: #39FF14;
+  box-shadow: 0 0 12px rgba(57, 255, 20, 0.3);
+  color: #39FF14;
+}
+.worldmap-node--locked .worldmap-node-icon {
+  border-color: rgba(100, 116, 139, 0.4);
+  color: rgba(100, 116, 139, 0.5);
+  background: rgba(20, 20, 40, 0.7);
+}
+.worldmap-node--city .worldmap-node-icon {
+  border-color: #FFD700;
+  box-shadow: 0 0 16px rgba(255, 215, 0, 0.25);
+  color: #FFD700;
+}
+.worldmap-node--selected .worldmap-node-icon {
+  border-color: #fff;
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.2);
+}
+
+.worldmap-node-lock {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background: rgba(40, 40, 60, 0.95);
+  border-radius: 50%;
+  padding: 2px;
+  color: #FF6B6B;
+}
+
+.worldmap-node-label {
+  font-family: monospace;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+.worldmap-node--current .worldmap-node-label {
+  color: #39FF14;
+}
+.worldmap-node--locked .worldmap-node-label {
+  color: rgba(100, 116, 139, 0.5);
+}
+.worldmap-node--city .worldmap-node-label {
+  color: #FFD700;
+  font-weight: bold;
+}
+
+/* Pulsing indicator for current zone */
+.worldmap-node-pulse {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #39FF14;
+  opacity: 0;
+  animation: worldmap-pulse 2s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes worldmap-pulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* Life City particle hint */
+.worldmap-node-particles {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.08) 0%, transparent 70%);
+  animation: worldmap-city-glow 3s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes worldmap-city-glow {
+  0% { opacity: 0.3; transform: scale(1); }
+  100% { opacity: 0.7; transform: scale(1.3); }
+}
+
+/* ── Footer ── */
+.worldmap-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 16px 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-family: monospace;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Zone Detail Card ── */
+.worldmap-detail {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 300px;
+  background: linear-gradient(135deg, rgba(26, 26, 62, 0.95) 0%, rgba(13, 13, 43, 0.98) 100%);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  animation: realm-dialogue-enter 0.2s ease;
+}
+
+.worldmap-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.worldmap-detail-icon {
+  color: #FFD700;
+}
+.worldmap-detail-title {
+  margin: 0;
+  font-family: 'Georgia', serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.worldmap-detail-desc {
+  margin: 0 0 10px;
+  font-family: monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.worldmap-detail-row {
+  display: flex;
+  gap: 6px;
+  font-family: monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 4px;
+}
+.worldmap-detail-key {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.worldmap-detail-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: rgba(255, 100, 100, 0.08);
+  border: 1px solid rgba(255, 100, 100, 0.15);
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 10px;
+  color: rgba(255, 100, 100, 0.7);
+}
+
+.worldmap-detail-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px 14px;
+  background: rgba(57, 255, 20, 0.08);
+  border: 1px solid rgba(57, 255, 20, 0.2);
+  border-radius: 8px;
+  color: #39FF14;
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.worldmap-detail-btn:active {
+  background: rgba(57, 255, 20, 0.15);
+}
+
+.worldmap-detail-coming {
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: rgba(255, 215, 0, 0.06);
+  border: 1px solid rgba(255, 215, 0, 0.12);
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 10px;
+  color: rgba(255, 215, 0, 0.5);
+  text-align: center;
+}
+
+/* ══════════════════════════════════════════════════
+   NPC Interaction Panel — Blacksmith Forge
+   ══════════════════════════════════════════════════ */
+
+.npc-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 92vw;
+  max-width: 400px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: linear-gradient(135deg, #1A1208 0%, #0F0A04 100%);
+  border: 2px solid rgba(245, 158, 11, 0.4);
+  border-radius: 14px;
+  padding: 0;
+  z-index: 100;
+  box-shadow: 0 0 40px rgba(245, 158, 11, 0.12), 0 8px 32px rgba(0, 0, 0, 0.6);
+  animation: realm-dialogue-enter 0.25s ease;
+}
+
+.npc-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.15);
+}
+
+.npc-panel-header h2 {
+  margin: 0;
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: bold;
+  color: #F59E0B;
+  letter-spacing: 0.5px;
+}
+
+.npc-panel-badge {
+  font-family: monospace;
+  font-size: 10px;
+  color: rgba(245, 158, 11, 0.6);
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.15);
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+
+.npc-panel-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+.npc-panel-close:active {
+  color: #FF6B6B;
+}
+
+.npc-panel-body {
+  padding: 14px 16px 16px;
+}
+
+.npc-panel-narration {
+  font-family: monospace;
+  font-size: 12px;
+  font-style: italic;
+  color: #C8A97A;
+  line-height: 1.6;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  background: rgba(245, 158, 11, 0.05);
+  border-left: 2px solid rgba(245, 158, 11, 0.25);
+  border-radius: 0 6px 6px 0;
+}
+
+.npc-panel-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.forge-button {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.08) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 8px;
+  color: #F59E0B;
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+}
+.forge-button:active {
+  background: rgba(245, 158, 11, 0.25);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.2);
+}
+.forge-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.forge-button--secondary {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #C8D6E5;
+  font-weight: normal;
+}
+.forge-button--secondary:active {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+.forge-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 8px;
+  color: #E8D5B5;
+  font-family: monospace;
+  font-size: 14px;
+  padding: 10px 12px;
+  outline: none;
+  box-sizing: border-box;
+}
+.forge-input:focus {
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.1);
+}
+.forge-input::placeholder {
+  color: rgba(200, 169, 122, 0.4);
+}
+
+.forge-objective-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: monospace;
+  font-size: 12px;
+  color: #C8D6E5;
+}
+.forge-objective-card:active {
+  background: rgba(245, 158, 11, 0.1);
+}
+.forge-objective-card--selected {
+  border-color: rgba(245, 158, 11, 0.5);
+  background: rgba(245, 158, 11, 0.1);
+  color: #F59E0B;
+}
+
+.forge-duration-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.forge-duration-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-family: monospace;
+  font-size: 11px;
+  color: #8BA4BE;
+  text-align: center;
+  transition: all 0.15s;
+}
+.forge-duration-btn:active {
+  background: rgba(245, 158, 11, 0.1);
+}
+.forge-duration-btn--selected {
+  border-color: rgba(245, 158, 11, 0.5);
+  background: rgba(245, 158, 11, 0.1);
+  color: #F59E0B;
+}
+
+.forge-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.forge-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #F59E0B, #FBBF24);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.forge-xp-badge {
+  display: inline-block;
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: bold;
+  color: #FBBF24;
+  animation: forge-glow 1.5s ease-in-out infinite alternate;
+}
+
+.forge-summary {
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.15);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  font-family: monospace;
+  font-size: 12px;
+  color: #C8A97A;
+  line-height: 1.6;
+}
+
+.forge-suggestion-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.forge-suggestion-card span {
+  font-family: monospace;
+  font-size: 12px;
+  color: #C8D6E5;
+  flex: 1;
+}
+
+@keyframes forge-glow {
+  0% { box-shadow: 0 0 4px rgba(245, 158, 11, 0.2); }
+  100% { box-shadow: 0 0 16px rgba(245, 158, 11, 0.4); }
+}
+
+@keyframes forge-sparks {
+  0% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.3), inset 0 0 8px rgba(245, 158, 11, 0.1); }
+  50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.5), inset 0 0 16px rgba(245, 158, 11, 0.2); }
+  100% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.3), inset 0 0 8px rgba(245, 158, 11, 0.1); }
+}
+
+.forge-forging-anim {
+  text-align: center;
+  padding: 24px 0;
+  animation: forge-sparks 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+.forge-forging-anim p {
+  font-family: monospace;
+  font-size: 14px;
+  color: #F59E0B;
+  margin: 8px 0 0;
+}
+
+.forge-goal-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+.forge-goal-card-title {
+  font-family: monospace;
+  font-size: 12px;
+  color: #C8D6E5;
+  margin-bottom: 4px;
+}
+
+/* ── Healer Theme (green/teal) ── */
+
+.healer-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.healer-stat-card {
+  background: rgba(34, 197, 94, 0.06);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.healer-stat-icon {
+  font-size: 18px;
+}
+.healer-stat-value {
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: #22C55E;
+}
+.healer-stat-label {
+  font-family: monospace;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.45);
+}
+.healer-acting-anim {
+  text-align: center;
+  padding: 24px 0;
+  animation: forge-sparks 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+.healer-acting-anim p {
+  font-family: monospace;
+  font-size: 14px;
+  color: #22C55E;
+  margin: 8px 0 0;
+}
+
+/* ── Scholar Theme (purple) ── */
+
+.scholar-section-label {
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #A855F7;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.scholar-habit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(168, 85, 247, 0.06);
+  border: 1px solid rgba(168, 85, 247, 0.12);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  font-family: monospace;
+  font-size: 12px;
+  color: #C8D6E5;
+}
+.scholar-streak {
+  font-size: 11px;
+  color: #A855F7;
+  font-weight: 600;
+}
+.scholar-progress-text {
+  font-family: monospace;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 2px;
+  text-align: right;
+}
+.scholar-week-summary {
+  background: rgba(168, 85, 247, 0.06);
+  border: 1px solid rgba(168, 85, 247, 0.12);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-family: monospace;
+  font-size: 11px;
+  color: #C8A97A;
+}
+.scholar-acting-anim {
+  text-align: center;
+  padding: 24px 0;
+  animation: forge-sparks 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+.scholar-acting-anim p {
+  font-family: monospace;
+  font-size: 14px;
+  color: #A855F7;
+  margin: 8px 0 0;
+}

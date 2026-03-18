@@ -1,0 +1,194 @@
+/* ═══════════════════════════════════════════════════
+   IntegrationCard Component Styles
+   ═══════════════════════════════════════════════════ */
+
+.integration-card {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.integration-card:hover:not(.coming-soon) {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.integration-card.connected {
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.integration-card.coming-soon {
+  opacity: 0.5;
+}
+
+.integration-card-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+}
+
+.integration-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.integration-card-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.integration-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.integration-card-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.integration-card-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.integration-card-status.connected {
+  color: #22C55E;
+}
+
+.integration-card-status.disconnected {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.integration-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.integration-card-status.connected .integration-status-dot {
+  background: #22C55E;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+}
+
+.integration-card-status.disconnected .integration-status-dot {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.integration-card-desc {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.4;
+}
+
+.integration-card-actions {
+  flex-shrink: 0;
+}
+
+/* Buttons */
+.integration-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.integration-btn.primary {
+  background: rgba(0, 212, 255, 0.12);
+  border-color: rgba(0, 212, 255, 0.3);
+  color: #00D4FF;
+}
+
+.integration-btn.primary:hover {
+  background: rgba(0, 212, 255, 0.2);
+}
+
+.integration-btn.secondary {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.integration-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.integration-btn.danger {
+  background: rgba(244, 63, 94, 0.08);
+  border-color: rgba(244, 63, 94, 0.2);
+  color: #F43F5E;
+}
+
+.integration-btn.danger:hover {
+  background: rgba(244, 63, 94, 0.15);
+}
+
+.integration-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.integration-coming-soon-badge {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+}
+
+/* Settings panel */
+.integration-card-settings {
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .integration-card-main {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .integration-card-actions {
+    width: 100%;
+  }
+
+  .integration-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -1,0 +1,95 @@
+.inbox-page { max-width: 800px; }
+.ibx-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.ibx-title { font-family: var(--font-display); font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.ibx-title svg { color: var(--text-muted); }
+.ibx-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+/* Capture */
+.ibx-capture { display: flex; gap: 8px; margin-bottom: 20px; }
+.ibx-capture-input { flex: 1; padding: 14px 18px; background: rgba(255,255,255,0.03); border: 1px solid rgba(26,58,92,0.3); border-radius: 12px; color: var(--text-primary); font-family: var(--font-body); font-size: 15px; outline: none; transition: border-color 0.15s; }
+.ibx-capture-input:focus { border-color: rgba(0,212,255,0.4); }
+.ibx-capture-input::placeholder { color: var(--text-muted); }
+.ibx-capture-btn { width: 48px; height: 48px; border-radius: 12px; border: none; background: var(--cyan); color: var(--dark-deep); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
+.ibx-capture-btn:hover { background: #33DDFF; }
+.ibx-capture-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Error */
+.ibx-error { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: rgba(244,63,94,0.08); border: 1px solid rgba(244,63,94,0.2); border-radius: 8px; color: #F43F5E; font-size: 13px; margin-bottom: 12px; }
+
+/* Empty */
+.ibx-empty { text-align: center; padding: 60px 20px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.ibx-empty svg { opacity: 0.3; }
+.ibx-empty-hint { font-size: 12px; opacity: 0.6; }
+
+/* List */
+.ibx-list { display: flex; flex-direction: column; gap: 4px; }
+.ibx-item { background: rgba(255,255,255,0.02); border: 1px solid rgba(26,58,92,0.15); border-radius: 10px; overflow: hidden; transition: all 0.15s; }
+.ibx-item:hover { border-color: rgba(26,58,92,0.3); }
+.ibx-item.done { opacity: 0.6; }
+.ibx-item-main { display: flex; align-items: center; gap: 10px; padding: 12px 14px; }
+
+/* Priority button */
+.ibx-priority-btn { display: flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; border: 1px solid color-mix(in srgb, var(--pri-color) 30%, transparent); background: color-mix(in srgb, var(--pri-color) 6%, transparent); color: var(--pri-color); font-size: 10px; font-weight: 600; font-family: var(--font-body); cursor: pointer; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+.ibx-priority-btn:hover { background: color-mix(in srgb, var(--pri-color) 12%, transparent); }
+
+.ibx-item-content { flex: 1; min-width: 0; }
+.ibx-item-text { display: block; font-size: 14px; }
+.ibx-item-time { display: block; font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.ibx-item-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.ibx-process-btn { display: flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(0,212,255,0.15); background: rgba(0,212,255,0.06); color: var(--cyan); font-size: 11px; font-weight: 500; font-family: var(--font-body); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.ibx-process-btn:hover { background: rgba(0,212,255,0.12); }
+.ibx-delete-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 6px; border-radius: 4px; opacity: 0; transition: all 0.15s; }
+.ibx-item:hover .ibx-delete-btn { opacity: 1; }
+.ibx-delete-btn:hover { color: var(--rose); }
+
+/* Done check */
+.ibx-done-check { width: 24px; height: 24px; border-radius: 50%; background: rgba(57,255,20,0.1); color: #39FF14; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+/* Process dropdown */
+.ibx-process-dropdown { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-top: 1px solid rgba(26,58,92,0.1); background: rgba(0,0,0,0.1); }
+.ibx-process-label { font-size: 11px; color: var(--text-muted); }
+.ibx-process-target { padding: 5px 14px; border-radius: 6px; border: none; font-size: 11px; font-weight: 500; font-family: var(--font-body); cursor: pointer; transition: all 0.15s; }
+.ibx-process-target.task { background: rgba(0,212,255,0.1); color: #00D4FF; }
+.ibx-process-target.goal { background: rgba(168,85,247,0.1); color: #A855F7; }
+.ibx-process-target.note { background: rgba(249,115,22,0.1); color: #F97316; }
+.ibx-process-target.event { background: rgba(57,255,20,0.1); color: #39FF14; }
+.ibx-process-target:hover { filter: brightness(1.3); }
+
+/* Processed section */
+.ibx-processed-section { margin-top: 24px; }
+.ibx-processed-toggle { display: flex; align-items: center; gap: 6px; background: none; border: none; color: var(--text-muted); font-family: var(--font-body); font-size: 13px; font-weight: 500; cursor: pointer; padding: 8px 0; margin-bottom: 8px; }
+.ibx-processed-toggle:hover { color: var(--text-secondary); }
+.ibx-list.processed { opacity: 0.7; }
+
+@media (max-width: 768px) {
+  .ibx-title { font-size: 18px; gap: 8px; }
+  .ibx-sub { font-size: 12px; }
+  .ibx-header { flex-direction: column; gap: 8px; }
+  .ibx-capture { gap: 6px; }
+  .ibx-capture-input { padding: 12px 14px; font-size: 14px; border-radius: 10px; }
+  .ibx-capture-btn { width: 48px; height: 48px; min-width: 48px; }
+  .ibx-item-main { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+  .ibx-item-text { font-size: 13px; }
+  .ibx-item-time { font-size: 10px; }
+  .ibx-item-actions { width: 100%; justify-content: flex-end; }
+  .ibx-process-btn { min-height: 36px; font-size: 12px; }
+  .ibx-delete-btn { opacity: 1; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+  .ibx-priority-btn { min-height: 32px; font-size: 10px; }
+  .ibx-process-dropdown { flex-wrap: wrap; gap: 6px; padding: 8px 12px; }
+  .ibx-process-target { min-height: 36px; padding: 6px 12px; font-size: 12px; }
+  .ibx-processed-toggle { font-size: 12px; }
+  .ibx-empty { padding: 40px 16px; }
+}
+
+@media (max-width: 480px) {
+  .ibx-title { font-size: 16px; }
+  .ibx-capture-input { padding: 10px 12px; font-size: 13px; }
+  .ibx-item-main { padding: 8px 10px; }
+  .ibx-item-text { font-size: 12px; }
+  .ibx-process-dropdown { padding: 6px 10px; }
+  .ibx-process-target { font-size: 11px; padding: 5px 10px; }
+}
+
+.spin { animation: spin 0.8s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

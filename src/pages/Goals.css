@@ -1,0 +1,1036 @@
+/* ================================================================
+   Goals Page — Polished Hierarchy Tree
+   ================================================================ */
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes progressFill { from { width: 0; } }
+
+.spin { animation: spin 0.8s linear infinite; }
+
+/* ── Header ── */
+.goals-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.goals-header-actions { display: flex; align-items: center; gap: 10px; }
+.goals-title { font-family: var(--font-display); font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.goals-title svg { color: var(--text-muted); }
+.goals-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+/* ── View Toggle ── */
+.goals-view-toggle { display: flex; background: rgba(255,255,255,0.03); border: 1px solid rgba(26,58,92,0.3); border-radius: var(--radius-base); overflow: hidden; }
+.goals-view-btn { background: none; border: none; color: var(--text-muted); padding: 8px 12px; cursor: pointer; transition: all var(--transition-fast); display: flex; align-items: center; }
+.goals-view-btn.active { background: rgba(0,212,255,0.1); color: var(--cyan); }
+.goals-view-btn:hover:not(.active) { color: var(--text-secondary); }
+
+/* ── AI Plan Button ── */
+.goals-ai-plan-btn { display: flex; align-items: center; gap: 5px; padding: 10px 14px; background: linear-gradient(135deg, rgba(0,212,255,0.12), rgba(57,255,20,0.08)); border: 1px solid rgba(0,212,255,0.2); border-radius: var(--radius-md); color: #00D4FF; font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--transition-fast); white-space: nowrap; }
+.goals-ai-plan-btn:hover { background: linear-gradient(135deg, rgba(0,212,255,0.18), rgba(57,255,20,0.12)); box-shadow: 0 0 12px rgba(0,212,255,0.15); transform: translateY(-1px); }
+
+/* ── Add Dropdown ── */
+.goals-add-dropdown { position: relative; }
+.goals-add-btn { display: flex; align-items: center; gap: 6px; padding: 10px 18px; background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.15); border-radius: var(--radius-md); color: var(--cyan); font-family: var(--font-body); font-size: 13px; font-weight: 500; cursor: pointer; transition: all var(--transition-fast); }
+.goals-add-btn:hover { background: rgba(0,212,255,0.14); }
+.goals-add-menu { position: absolute; top: 100%; right: 0; margin-top: 6px; background: var(--dark-surface); border: var(--border-default); border-radius: var(--radius-md); padding: 6px; z-index: 50; min-width: 200px; box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+.goals-add-menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 14px; background: none; border: none; color: var(--text-primary); font-family: var(--font-body); font-size: 13px; border-radius: var(--radius-base); cursor: pointer; transition: all var(--transition-fast); text-align: left; }
+.goals-add-menu button:hover { background: rgba(0,212,255,0.08); }
+.goals-add-menu button svg { color: var(--cyan); flex-shrink: 0; }
+.add-menu-hint { margin-left: auto; font-size: 10px; color: var(--text-muted); }
+
+/* ── Create Form ── */
+.goals-form { background: rgba(255,255,255,0.02); border: 1px solid rgba(0,212,255,0.1); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 24px; backdrop-filter: blur(12px); }
+.goals-form-type-badge { display: inline-block; padding: 4px 10px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+.goals-form-type-badge[data-cat="objective"] { background: rgba(0,212,255,0.1); color: var(--cyan); }
+.goals-form-type-badge[data-cat="epic"] { background: rgba(168,85,247,0.1); color: #A855F7; }
+.goals-form-type-badge[data-cat="goal"] { background: rgba(57,255,20,0.08); color: var(--neon); }
+.goals-form-type-badge span { opacity: 0.7; font-weight: 400; }
+.goals-form-input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(26,58,92,0.3); border-radius: var(--radius-base); color: var(--text-primary); font-family: var(--font-body); font-size: 15px; outline: none; margin-bottom: 16px; }
+.goals-form-input:focus { border-color: rgba(0,212,255,0.4); }
+.goals-form-input::placeholder { color: var(--text-muted); }
+.goals-form-row { display: flex; gap: 20px; margin-bottom: 16px; flex-wrap: wrap; }
+.goals-form-group label { display: block; font-size: 11px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.goals-icon-grid { display: flex; gap: 4px; flex-wrap: wrap; }
+.goals-icon-btn { width: 32px; height: 32px; border-radius: var(--radius-base); border: 1px solid rgba(26,58,92,0.2); background: none; font-size: 16px; cursor: pointer; transition: all var(--transition-fast); display: flex; align-items: center; justify-content: center; }
+.goals-icon-btn.active { border-color: var(--cyan); background: rgba(0,212,255,0.08); }
+.goals-icon-btn:hover { border-color: rgba(0,212,255,0.3); background: rgba(0,212,255,0.04); }
+.goals-color-grid { display: flex; gap: 6px; flex-wrap: wrap; }
+.goals-color-btn { width: 24px; height: 24px; border-radius: var(--radius-full); border: 2px solid transparent; cursor: pointer; transition: all var(--transition-fast); }
+.goals-color-btn.active { border-color: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.2); transform: scale(1.15); }
+.goals-color-btn:hover { transform: scale(1.1); }
+.goals-form-date { padding: 6px 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(26,58,92,0.3); border-radius: var(--radius-sm); color: var(--text-primary); font-family: var(--font-body); font-size: 13px; outline: none; }
+.goals-form-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.goals-form-cancel { padding: 8px 16px; border-radius: var(--radius-base); border: 1px solid rgba(26,58,92,0.3); background: none; color: var(--text-muted); font-size: 12px; font-family: var(--font-body); cursor: pointer; }
+.goals-form-save { padding: 8px 20px; border-radius: var(--radius-base); border: none; background: var(--cyan); color: var(--dark-deep); font-size: 12px; font-weight: 600; font-family: var(--font-body); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all var(--transition-fast); }
+.goals-form-save:disabled { opacity: 0.4; cursor: not-allowed; }
+.goals-form-select { width: 100%; padding: 8px 12px; background: rgba(255,255,255,0.04); border: var(--border-default); border-radius: var(--radius-base); color: #fff; font-size: 12px; font-family: var(--font-body); appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; cursor: pointer; }
+.goals-form-select:focus { outline: none; border-color: rgba(0,212,255,0.4); }
+.goals-form-select option { background: #0d1520; color: #fff; }
+.goals-form-select:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ── Filter Bars ── */
+.goals-filter-bar { display: flex; gap: 6px; margin-bottom: 16px; padding: 4px; background: rgba(255,255,255,0.02); border: 1px solid rgba(26,58,92,0.15); border-radius: var(--radius-lg); flex-wrap: wrap; }
+.goals-filter-btn { display: flex; align-items: center; gap: 6px; padding: 8px 14px; background: none; border: none; border-radius: var(--radius-base); color: var(--text-muted); font-family: var(--font-body); font-size: 12px; font-weight: 500; cursor: pointer; transition: all var(--transition-fast); }
+.goals-filter-btn:hover { background: rgba(255,255,255,0.04); color: var(--text-secondary); }
+.goals-filter-btn.active { background: rgba(0,212,255,0.1); color: var(--text-primary); }
+.goals-filter-btn.active.cat-objective { background: rgba(0,212,255,0.1); color: var(--cyan); }
+.goals-filter-btn.active.cat-epic { background: rgba(168,85,247,0.1); color: #A855F7; }
+.goals-filter-btn.active.cat-goal { background: rgba(57,255,20,0.08); color: var(--neon); }
+.goals-filter-btn.time-filter { font-size: 11px !important; padding: 4px 10px !important; }
+.goals-filter-btn.time-filter.active { background: rgba(168,85,247,0.12); color: #A855F7; }
+.goals-filter-icon { font-size: 13px; }
+.goals-filter-count { font-size: 10px; opacity: 0.5; padding: 1px 6px; background: rgba(255,255,255,0.06); border-radius: var(--radius-md); }
+
+/* ── Financial Bar ── */
+.goals-financial-bar { display: flex; gap: 16px; flex-wrap: wrap; padding: 10px 14px; background: rgba(255,255,255,0.02); border: 1px solid rgba(26,58,92,0.15); border-radius: var(--radius-md); margin-bottom: 12px; }
+.gfb-item { font-size: 12px; color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: 4px; }
+.gfb-item strong { color: #fff; }
+
+/* ── Empty State ── */
+.goals-empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--text-muted);
+  background: linear-gradient(135deg, rgba(0,212,255,0.02), rgba(168,85,247,0.02));
+  border: 2px dashed rgba(255,255,255,0.06);
+  border-radius: var(--radius-xl);
+  margin: 20px 0;
+}
+.goals-empty-icon {
+  margin-bottom: 20px;
+  opacity: 0.15;
+  animation: emptyFloat 3s ease-in-out infinite;
+}
+@keyframes emptyFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+.goals-empty h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+.goals-empty-hint {
+  font-size: 13px;
+  opacity: 0.5;
+  max-width: 360px;
+  margin: 0 auto 20px;
+  line-height: 1.5;
+}
+.goals-empty-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 24px;
+  background: rgba(0,212,255,0.1);
+  border: 1px solid rgba(0,212,255,0.25);
+  border-radius: var(--radius-lg);
+  color: var(--cyan);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.goals-empty-btn:hover {
+  background: rgba(0,212,255,0.18);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,212,255,0.1);
+}
+
+/* ── Goals List Container ── */
+.goals-list { display: flex; flex-direction: column; gap: 4px; }
+
+/* ================================================================
+   GOAL TREE (gt-*) — Collapsible Hierarchy
+   ================================================================ */
+
+.gt-tree-view {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ── Node Wrapper ── */
+.gt-node-wrap {
+  position: relative;
+  animation: fadeUp 0.3s ease-out both;
+}
+.gt-node-wrap:nth-child(1) { animation-delay: 0.02s; }
+.gt-node-wrap:nth-child(2) { animation-delay: 0.05s; }
+.gt-node-wrap:nth-child(3) { animation-delay: 0.08s; }
+.gt-node-wrap:nth-child(4) { animation-delay: 0.11s; }
+.gt-node-wrap:nth-child(5) { animation-delay: 0.14s; }
+.gt-node-wrap:nth-child(n+6) { animation-delay: 0.16s; }
+
+/* ── Tree Connector Lines ── */
+.gt-connectors {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.gt-vline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(255,255,255,0.06);
+}
+.gt-vline.active {
+  background: linear-gradient(to bottom, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+}
+
+.gt-hline {
+  position: absolute;
+  height: 1px;
+  background: rgba(255,255,255,0.08);
+}
+
+.gt-elbow {
+  position: absolute;
+  width: 14px;
+  height: 24px;
+  border-left: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom-left-radius: 6px;
+}
+.gt-elbow.last {
+  height: 24px;
+}
+
+/* ── Card ── */
+.gt-card {
+  position: relative;
+  background: rgba(17,24,39,0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all var(--transition-default);
+  margin-bottom: 2px;
+}
+
+/* Glass card with subtle gradient based on progress */
+.gt-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--level-color) 3%, transparent),
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 0;
+  transition: background var(--transition-default);
+}
+
+/* Progress gradient overlay */
+.gt-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: var(--progress-pct);
+  height: 2px;
+  background: linear-gradient(90deg, var(--level-color), color-mix(in srgb, var(--level-color) 60%, #39FF14));
+  border-radius: 0 1px 1px 0;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+}
+
+.gt-card:hover {
+  border-color: color-mix(in srgb, var(--level-color) 20%, transparent);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.15), 0 0 12px color-mix(in srgb, var(--level-color) 5%, transparent);
+  transform: translateY(-1px);
+}
+
+.gt-card.expanded {
+  border-color: color-mix(in srgb, var(--level-color) 30%, transparent);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2), 0 0 20px color-mix(in srgb, var(--level-color) 8%, transparent);
+}
+
+/* Category-specific left accent + hierarchy styling */
+.gt-card.cat-objective {
+  border-left: 5px solid var(--g-color, var(--cyan));
+  background: linear-gradient(135deg, rgba(10, 14, 26, 0.95), rgba(0, 212, 255, 0.06));
+  font-size: 1.05em;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--g-color, var(--cyan)) 6%, transparent);
+}
+.gt-card.cat-objective .gt-card-inner {
+  padding: 14px 18px;
+}
+.gt-card.cat-objective .gt-title {
+  font-weight: 700;
+}
+.gt-card.cat-epic {
+  border-left: 3px solid #FACC15;
+}
+.gt-card.cat-goal {
+  border-left: 2px solid var(--neon);
+}
+
+/* Objective summary stat line */
+.gt-obj-summary {
+  font-size: 10px;
+  color: var(--g-color, var(--cyan));
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  opacity: 0.8;
+}
+
+/* Divider between top-level objectives */
+.gt-card.cat-objective + .gt-drop-indicator + .gt-card.cat-objective,
+.gt-card.cat-objective:not(:first-child) {
+  margin-top: 12px;
+}
+.gt-card.cat-objective::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 8px;
+  right: 8px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Card Inner ── */
+.gt-card-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  z-index: 2;
+}
+
+/* ── Status Button ── */
+.gt-status-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px;
+  flex-shrink: 0;
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
+  line-height: 1;
+}
+.gt-status-btn:hover { transform: scale(1.2); }
+.gt-status-btn:active { transform: scale(0.9); }
+
+/* ── Drag Handle ── */
+.gt-drag-handle {
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  flex-shrink: 0;
+  cursor: grab;
+}
+.gt-card:hover .gt-drag-handle { opacity: 0.25; }
+.gt-drag-handle:hover { opacity: 0.6 !important; }
+.gt-card.dragging { opacity: 0.4; transform: scale(0.98); }
+
+/* ── Icon ── */
+.gt-icon-wrap { flex-shrink: 0; }
+.gt-icon { font-size: 24px; display: block; transition: transform var(--transition-fast); }
+
+/* ── Content ── */
+.gt-content { flex: 1; min-width: 0; cursor: pointer; }
+
+.gt-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.gt-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: text;
+  transition: color var(--transition-fast);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  max-width: 100%;
+}
+.gt-title:hover { color: var(--cyan); }
+
+.gt-inline-input {
+  width: 100%;
+  padding: 3px 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(0,212,255,0.3);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+}
+.gt-inline-input:focus { border-color: var(--cyan); box-shadow: 0 0 0 2px rgba(0,212,255,0.1); }
+
+/* ── Category Badge ── */
+.gt-cat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+.gt-cat-badge.cat-objective { background: rgba(0,212,255,0.1); color: var(--cyan); }
+.gt-cat-badge.cat-epic { background: rgba(168,85,247,0.1); color: #A855F7; }
+.gt-cat-badge.cat-goal { background: rgba(57,255,20,0.08); color: var(--neon); }
+
+/* ── Progress Bar with Milestones ── */
+.g-progress-bar {
+  position: relative;
+  background: rgba(255,255,255,0.06);
+  border-radius: var(--radius-xs);
+  overflow: visible;
+  margin-bottom: 6px;
+}
+
+.g-progress-fill {
+  height: 100%;
+  border-radius: var(--radius-xs);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: progressFill 1s ease forwards;
+  position: relative;
+}
+.g-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 30%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2));
+  border-radius: inherit;
+}
+
+/* Milestone markers */
+.g-milestone {
+  position: absolute;
+  top: -2px;
+  width: 2px;
+  height: calc(100% + 4px);
+  background: rgba(255,255,255,0.08);
+  border-radius: 1px;
+  transition: background var(--transition-default), box-shadow var(--transition-default);
+  z-index: 2;
+}
+.g-milestone[data-reached="true"] {
+  background: rgba(255,255,255,0.2);
+  box-shadow: 0 0 4px rgba(255,255,255,0.1);
+}
+
+/* ── Meta Row ── */
+.gt-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.gt-pct {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+}
+.gt-child-count {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.gt-countdown {
+  font-size: 10px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  background: rgba(255,255,255,0.03);
+  border-radius: var(--radius-xs);
+}
+.gt-countdown[data-urgent="true"] {
+  color: var(--accent-rose);
+  background: rgba(244,63,94,0.08);
+  font-weight: 600;
+}
+.gt-priority-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: capitalize;
+  opacity: 0.9;
+}
+
+/* ── Chevron ── */
+.gt-chevron {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform var(--transition-default);
+  cursor: pointer;
+}
+.gt-chevron.rotated {
+  transform: rotate(90deg);
+}
+
+/* ── Quick Action Buttons ── */
+.gt-more-btn,
+.gt-info-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.4;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+.gt-card:hover .gt-more-btn,
+.gt-card:hover .gt-info-btn {
+  opacity: 0.5;
+}
+.gt-more-btn:hover,
+.gt-info-btn:hover {
+  opacity: 1 !important;
+  background: rgba(0,212,255,0.1);
+  color: var(--cyan);
+}
+
+/* Delete button — visible on hover (desktop), always visible (mobile) */
+.gt-delete-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+.gt-card:hover .gt-delete-btn {
+  opacity: 0.5;
+}
+.gt-delete-btn:hover {
+  opacity: 1 !important;
+  background: rgba(244,63,94,0.1);
+  color: var(--accent-rose);
+}
+
+/* ── Swipe Delete Background ── */
+.gt-swipe-bg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 120px;
+  background: linear-gradient(90deg, transparent, rgba(244,63,94,0.3));
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding-right: 16px;
+  color: var(--accent-rose);
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 0;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+
+/* ── Drop Indicator ── */
+.gt-drop-indicator {
+  height: 3px;
+  background: linear-gradient(90deg, var(--cyan), rgba(0,212,255,0.3));
+  border-radius: 2px;
+  margin: 1px 0;
+  animation: slideDown 0.15s ease-out;
+  box-shadow: 0 0 8px rgba(0,212,255,0.3);
+}
+
+/* ── Children Container ── */
+.gt-children {
+  animation: slideDown 0.25s ease-out;
+}
+
+/* ── Add Child Button ── */
+.gt-add-child-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  background: rgba(0,212,255,0.04);
+  border: 1px dashed rgba(0,212,255,0.15);
+  border-radius: var(--radius-base);
+  color: var(--cyan);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.gt-add-child-btn:hover {
+  background: rgba(0,212,255,0.1);
+  border-style: solid;
+  transform: translateY(-1px);
+}
+
+/* ── Tasks Section ── */
+.gt-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 4px;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.015);
+  border-radius: var(--radius-base);
+  border: var(--border-subtle);
+  animation: slideDown 0.2s ease-out;
+}
+
+.gt-tasks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.gt-tasks-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+.gt-add-task-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  background: rgba(245,158,11,0.06);
+  border: 1px solid rgba(245,158,11,0.15);
+  border-radius: var(--radius-sm);
+  color: #F59E0B;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.gt-add-task-btn:hover { background: rgba(245,158,11,0.12); }
+
+.gt-new-task-form {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+  animation: slideDown 0.15s ease-out;
+}
+.gt-new-task-input {
+  flex: 1;
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(26,58,92,0.3);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 12px;
+  outline: none;
+}
+.gt-new-task-input:focus { border-color: rgba(245,158,11,0.3); }
+.gt-new-task-input::placeholder { color: var(--text-muted); }
+.gt-new-task-submit {
+  padding: 6px 10px;
+  background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: var(--radius-sm);
+  color: #F59E0B;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all var(--transition-fast);
+}
+.gt-new-task-submit:hover:not(:disabled) { background: rgba(245,158,11,0.18); }
+.gt-new-task-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Task Rows ── */
+.gt-task-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+  font-size: 13px;
+}
+.gt-task-row:hover { background: rgba(255,255,255,0.03); }
+.gt-task-row.done { opacity: 0.4; }
+.gt-task-row.done .gt-task-title { text-decoration: line-through; }
+
+.gt-task-chk {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+.gt-task-chk:hover { color: #F59E0B; transform: scale(1.15); }
+.gt-task-chk.checked { color: var(--neon); }
+
+.gt-task-title {
+  flex: 1;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gt-task-title:hover { color: var(--cyan); }
+
+.gt-task-priority {
+  font-size: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.gt-task-priority[data-priority="critical"] { background: rgba(244,63,94,0.12); color: var(--accent-rose); }
+.gt-task-priority[data-priority="high"] { background: rgba(249,115,22,0.12); color: #F97316; }
+.gt-task-priority[data-priority="medium"] { background: rgba(0,212,255,0.08); color: var(--cyan); }
+.gt-task-priority[data-priority="low"] { background: rgba(90,122,154,0.12); color: #5A7A9A; }
+
+.gt-task-due {
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.6;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.gt-done-group { margin-top: 2px; }
+.gt-done-toggle {
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.5;
+  cursor: pointer;
+  padding: 3px 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Wide Task Row (task list / preview) ── */
+.gt-task-wide {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(26,58,92,0.12);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+.gt-task-wide:hover { background: rgba(255,255,255,0.04); }
+.gt-task-wide.done { opacity: 0.4; }
+.gt-task-wide.done .gt-task-title { text-decoration: line-through; }
+
+.gt-task-info { flex: 1; min-width: 0; }
+
+.gt-task-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.gt-task-crumb {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 10px;
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: var(--radius-xs);
+  transition: all var(--transition-fast);
+}
+.gt-task-crumb:hover { background: rgba(0,212,255,0.08); color: var(--cyan); }
+.gt-crumb-sep { color: var(--text-muted); opacity: 0.4; font-size: 10px; }
+.gt-task-standalone { font-size: 10px; color: var(--text-muted); opacity: 0.5; }
+
+.gt-task-delete {
+  opacity: 0;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-xs);
+  transition: all var(--transition-fast);
+}
+.gt-task-wide:hover .gt-task-delete { opacity: 0.5; }
+.gt-task-delete:hover { opacity: 1 !important; color: var(--accent-rose); background: rgba(244,63,94,0.08); }
+
+.gt-show-all-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background: none;
+  border: 1px dashed rgba(26,58,92,0.15);
+  border-radius: var(--radius-base);
+  color: var(--cyan);
+  font-family: var(--font-body);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+  margin-top: 8px;
+}
+.gt-show-all-btn:hover { background: rgba(0,212,255,0.04); border-color: rgba(0,212,255,0.2); }
+
+/* ── Section Divider ── */
+.gt-section-divider {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.gt-section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.gt-tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.gt-tasks-list.standalone {
+  margin-top: 0;
+}
+
+/* ── Standalone Tasks Section ── */
+.gt-standalone-section {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(255,255,255,0.015);
+  border-radius: var(--radius-md);
+  border: 1px dashed rgba(255,255,255,0.06);
+}
+.gt-standalone-header {
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.5;
+  font-style: italic;
+  margin-bottom: 8px;
+}
+
+/* ── Context Menu ── */
+.gt-context-menu {
+  position: fixed;
+  z-index: 1000;
+  background: var(--dark-surface);
+  border: var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 6px;
+  min-width: 180px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  animation: slideDown 0.12s ease-out;
+}
+.gt-context-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+.gt-context-menu button:hover { background: rgba(0,212,255,0.08); }
+.gt-context-menu button svg { color: var(--text-muted); flex-shrink: 0; }
+.gt-context-menu button.danger { color: var(--accent-rose); }
+.gt-context-menu button.danger svg { color: var(--accent-rose); }
+.gt-context-menu button.danger:hover { background: rgba(244,63,94,0.08); }
+.gt-context-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin: 4px 8px;
+}
+
+/* ── Highlight Animation ── */
+.gt-card.highlighted {
+  animation: nodeHighlight 3s ease-out;
+}
+@keyframes nodeHighlight {
+  0% { box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.8); }
+  50% { box-shadow: 0 0 20px 3px rgba(0, 212, 255, 0.4); }
+  100% { box-shadow: none; }
+}
+
+/* ── Celebration Animation ── */
+.gt-card.celebrating {
+  animation: goalCelebrate 1.2s ease-out;
+}
+@keyframes goalCelebrate {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(57, 255, 20, 0.7); }
+  15% { transform: scale(1.03); }
+  30% { box-shadow: 0 0 30px 10px rgba(57, 255, 20, 0.4); }
+  50% { transform: scale(0.99); }
+  70% { transform: scale(1.01); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(57, 255, 20, 0); }
+}
+
+/* ================================================================
+/* Tree view compat */
+.goals-list.tree-view { display: flex; flex-direction: column; gap: 6px; }
+/* Task section standalone */
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .goals-title { font-size: 18px; gap: 8px; }
+  .goals-sub { font-size: 12px; }
+  .goals-add-btn { padding: 10px 14px; font-size: 12px; min-height: 44px; }
+  .goals-form { padding: 14px; border-radius: var(--radius-lg); }
+  .goals-form-input { font-size: 14px; padding: 12px; }
+  .goals-form-row { flex-direction: column; gap: 12px; }
+  .goals-form-group label { font-size: 10px; }
+  .goals-icon-btn { width: 36px; height: 36px; }
+  .goals-color-btn { width: 28px; height: 28px; }
+  .goals-form-date { min-height: 44px; width: 100%; font-size: 14px; }
+  .goals-form-actions { width: 100%; }
+  .goals-form-cancel,
+  .goals-form-save { min-height: 44px; flex: 1; justify-content: center; font-size: 13px; }
+
+  /* New tree cards */
+  .gt-card.cat-objective .gt-card-inner { padding: 12px 14px; }
+  .gt-card-inner { padding: 10px 12px; gap: 8px; }
+  .gt-icon { font-size: 20px; }
+  .gt-title { font-size: 13px; }
+  .gt-meta { gap: 6px; }
+  .gt-pct { font-size: 10px; }
+  .gt-child-count { font-size: 9px; }
+  .gt-drag-handle { display: none; }
+  .gt-status-btn { font-size: 14px; }
+  .gt-more-btn { opacity: 0.4; }
+  .gt-info-btn { opacity: 0.4; }
+  .gt-delete-btn { opacity: 0.4; }
+  .gt-context-menu { max-width: calc(100vw - 24px); }
+  .gt-new-task-form { flex-direction: column; gap: 8px; }
+  .gt-new-task-input { font-size: 13px; min-height: 44px; }
+  .gt-new-task-submit { min-height: 44px; justify-content: center; }
+
+  /* Legacy */
+  .goals-empty { padding: 40px 16px; }
+}
+
+@media (max-width: 480px) {
+  .goals-title { font-size: 16px; }
+  .gt-card-inner { padding: 8px 10px; gap: 6px; }
+  .gt-icon { font-size: 18px; }
+  .gt-title { font-size: 12px; }
+  .gt-cat-badge { display: none; }
+  .gt-meta { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .gt-more-btn { opacity: 0.4; }
+
+  .gt-card { max-width: 100%; overflow: hidden; }
+
+  .goals-form { padding: 10px; }
+  .goals-form-input { font-size: 13px; padding: 10px; }
+}
+
+/* Accountability Partner Tabs */
+.goals-partner-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-lg);
+  width: fit-content;
+}
+
+.goals-partner-tab {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-base);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.goals-partner-tab:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.goals-partner-tab.active {
+  background: linear-gradient(135deg, #00D4FF, #0099FF);
+  color: #0A2540;
+}
+
+.goals-partner-select {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  color: #A855F7;
+  padding: 6px 10px;
+  border-radius: var(--radius-base);
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.goals-partner-select:hover {
+  background: rgba(168, 85, 247, 0.2);
+}
+
+.goals-partner-select:focus {
+  outline: none;
+  border-color: #A855F7;
+}
+
+/* ── Desktop ── */
+@media (min-width: 1024px) {
+  .goals-list { max-width: 900px; margin: 0 auto; }
+  .goals-header { max-width: 900px; margin: 0 auto; }
+  .goals-form { max-width: 900px; margin-left: auto; margin-right: auto; }
+  .gt-card-inner { padding: 16px 20px; }
+}

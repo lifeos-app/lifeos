@@ -1,0 +1,231 @@
+.agent-nudge-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  animation: slideDown 0.4s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.agent-nudge {
+  display: flex;
+  gap: 16px;
+  padding: 16px 20px;
+  background: rgba(10, 15, 25, 0.98);
+  backdrop-filter: blur(20px);
+  border-radius: 12px;
+  border-left: 4px solid #00D4FF;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.agent-nudge-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.agent-nudge-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.agent-nudge-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.agent-nudge-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.agent-nudge-dismiss {
+  background: none;
+  border: none;
+  color: #5A7A9A;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.agent-nudge-dismiss:hover {
+  color: #fff;
+}
+
+.agent-nudge-summary {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #E0E0E0;
+}
+
+.agent-nudge-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.agent-nudge-action-btn {
+  padding: 8px 16px;
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid #00D4FF;
+  border-radius: 8px;
+  color: #00D4FF;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.agent-nudge-action-btn:hover {
+  background: rgba(0, 212, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .agent-nudge-bar {
+    padding: 12px;
+    /* Don't overlap content — push it down instead of fixed overlay */
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    z-index: auto;
+  }
+
+  .agent-nudge {
+    padding: 14px 16px;
+  }
+
+  .agent-nudge-icon {
+    font-size: 28px;
+  }
+
+  .agent-nudge-title {
+    font-size: 15px;
+  }
+
+  .agent-nudge-summary {
+    font-size: 13px;
+  }
+
+  .agent-nudge-action-btn {
+    min-height: 44px;
+    padding: 10px 16px;
+  }
+
+  .agent-nudge-dismiss,
+  .agent-nudge-snooze {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Slide-out dismiss animation */
+.agent-nudge-exit {
+  opacity: 0;
+  transform: translateX(100%);
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-bottom: -12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 1, 1);
+  overflow: hidden;
+}
+
+/* Urgent pulse border */
+.agent-nudge-urgent {
+  animation: nudge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes nudge-pulse {
+  0%, 100% { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); }
+  50% { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 12px rgba(244, 63, 94, 0.25); }
+}
+
+/* Snooze button */
+.agent-nudge-snooze {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  opacity: 0.5;
+  transition: opacity 0.2s, transform 0.2s;
+  flex-shrink: 0;
+}
+
+.agent-nudge-snooze:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Ask AI button — subtle but discoverable */
+.agent-nudge-ask-ai {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-color: rgba(0, 212, 255, 0.4) !important;
+  color: rgba(0, 212, 255, 0.8);
+  background: rgba(0, 212, 255, 0.06);
+  font-size: 12px;
+}
+
+.agent-nudge-ask-ai:hover {
+  background: rgba(0, 212, 255, 0.15);
+  color: #00D4FF;
+}
+
+/* Swipe to dismiss (basic visual feedback) */
+.agent-nudge.swiping {
+  opacity: 0.6;
+  transform: translateX(-20px);
+  transition: all 0.2s;
+}

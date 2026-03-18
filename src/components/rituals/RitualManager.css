@@ -1,0 +1,599 @@
+/* ═══════════════════════════════════════════════
+   Rituals Manager — Glass Card Dark Theme
+   ═══════════════════════════════════════════════ */
+
+.rituals-section {
+  margin-bottom: 16px;
+}
+
+/* ── Collapsible Header ── */
+.rituals-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
+  background: rgba(17, 24, 39, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  transition: all 0.2s;
+}
+.rituals-header:hover {
+  background: rgba(17, 24, 39, 0.65);
+  border-color: rgba(0, 212, 255, 0.12);
+}
+
+.rituals-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rituals-header-left h3 {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+.rituals-header-left .rituals-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.rituals-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rituals-toggle-icon {
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+.rituals-toggle-icon.expanded {
+  transform: rotate(180deg);
+}
+
+/* ── Body (collapsible) ── */
+.rituals-body {
+  margin-top: 8px;
+  animation: ritualsFadeIn 0.2s ease;
+}
+@keyframes ritualsFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Toolbar ── */
+.rituals-toolbar {
+  display: flex; 
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.rituals-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(26, 58, 92, 0.3);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.rituals-btn:hover {
+  background: rgba(0, 212, 255, 0.08);
+  border-color: rgba(0, 212, 255, 0.2);
+  color: var(--cyan);
+}
+.rituals-btn.primary {
+  background: rgba(0, 212, 255, 0.08);
+  border-color: rgba(0, 212, 255, 0.15);
+  color: var(--cyan);
+}
+.rituals-btn.primary:hover {
+  background: rgba(0, 212, 255, 0.14);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+.rituals-btn.sync {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.15);
+  color: #22C55E;
+}
+.rituals-btn.sync:hover {
+  background: rgba(34, 197, 94, 0.14);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+.rituals-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Ritual List ── */
+.rituals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rituals-empty {
+  text-align: center;
+  padding: 24px 16px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.rituals-empty p {
+  margin: 4px 0;
+}
+
+/* ── Ritual Card ── */
+.ritual-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(26, 58, 92, 0.2);
+  border-left: 3px solid var(--ritual-color, #64748B);
+  border-radius: 10px;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+.ritual-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  border-left-color: var(--ritual-color, #64748B);
+}
+.ritual-card.disabled {
+  opacity: 0.45;
+}
+
+.ritual-emoji {
+  font-size: 22px;
+  flex-shrink: 0;
+  width: 32px;
+  text-align: center;
+}
+
+.ritual-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ritual-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ritual-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ritual-time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Day dots */
+.ritual-days {
+  display: flex;
+  gap: 3px;
+}
+.ritual-day-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(26, 58, 92, 0.15);
+  transition: all 0.15s;
+}
+.ritual-day-dot.active {
+  background: color-mix(in srgb, var(--ritual-color, var(--cyan)) 20%, transparent);
+  border-color: color-mix(in srgb, var(--ritual-color, var(--cyan)) 40%, transparent);
+  color: var(--ritual-color, var(--cyan));
+}
+
+/* Toggle switch */
+.ritual-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ritual-toggle {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(26, 58, 92, 0.3);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ritual-toggle.on {
+  background: rgba(0, 212, 255, 0.2);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+.ritual-toggle-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: all 0.2s;
+}
+.ritual-toggle.on .ritual-toggle-knob {
+  left: 18px;
+  background: var(--cyan);
+}
+
+.ritual-delete-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: all 0.15s;
+  opacity: 0;
+}
+.ritual-card:hover .ritual-delete-btn {
+  opacity: 1;
+}
+.ritual-delete-btn:hover {
+  color: #F43F5E;
+  background: rgba(244, 63, 94, 0.1);
+}
+
+/* ── Presets Grid ── */
+.rituals-presets {
+  margin-bottom: 16px;
+}
+.rituals-presets-title {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.rituals-presets-grid {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.preset-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px dashed rgba(26, 58, 92, 0.3);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.preset-chip:hover {
+  background: rgba(0, 212, 255, 0.06);
+  border-color: rgba(0, 212, 255, 0.2);
+  border-style: solid;
+  color: var(--cyan);
+}
+
+/* ── Form ── */
+.ritual-form {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(0, 212, 255, 0.1);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 12px;
+  animation: ritualsFadeIn 0.2s ease;
+}
+
+.ritual-form-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+
+.ritual-form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.ritual-form-group {
+  flex: 1;
+  min-width: 140px;
+}
+.ritual-form-group label {
+  display: block;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.ritual-form-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(26, 58, 92, 0.3);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.ritual-form-input:focus {
+  border-color: rgba(0, 212, 255, 0.4);
+}
+.ritual-form-input::placeholder {
+  color: var(--text-muted);
+}
+
+.ritual-form-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(26, 58, 92, 0.3);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 12px;
+  outline: none;
+  resize: vertical;
+  min-height: 48px;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.ritual-form-textarea:focus {
+  border-color: rgba(0, 212, 255, 0.4);
+}
+
+/* Emoji picker */
+.emoji-picker {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.emoji-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(26, 58, 92, 0.2);
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.emoji-btn:hover {
+  background: rgba(0, 212, 255, 0.08);
+  border-color: rgba(0, 212, 255, 0.2);
+}
+.emoji-btn.selected {
+  background: rgba(0, 212, 255, 0.12);
+  border-color: rgba(0, 212, 255, 0.3);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.15);
+}
+
+/* Type pills */
+.type-pills {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.type-pill {
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(26, 58, 92, 0.3);
+  background: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.type-pill.active {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: rgba(0, 212, 255, 0.08);
+}
+
+/* Day toggles */
+.day-toggles {
+  display: flex;
+  gap: 4px;
+}
+.day-toggle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(26, 58, 92, 0.3);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.day-toggle:hover {
+  background: rgba(0, 212, 255, 0.06);
+}
+.day-toggle.active {
+  background: rgba(0, 212, 255, 0.15);
+  border-color: rgba(0, 212, 255, 0.35);
+  color: var(--cyan);
+}
+
+/* Time inputs */
+.time-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.time-input-group span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* Weekend override toggle */
+.weekend-override-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.weekend-override-toggle label {
+  font-size: 12px !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  color: var(--text-secondary) !important;
+  cursor: pointer;
+}
+.weekend-override-toggle input[type="checkbox"] {
+  accent-color: var(--cyan);
+}
+
+/* Form actions */
+.ritual-form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+.ritual-form-cancel {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(26, 58, 92, 0.3);
+  background: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ritual-form-cancel:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.ritual-form-save {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: none;
+  background: var(--cyan);
+  color: var(--dark-deep);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ritual-form-save:hover:not(:disabled) {
+  box-shadow: 0 4px 16px rgba(0, 212, 255, 0.25);
+}
+.ritual-form-save:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Sync result toast ── */
+.rituals-sync-result {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+  color: #22C55E;
+  font-size: 12px;
+  margin-bottom: 12px;
+  animation: ritualsFadeIn 0.2s ease;
+}
+
+/* ── Mobile Responsive ── */
+@media (max-width: 600px) {
+  .ritual-form-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .ritual-form-group {
+    min-width: 0;
+  }
+  .rituals-toolbar {
+    flex-direction: column;
+  }
+  .ritual-card {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  .ritual-emoji {
+    font-size: 18px;
+    width: 26px;
+  }
+  .ritual-days {
+    display: none;
+  }
+  .rituals-presets-grid {
+    gap: 4px;
+  }
+  .preset-chip {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+  .day-toggle {
+    width: 28px;
+    height: 28px;
+    font-size: 10px;
+  }
+  .ritual-delete-btn {
+    opacity: 1;
+  }
+}

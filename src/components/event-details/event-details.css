@@ -1,0 +1,784 @@
+/* ═══════════════════════════════════════════════════════════
+   EVENT DETAIL — Context-Aware Styles
+   Each event type gets its own accent color & themed UI
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Glass Card Sections ── */
+.ed-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.ed-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.ed-card-header svg {
+  opacity: 0.7;
+}
+
+/* ── Event Type Badge ── */
+.ed-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* ── Progress Bar (shared) ── */
+.ed-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ed-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* ── Timer Display (shared) ── */
+.ed-timer-display {
+  font-size: 48px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.ed-timer-label {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 6px;
+}
+
+/* ── Timer Controls ── */
+.ed-timer-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.ed-timer-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ed-timer-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.ed-timer-btn.primary {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.ed-timer-btn.stop {
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #EF4444;
+}
+
+.ed-timer-btn.stop:hover {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+/* ── Action Button (shared) ── */
+.ed-action-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 12px;
+}
+
+.ed-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ed-action-btn.success {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22C55E;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.ed-action-btn.success:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.25);
+}
+
+/* ══════════════════════════════════════════════════
+   WORKOUT DETAIL — Green Accents
+   ══════════════════════════════════════════════════ */
+
+.ed-workout .ed-card { border-color: rgba(34, 197, 94, 0.12); }
+.ed-workout .ed-progress-fill { background: #22C55E; }
+.ed-workout .ed-timer-btn.primary {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #22C55E;
+}
+
+/* Exercise Checklist */
+.ed-exercise-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ed-exercise-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.ed-exercise-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ed-exercise-item.completed {
+  opacity: 0.5;
+}
+
+.ed-exercise-item.completed .ed-exercise-name {
+  text-decoration: line-through;
+}
+
+.ed-exercise-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid rgba(34, 197, 94, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.ed-exercise-item.completed .ed-exercise-check {
+  background: #22C55E;
+  border-color: #22C55E;
+  color: #000;
+}
+
+.ed-exercise-name {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.ed-exercise-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Rest Timer */
+.ed-rest-timer {
+  text-align: center;
+  padding: 16px;
+  background: rgba(34, 197, 94, 0.06);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.ed-rest-timer .ed-timer-display {
+  font-size: 36px;
+  color: #22C55E;
+}
+
+.ed-rest-options {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ed-rest-option {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ed-rest-option.active {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #22C55E;
+}
+
+/* Workout Stats */
+.ed-workout-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.ed-stat-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+}
+
+.ed-stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.ed-stat-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+
+/* ══════════════════════════════════════════════════
+   MEAL DETAIL — Orange Accents
+   ══════════════════════════════════════════════════ */
+
+.ed-meal .ed-card { border-color: rgba(249, 115, 22, 0.12); }
+
+.ed-meal-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(249, 115, 22, 0.12);
+  color: #F97316;
+  margin-bottom: 10px;
+}
+
+/* Macro Bars */
+.ed-macros {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ed-macro-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ed-macro-label {
+  font-size: 12px;
+  font-weight: 600;
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.ed-macro-label.protein { color: #F97316; }
+.ed-macro-label.carbs { color: #EAB308; }
+.ed-macro-label.fat { color: #3B82F6; }
+
+.ed-macro-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ed-macro-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.ed-macro-bar-fill.protein { background: #F97316; }
+.ed-macro-bar-fill.carbs { background: #EAB308; }
+.ed-macro-bar-fill.fat { background: #3B82F6; }
+
+.ed-macro-value {
+  font-size: 12px;
+  color: var(--text-secondary);
+  width: 40px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Calorie Display */
+.ed-calories {
+  text-align: center;
+  padding: 12px;
+}
+
+.ed-calories-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #F97316;
+}
+
+.ed-calories-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Ingredient List */
+.ed-ingredients {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ed-ingredient {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.ed-ingredient-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #F97316;
+  flex-shrink: 0;
+}
+
+.ed-meal .ed-action-btn {
+  background: rgba(249, 115, 22, 0.15);
+  color: #F97316;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.ed-meal .ed-action-btn:hover:not(:disabled) {
+  background: rgba(249, 115, 22, 0.25);
+}
+
+
+/* ══════════════════════════════════════════════════
+   SLEEP DETAIL — Indigo Accents
+   ══════════════════════════════════════════════════ */
+
+.ed-sleep .ed-card { border-color: rgba(129, 140, 248, 0.12); }
+.ed-sleep .ed-progress-fill { background: #818CF8; }
+
+/* Star Rating */
+.ed-star-rating {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 0;
+}
+
+.ed-star {
+  font-size: 28px;
+  cursor: pointer;
+  transition: transform 0.15s;
+  opacity: 0.3;
+  filter: grayscale(1);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.ed-star.active {
+  opacity: 1;
+  filter: none;
+  transform: scale(1.1);
+}
+
+.ed-star:hover {
+  transform: scale(1.2);
+}
+
+/* Sleep Times */
+.ed-sleep-times {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.ed-sleep-time-card {
+  background: rgba(129, 140, 248, 0.06);
+  border: 1px solid rgba(129, 140, 248, 0.12);
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+}
+
+.ed-sleep-time-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #818CF8;
+}
+
+.ed-sleep-time-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+.ed-sleep-duration {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 8px 0;
+}
+
+.ed-sleep-duration strong {
+  color: #818CF8;
+}
+
+.ed-sleep .ed-action-btn {
+  background: rgba(129, 140, 248, 0.15);
+  color: #818CF8;
+  border: 1px solid rgba(129, 140, 248, 0.3);
+}
+
+.ed-sleep .ed-action-btn:hover:not(:disabled) {
+  background: rgba(129, 140, 248, 0.25);
+}
+
+/* Actual vs Target comparison */
+.ed-sleep-compare {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.ed-sleep-compare .good { color: #22C55E; }
+.ed-sleep-compare .warn { color: #EAB308; }
+
+
+/* ══════════════════════════════════════════════════
+   MEDITATION DETAIL — Purple / Gold Accents
+   ══════════════════════════════════════════════════ */
+
+.ed-meditation .ed-card { border-color: rgba(212, 175, 55, 0.12); }
+
+/* Breathing Circle */
+.ed-breathing-circle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px 0;
+}
+
+.ed-breathing-ring {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 3px solid rgba(212, 175, 55, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.ed-breathing-inner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, 0.2);
+  transition: all 4s ease-in-out;
+}
+
+.ed-breathing-inner.expand {
+  width: 90px;
+  height: 90px;
+  background: rgba(212, 175, 55, 0.35);
+}
+
+.ed-breathing-label {
+  position: absolute;
+  bottom: -24px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Meditation Timer */
+.ed-meditation .ed-timer-display {
+  color: #D4AF37;
+}
+
+.ed-meditation .ed-timer-btn.primary {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: rgba(212, 175, 55, 0.3);
+  color: #D4AF37;
+}
+
+.ed-meditation .ed-timer-btn.primary:hover {
+  background: rgba(212, 175, 55, 0.25);
+}
+
+.ed-session-counter {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 8px 0 4px;
+}
+
+.ed-session-counter strong {
+  color: #D4AF37;
+}
+
+.ed-meditation .ed-action-btn {
+  background: rgba(212, 175, 55, 0.15);
+  color: #D4AF37;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.ed-meditation .ed-action-btn:hover:not(:disabled) {
+  background: rgba(212, 175, 55, 0.25);
+}
+
+
+/* ══════════════════════════════════════════════════
+   STUDY DETAIL — Purple Accents
+   ══════════════════════════════════════════════════ */
+
+.ed-study .ed-card { border-color: rgba(168, 85, 247, 0.12); }
+
+.ed-study .ed-timer-display {
+  color: #A855F7;
+}
+
+.ed-study .ed-timer-btn.primary {
+  background: rgba(168, 85, 247, 0.15);
+  border-color: rgba(168, 85, 247, 0.3);
+  color: #A855F7;
+}
+
+.ed-study .ed-timer-btn.primary:hover {
+  background: rgba(168, 85, 247, 0.25);
+}
+
+/* Pomodoro Phase Indicator */
+.ed-pomodoro-phase {
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.ed-pomodoro-phase.work {
+  background: rgba(168, 85, 247, 0.1);
+  color: #A855F7;
+}
+
+.ed-pomodoro-phase.break {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22C55E;
+}
+
+/* Pomodoro Config */
+.ed-pomodoro-config {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.ed-pomodoro-setting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.ed-pomodoro-setting label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ed-pomodoro-setting input {
+  width: 48px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 4px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+/* Focus Mode Indicator */
+.ed-focus-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  font-size: 12px;
+  color: #A855F7;
+}
+
+.ed-focus-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #A855F7;
+  animation: ed-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ed-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+/* Study Notes */
+.ed-study-notes textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+.ed-study-notes .ed-auto-save {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: 4px;
+}
+
+.ed-study .ed-action-btn {
+  background: rgba(168, 85, 247, 0.15);
+  color: #A855F7;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.ed-study .ed-action-btn:hover:not(:disabled) {
+  background: rgba(168, 85, 247, 0.25);
+}
+
+/* Session counter for study */
+.ed-study .ed-session-counter strong {
+  color: #A855F7;
+}
+
+
+/* ══════════════════════════════════════════════════
+   GENERIC DETAIL — Neutral Accents
+   ══════════════════════════════════════════════════ */
+
+.ed-generic .ed-card { border-color: rgba(100, 116, 139, 0.12); }
+
+.ed-generic .ed-action-btn {
+  background: rgba(0, 212, 255, 0.15);
+  color: var(--cyan);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+}
+
+
+/* ══════════════════════════════════════════════════
+   OVERLAY EXTENSIONS — Activity tab morphs
+   ══════════════════════════════════════════════════ */
+
+.eo-meal-activity,
+.eo-sleep-activity,
+.eo-meditation-activity,
+.eo-study-activity {
+  padding: 16px;
+}
+
+.eo-meal-activity .ed-macros { margin-bottom: 16px; }
+.eo-meal-activity .ed-calories { margin-bottom: 12px; }
+
+.eo-sleep-activity .ed-star-rating { margin-bottom: 16px; }
+
+.eo-meditation-activity .ed-breathing-circle { margin-bottom: 8px; }
+
+.eo-study-activity .ed-pomodoro-phase { margin-bottom: 8px; }
+
+
+/* ══════════════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════════════ */
+
+@media (max-width: 500px) {
+  .ed-timer-display { font-size: 40px; }
+  .ed-calories-value { font-size: 28px; }
+  .ed-sleep-time-value { font-size: 18px; }
+  .ed-breathing-ring { width: 100px; height: 100px; }
+  .ed-breathing-inner { width: 35px; height: 35px; }
+  .ed-breathing-inner.expand { width: 75px; height: 75px; }
+  .ed-workout-stats { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .ed-stat-value { font-size: 16px; }
+  .ed-star { font-size: 24px; }
+}

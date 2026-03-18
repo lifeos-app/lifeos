@@ -1,0 +1,161 @@
+/* ── Install Prompt ── */
+.install-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(0, 212, 255, 0.08);
+  border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+  font-size: 13px;
+  z-index: 500;
+  animation: ip-slideDown 0.3s ease;
+}
+
+.install-prompt-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.install-prompt-icon {
+  color: #00D4FF;
+  flex-shrink: 0;
+}
+
+.install-prompt-text {
+  color: #B0C8E0;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.install-prompt-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.install-prompt-btn {
+  padding: 5px 14px;
+  background: rgba(0, 212, 255, 0.15);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 6px;
+  color: #00D4FF;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  min-height: 28px;
+  touch-action: manipulation;
+}
+
+.install-prompt-btn:hover {
+  background: rgba(0, 212, 255, 0.25);
+}
+
+.install-prompt-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.install-prompt-dismiss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  color: #5A7A9A;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 0.2s, background 0.2s;
+  touch-action: manipulation;
+}
+
+.install-prompt-dismiss:hover {
+  color: #8BA4BE;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ── iOS Guide ── */
+.install-prompt-ios-guide {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 20px 20px 16px;
+  gap: 12px;
+  position: relative;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.06), rgba(0, 122, 255, 0.06));
+  border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+.install-guide-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+}
+
+.install-guide-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #00D4FF;
+  margin-bottom: 4px;
+}
+
+.install-guide-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.install-guide-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.install-guide-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 212, 255, 0.15);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  color: #00D4FF;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.install-guide-step-text {
+  color: #B0C8E0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.install-guide-step-text strong {
+  color: #E0F0FF;
+}
+
+.install-guide-footer {
+  font-size: 11px;
+  color: #5A7A9A;
+  text-align: center;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@keyframes ip-slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

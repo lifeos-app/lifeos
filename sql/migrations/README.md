@@ -1,0 +1,1 @@
+-- Migration log. Each file is numbered sequentially.

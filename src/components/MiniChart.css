@@ -1,0 +1,55 @@
+/* ── MiniChart ── */
+.mini-chart-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.mini-chart-title {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.mini-chart-container {
+  position: relative;
+  width: 100%;
+}
+
+.mini-chart-svg {
+  display: block;
+}
+
+.mini-chart-bar {
+  transition: opacity 0.15s, filter 0.15s;
+  cursor: pointer;
+}
+
+.mini-chart-labels {
+  display: flex;
+  padding-left: 4px;
+  margin-top: 4px;
+}
+
+.mini-chart-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-align: center;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+
+.mini-chart-label.active {
+  color: var(--text-primary);
+}
+
+.mini-chart-tooltip {
+  display: none;
+}
+
+.mini-chart-tooltip-text {
+  pointer-events: none;
+}

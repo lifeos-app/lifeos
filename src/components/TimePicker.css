@@ -1,0 +1,213 @@
+/* ═══ TimePicker ═══ */
+.tp-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.tp-label {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  font-family: var(--font-body);
+}
+
+/* Trigger button */
+.tp-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(26, 58, 92, 0.3);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 150px;
+}
+
+.tp-trigger:hover {
+  border-color: rgba(0, 212, 255, 0.3);
+  background: rgba(0, 212, 255, 0.04);
+}
+
+.tp-trigger:focus {
+  outline: none;
+  border-color: rgba(0, 212, 255, 0.5);
+  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.1);
+}
+
+.tp-trigger-icon {
+  color: var(--cyan);
+  flex-shrink: 0;
+}
+
+.tp-trigger-text {
+  letter-spacing: 1px;
+}
+
+/* Dropdown */
+.tp-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 1000;
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.5),
+    0 0 1px rgba(0, 212, 255, 0.15);
+  animation: tpFadeIn 0.2s ease;
+}
+
+@keyframes tpFadeIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.tp-columns {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Scroll column */
+.tp-scroll-col {
+  position: relative;
+  width: 56px;
+  height: 120px; /* 3 items visible */
+  overflow: hidden;
+}
+
+/* Center highlight band */
+.tp-scroll-highlight {
+  position: absolute;
+  top: 40px;
+  left: 2px;
+  right: 2px;
+  height: 40px;
+  background: rgba(0, 212, 255, 0.06);
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.tp-scroll-list {
+  height: 100%;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.tp-scroll-list::-webkit-scrollbar {
+  display: none;
+}
+
+.tp-scroll-pad {
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.tp-scroll-item {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  scroll-snap-align: start;
+  border-radius: 6px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.tp-scroll-item:hover {
+  color: var(--text-secondary);
+}
+
+.tp-scroll-item.active {
+  color: var(--cyan);
+  font-weight: 700;
+  text-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+}
+
+/* Separator colon */
+.tp-separator {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--cyan);
+  font-weight: 700;
+  padding: 0 2px;
+  opacity: 0.7;
+  align-self: center;
+}
+
+/* AM/PM column */
+.tp-ampm-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-left: 10px;
+}
+
+.tp-ampm-btn {
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(26, 58, 92, 0.3);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tp-ampm-btn:hover {
+  color: var(--text-secondary);
+  border-color: rgba(0, 212, 255, 0.2);
+}
+
+.tp-ampm-btn.active {
+  color: var(--cyan);
+  background: rgba(0, 212, 255, 0.1);
+  border-color: rgba(0, 212, 255, 0.3);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.1);
+}
+
+/* Done button */
+.tp-done-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 8px;
+  background: rgba(0, 212, 255, 0.08);
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 8px;
+  color: var(--cyan);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tp-done-btn:hover {
+  background: rgba(0, 212, 255, 0.15);
+  border-color: rgba(0, 212, 255, 0.3);
+  box-shadow: 0 2px 12px rgba(0, 212, 255, 0.15);
+}

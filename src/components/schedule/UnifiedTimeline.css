@@ -1,0 +1,679 @@
+/* ═══════════════════════════════════════════════════════════
+   UnifiedTimeline — Day timeline for unified events
+   ═══════════════════════════════════════════════════════════ */
+
+.ut-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Loading ── */
+.ut-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 48px 0;
+  color: var(--text-secondary, #94a3b8);
+  font-size: 13px;
+}
+
+/* ── Summary bar ── */
+.ut-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.03);
+  border-radius: var(--radius-md);
+  border: var(--border-subtle);
+}
+
+.ut-summary-count {
+  font-size: 12px;
+  color: var(--text-secondary, #94a3b8);
+  font-weight: 500;
+}
+
+.ut-type-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ut-type-chip {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--chip-color, #64748B) 15%, transparent);
+  color: var(--chip-color, #94a3b8);
+  white-space: nowrap;
+}
+
+/* ── Controls ── */
+.ut-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+.ut-controls-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ut-ctrl-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: var(--border-default);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-secondary, #94a3b8);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.ut-ctrl-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--text, #e2e8f0);
+}
+
+.ut-ctrl-btn.active {
+  background: rgba(0,212,255,0.1);
+  border-color: rgba(0,212,255,0.3);
+  color: var(--cyan, #00D4FF);
+}
+
+.ut-ctrl-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.ut-hint {
+  font-size: 10px;
+  color: var(--amber, #F59E0B);
+  padding-left: 4px;
+}
+
+.ut-zoom {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ut-zoom-label {
+  font-size: 10px;
+  color: var(--text-secondary, #94a3b8);
+  min-width: 32px;
+  text-align: center;
+}
+
+/* ── Add Event Form ── */
+.ut-add-form {
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ut-add-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ut-add-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text, #e2e8f0);
+  margin: 0;
+}
+
+.ut-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary, #94a3b8);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.ut-close:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.ut-input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius-base);
+  border: var(--border-strong);
+  background: rgba(255,255,255,0.05);
+  color: var(--text, #e2e8f0);
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.ut-input:focus {
+  border-color: rgba(0,212,255,0.4);
+}
+
+.ut-input.small {
+  font-size: 12px;
+  padding: 6px 8px;
+}
+
+.ut-type-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ut-type-btn {
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: var(--border-default);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-secondary, #94a3b8);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.ut-type-btn:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.ut-type-btn.active {
+  background: color-mix(in srgb, var(--type-color, #64748B) 20%, transparent);
+  border-color: var(--type-color, #64748B);
+  color: var(--type-color, #e2e8f0);
+}
+
+.ut-form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.ut-form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ut-form-group label {
+  font-size: 11px;
+  color: var(--text-secondary, #94a3b8);
+  font-weight: 500;
+}
+
+.ut-dur-pills {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.ut-dur-pill {
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  border: var(--border-default);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-secondary, #94a3b8);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.ut-dur-pill.active {
+  background: rgba(0,212,255,0.15);
+  border-color: rgba(0,212,255,0.4);
+  color: var(--cyan, #00D4FF);
+}
+
+.ut-form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.ut-cancel {
+  padding: 6px 14px;
+  border-radius: var(--radius-base);
+  border: var(--border-strong);
+  background: transparent;
+  color: var(--text-secondary, #94a3b8);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ut-save {
+  padding: 6px 18px;
+  border-radius: var(--radius-base);
+  border: none;
+  background: var(--cyan, #00D4FF);
+  color: #000;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: opacity var(--transition-fast);
+}
+
+.ut-save:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Empty state ── */
+.ut-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 0;
+  color: var(--text-secondary, #94a3b8);
+  font-size: 13px;
+}
+
+.ut-empty-add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-base);
+  border: 1px dashed rgba(0,212,255,0.3);
+  background: rgba(0,212,255,0.06);
+  color: var(--cyan, #00D4FF);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.ut-empty-add:hover {
+  background: rgba(0,212,255,0.12);
+}
+
+/* ── Timeline ── */
+.ut-timeline {
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 300px);
+  max-height: calc(100dvh - 300px);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Hour rows ── */
+.ut-hour {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+  border-bottom: var(--border-subtle);
+  contain: layout style;
+}
+
+.ut-hour.past {
+  opacity: 0.5;
+}
+
+.ut-hour-label {
+  width: 52px;
+  min-width: 52px;
+  padding: 2px 8px 0 0;
+  text-align: right;
+  font-size: 10px;
+  color: var(--text-secondary, #64748b);
+  font-variant-numeric: tabular-nums;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.ut-hour-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin-top: 6px;
+}
+
+.ut-hour-add {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  border: 1px dashed rgba(255,255,255,0.15);
+  background: transparent;
+  color: var(--text-secondary, #64748b);
+  font-size: 10px;
+  cursor: pointer;
+  margin-top: 0;
+  margin-left: 4px;
+  transition: all var(--transition-fast);
+}
+
+.ut-hour:hover .ut-hour-add {
+  display: flex;
+}
+
+.ut-hour-add:hover {
+  border-color: var(--cyan, #00D4FF);
+  color: var(--cyan, #00D4FF);
+  background: rgba(0,212,255,0.1);
+}
+
+/* ── Now indicator ── */
+.ut-now {
+  position: absolute;
+  left: 48px;
+  right: 0;
+  z-index: 20;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.ut-now-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: #EF4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+  margin-left: -4px;
+}
+
+.ut-now-line {
+  flex: 1;
+  height: 2px;
+  background: #EF4444;
+  opacity: 0.6;
+}
+
+/* ── Event blocks ── */
+.ut-event {
+  position: absolute;
+  border-radius: var(--radius-base);
+  padding: 4px 8px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+  z-index: 10;
+  border-left: 3px solid var(--ev-color, #64748B);
+  background: color-mix(in srgb, var(--ev-color, #64748B) 12%, rgba(15, 23, 42, 0.95));
+  contain: layout style;
+  will-change: transform;
+}
+
+.ut-event:hover {
+  background: color-mix(in srgb, var(--ev-color, #64748B) 20%, rgba(15, 23, 42, 0.95));
+  z-index: 15;
+  transform: scale(1.01);
+}
+
+.ut-event.expanded {
+  z-index: 25;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  overflow: visible;
+}
+
+.ut-event-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ut-event-icon {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.ut-event-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text, #e2e8f0);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.ut-event-time {
+  font-size: 9px;
+  color: var(--text-secondary, #94a3b8);
+  margin-top: 1px;
+}
+
+/* ── Expanded details ── */
+.ut-event-details {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: var(--border-default);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ut-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+}
+
+.ut-detail-label {
+  color: var(--text-secondary, #94a3b8);
+  font-weight: 500;
+}
+
+.ut-detail-type {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--chip-color, #64748B) 15%, transparent);
+  color: var(--chip-color, #e2e8f0);
+  font-size: 11px;
+}
+
+.ut-detail-notes {
+  margin-top: 4px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.03);
+  font-size: 11px;
+}
+
+.ut-delete-btn {
+  margin-top: 8px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.ut-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+/* ── Prayer Markers ── */
+.ut-prayer-marker {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border-left: 2px dashed;
+  font-size: 11px;
+  opacity: 0.7;
+  z-index: 1;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: opacity 0.2s, background 0.2s;
+  border-radius: 0 4px 4px 0;
+}
+
+.ut-prayer-marker:hover {
+  opacity: 1;
+}
+
+.ut-prayer-marker.completed {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+.ut-prayer-icon {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.ut-prayer-name {
+  font-weight: 600;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ut-prayer-native {
+  font-weight: 400;
+  opacity: 0.7;
+  font-size: 10px;
+}
+
+.ut-prayer-time {
+  font-size: 10px;
+  color: var(--text-secondary, #94a3b8);
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.ut-prayer-check {
+  color: #39FF14;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* ── Fasting Overlay ── */
+.ut-fasting-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(245, 158, 11, 0.04),
+    rgba(245, 158, 11, 0.04) 2px,
+    transparent 2px,
+    transparent 8px
+  );
+  border-left: 3px solid rgba(245, 158, 11, 0.3);
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 4px;
+}
+
+.ut-fasting-label {
+  position: absolute;
+  top: 4px;
+  left: 8px;
+  font-size: 10px;
+  color: rgba(245, 158, 11, 0.6);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 16px);
+}
+
+.ut-fasting-boundary {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(245, 158, 11, 0.3);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.ut-fasting-time-label {
+  position: absolute;
+  right: 8px;
+  font-size: 9px;
+  color: rgba(245, 158, 11, 0.5);
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Dynamic fasting color support (tradition-specific) */
+.ut-fasting-overlay[data-tradition="islam"] {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(5, 150, 105, 0.04),
+    rgba(5, 150, 105, 0.04) 2px,
+    transparent 2px,
+    transparent 8px
+  );
+  border-left-color: rgba(5, 150, 105, 0.3);
+}
+
+.ut-fasting-overlay[data-tradition="islam"] + .ut-fasting-label,
+.ut-fasting-overlay[data-tradition="islam"] ~ .ut-fasting-time-label {
+  color: rgba(5, 150, 105, 0.6);
+}
+
+.ut-fasting-overlay[data-tradition="hinduism"] {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(225, 29, 72, 0.04),
+    rgba(225, 29, 72, 0.04) 2px,
+    transparent 2px,
+    transparent 8px
+  );
+  border-left-color: rgba(225, 29, 72, 0.3);
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .ut-type-selector {
+    gap: 3px;
+  }
+  .ut-type-btn {
+    font-size: 10px;
+    padding: 3px 7px;
+  }
+  .ut-controls {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}

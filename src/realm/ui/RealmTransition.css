@@ -1,0 +1,189 @@
+/* ═══════════════════════════════════════════════════
+   Realm Transition Animations
+   ═══════════════════════════════════════════════════ */
+
+.realm-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #0D0D2B;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* ── Particles ────────────────────────────────── */
+
+.realm-transition-particles {
+  position: absolute;
+  inset: 0;
+}
+
+.realm-transition-particle {
+  position: absolute;
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: 500;
+  color: #FFD700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* Enter: particles fade in → float → converge */
+.realm-transition--enter .realm-transition-particle {
+  animation: realm-particle-enter 1.2s ease-out forwards;
+}
+
+@keyframes realm-particle-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+  }
+  15% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) translateY(-5px);
+  }
+  85% {
+    opacity: 0.7;
+    transform: scale(0.6) translate(calc(50vw - 50%), calc(50vh - 50%));
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.2) translate(calc(50vw - 50%), calc(50vh - 50%));
+  }
+}
+
+/* Exit: particles burst out from center */
+.realm-transition--exit .realm-transition-particle {
+  left: 50% !important;
+  top: 50% !important;
+  animation: realm-particle-exit 0.8s ease-out forwards;
+}
+
+@keyframes realm-particle-exit {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(
+      calc(var(--exit-x, 0) * 1vw - 50%),
+      calc(var(--exit-y, 0) * 1vh - 50%)
+    ) scale(0.8);
+  }
+}
+
+.realm-transition--exit .realm-transition-particle:nth-child(1) { --exit-x: -40; --exit-y: -30; }
+.realm-transition--exit .realm-transition-particle:nth-child(2) { --exit-x: 40; --exit-y: -35; }
+.realm-transition--exit .realm-transition-particle:nth-child(3) { --exit-x: -45; --exit-y: 30; }
+.realm-transition--exit .realm-transition-particle:nth-child(4) { --exit-x: 35; --exit-y: 35; }
+.realm-transition--exit .realm-transition-particle:nth-child(5) { --exit-x: 0; --exit-y: -40; }
+.realm-transition--exit .realm-transition-particle:nth-child(6) { --exit-x: -30; --exit-y: 0; }
+.realm-transition--exit .realm-transition-particle:nth-child(7) { --exit-x: 30; --exit-y: 10; }
+.realm-transition--exit .realm-transition-particle:nth-child(8) { --exit-x: -10; --exit-y: 35; }
+.realm-transition--exit .realm-transition-particle:nth-child(9) { --exit-x: 20; --exit-y: -25; }
+.realm-transition--exit .realm-transition-particle:nth-child(10) { --exit-x: -35; --exit-y: -15; }
+
+/* ── Portal (Enter Only) ──────────────────────── */
+
+.realm-transition-portal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  animation: realm-portal-grow 0.6s ease-out forwards;
+}
+
+@keyframes realm-portal-grow {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.realm-transition-portal-ring {
+  position: absolute;
+  inset: 0;
+  border: 3px solid rgba(100, 200, 255, 0.6);
+  border-radius: 50%;
+  animation: realm-portal-spin 2s linear infinite;
+}
+
+@keyframes realm-portal-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.realm-transition-portal-core {
+  position: absolute;
+  inset: 20%;
+  background: radial-gradient(circle, rgba(100, 200, 255, 0.8) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: realm-portal-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes realm-portal-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* ── Fade Overlay ─────────────────────────────── */
+
+.realm-transition-fade {
+  position: absolute;
+  inset: 0;
+  background: #0D0D2B;
+}
+
+.realm-transition-fade--enter {
+  animation: realm-fade-out 0.6s ease-out forwards;
+}
+
+.realm-transition-fade--exit {
+  animation: realm-fade-in 0.6s ease-out forwards;
+}
+
+@keyframes realm-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes realm-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* ── Mobile Adjustments ───────────────────────── */
+
+@media (max-width: 600px) {
+  .realm-transition-particle {
+    font-size: 11px;
+  }
+
+  .realm-transition-portal {
+    width: 140px;
+    height: 140px;
+  }
+}

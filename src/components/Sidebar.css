@@ -1,0 +1,440 @@
+/* ══════════════════════════════════════════════════
+   Sidebar — Premium Navigation Panel
+   ══════════════════════════════════════════════════ */
+
+.sidebar {
+  width: 240px;
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.97) 0%, rgba(10, 14, 26, 0.99) 100%);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0;
+  flex-shrink: 0;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+  z-index: 50;
+}
+
+/* Gradient edge glow on right side */
+.sidebar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg,
+    rgba(0, 212, 255, 0.15) 0%,
+    rgba(139, 92, 246, 0.1) 50%,
+    rgba(57, 255, 20, 0.05) 100%
+  );
+  pointer-events: none;
+}
+
+/* collapsed width is scoped to desktop — see @media (min-width: 769px) */
+
+/* ── Top Section ── */
+.sb-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px 16px;
+  min-height: 48px;
+}
+
+.sb-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sb-logo-icon {
+  color: var(--accent-cyan, #00D4FF);
+  filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.5));
+  transition: filter 0.3s ease;
+}
+
+.sb-logo:hover .sb-logo-icon {
+  filter: drop-shadow(0 0 16px rgba(0, 212, 255, 0.7));
+}
+
+.sb-brand {
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-weight: 700;
+  font-size: 16px;
+  background: linear-gradient(135deg, #00D4FF 0%, #00FFFF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 2px;
+  white-space: nowrap;
+}
+
+.sb-collapse {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text-muted, #6B7280);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.sb-collapse:hover {
+  background: rgba(0, 212, 255, 0.1);
+  border-color: rgba(0, 212, 255, 0.2);
+  color: var(--accent-cyan, #00D4FF);
+}
+
+/* collapsed .sb-collapse scoped to desktop — see @media (min-width: 769px) */
+
+/* ── AI Command Hint ── */
+.sb-ai-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 12px 16px;
+  padding: 9px 12px;
+  background: rgba(0, 212, 255, 0.04);
+  border: 1px dashed rgba(0, 212, 255, 0.12);
+  border-radius: 10px;
+  color: var(--text-muted, #6B7280);
+  font-family: var(--font-body, 'Poppins', sans-serif);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.25s;
+  white-space: nowrap;
+}
+
+.sb-ai-hint:hover {
+  background: rgba(0, 212, 255, 0.08);
+  border-color: rgba(0, 212, 255, 0.25);
+  color: var(--text-secondary, #9CA3AF);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.05);
+}
+
+.sb-ai-hint kbd {
+  margin-left: auto;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  font-family: var(--font-body, 'Poppins', sans-serif);
+  font-size: 10px;
+  color: var(--text-muted, #6B7280);
+}
+
+.sb-ai-hint svg { color: var(--accent-cyan, #00D4FF); flex-shrink: 0; }
+
+/* ── Navigation ── */
+.sb-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px;
+}
+
+.sb-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  min-height: 44px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text-secondary, #9CA3AF);
+  font-size: 13px;
+  font-weight: 500;
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Hover background glow effect */
+.sb-link::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  opacity: 0;
+  transition: opacity 0.25s;
+  background: linear-gradient(135deg, rgba(255,255,255,0.03), transparent);
+  pointer-events: none;
+}
+
+.sb-link:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary, #F9FAFB);
+  text-decoration: none;
+  transform: translateX(2px);
+}
+
+.sb-link:hover::before { opacity: 1; }
+
+.sb-link.active {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary, #F9FAFB);
+}
+
+/* Active glow left border */
+.sb-link.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 24px;
+  border-radius: 0 3px 3px 0;
+  background: var(--link-color, #00D4FF);
+  box-shadow: 0 0 10px var(--link-color, rgba(0, 212, 255, 0.4));
+}
+
+.sb-icon-wrap {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted, #6B7280);
+  transition: all 0.25s;
+  flex-shrink: 0;
+}
+
+.sb-link:hover .sb-icon-wrap,
+.sb-link.active .sb-icon-wrap {
+  background: color-mix(in srgb, var(--link-color) 12%, transparent);
+  color: var(--link-color);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--link-color) 20%, transparent);
+}
+
+.sb-label { transition: opacity 0.2s; }
+/* collapsed .sb-label / .sb-link scoped to desktop — see @media (min-width: 769px) */
+
+.sb-active-indicator {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  border-radius: 3px;
+  opacity: 0;
+}
+
+/* ── Footer ── */
+.sb-footer {
+  padding: 8px 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  margin-top: 8px;
+}
+
+.sb-upgrade-btn {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px !important;
+  margin: 0 4px 8px !important;
+  background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(0,212,255,0.06)) !important;
+  border: 1px solid rgba(255,215,0,0.15) !important;
+  border-radius: 10px !important;
+  color: #FFD700 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  transition: all 0.25s !important;
+  cursor: pointer;
+}
+
+.sb-upgrade-btn:hover {
+  background: linear-gradient(135deg, rgba(255,215,0,0.14), rgba(0,212,255,0.1)) !important;
+  border-color: rgba(255,215,0,0.3) !important;
+  box-shadow: 0 0 20px rgba(255,215,0,0.08) !important;
+  transform: translateY(-1px);
+}
+
+.sb-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+}
+
+.sb-email {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text-muted, #6B7280);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sb-signout {
+  background: none;
+  border: none;
+  color: var(--text-muted, #6B7280);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.sb-signout:hover {
+  color: var(--accent-rose, #F43F5E);
+  background: rgba(244, 63, 94, 0.1);
+}
+
+/* ── Tutorials & Setup Buttons ── */
+.sb-tutorials-btn,
+.sb-setup-btn {
+  border: none;
+  background: none;
+  width: 100%;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.sb-tutorials-ring {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding-right: 2px;
+}
+
+.sb-tutorials-ring-text {
+  font-size: 6px;
+  font-weight: 700;
+  color: #D4AF37;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+/* Setup-specific ring text color */
+.sb-setup-btn .sb-tutorials-ring-text {
+  color: #00D4FF;
+}
+
+.sb-tutorials-complete {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: #39FF14;
+  flex-shrink: 0;
+}
+
+.sb-feedback-btn {
+  border: none;
+  background: none;
+  width: 100%;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* collapsed .sb-user / .sb-email scoped to desktop — see @media (min-width: 769px) */
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    height: 100dvh;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.5);
+    /* Allow entire sidebar to scroll on very small screens */
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sidebar.mobile-open { transform: translateX(0); }
+  .sidebar.collapsed { width: 240px; }
+  .sb-collapse { display: none; }
+  .sb-ai-hint { display: none; }
+
+  /* Collapsed rules are scoped to desktop @media (min-width: 769px) so
+     mobile sidebar always renders full-width without needing !important overrides */
+
+  /* Nav section scrolls independently — header & footer stay pinned */
+  .sb-nav {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sb-footer {
+    flex-shrink: 0;
+    padding-bottom: env(safe-area-inset-bottom, 8px);
+  }
+}
+
+/* ── Non-mobile: sidebar state driven by JS ── */
+@media (min-width: 769px) {
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    height: 100vh; height: 100dvh;
+    z-index: 50;
+  }
+
+  /* Collapsed = icons only (driven by .collapsed class from JS)
+     THIS is the ONLY place collapsed visibility is defined.
+     All sidebar content is always in the DOM — CSS is the single
+     authority for what's visible when collapsed. */
+  .sidebar.collapsed { width: 64px; }
+  .sidebar.collapsed .sb-collapse { margin: 0 auto; }
+  .sidebar.collapsed .sb-label { display: none; }
+  .sidebar.collapsed .sb-link { justify-content: center; padding: 8px; }
+  .sidebar.collapsed .sb-email { display: none; }
+  .sidebar.collapsed .sb-user { justify-content: center; }
+  .sidebar.collapsed .sb-brand { display: none; }
+  .sidebar.collapsed .sb-ai-hint { display: none; }
+  .sidebar.collapsed .sb-xp-bar { display: none; }
+  .sidebar.collapsed .sb-badge { display: none; }
+  .sidebar.collapsed .sb-section-label { display: none; }
+  .sidebar.collapsed .sb-settings-link { display: none; }
+  .sidebar.collapsed .sb-upgrade-btn { display: none; }
+  .sidebar.collapsed .sb-upgrade-btn span { display: none; }
+  .sidebar.collapsed .sb-tutorials-ring { display: none; }
+  .sidebar.collapsed .sb-tutorials-complete { display: none; }
+  .sidebar.collapsed .sb-tutorials-btn .sb-label,
+  .sidebar.collapsed .sb-setup-btn .sb-label,
+  .sidebar.collapsed .sb-feedback-btn .sb-label { display: none; }
+
+  /* Collapse button always visible on non-mobile */
+  .sb-collapse { display: flex; }
+}
+
+/* ── Very small screens (iPhone 6s, SE — 568px height) ── */
+@media (max-width: 768px) and (max-height: 600px) {
+  .sb-nav {
+    flex: none;
+    overflow: visible;
+  }
+
+  .sb-footer {
+    flex-shrink: initial;
+    position: static;
+  }
+
+  /* Hide bulky footer items to save space */
+  .sb-footer .sb-upgrade-btn,
+  .sb-footer .sb-feedback-btn {
+    display: none !important;
+  }
+}

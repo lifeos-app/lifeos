@@ -1,0 +1,432 @@
+/* Goal Task Generator — AI-powered task creation */
+
+.gtg-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: var(--radius-base);
+  color: #00D4FF;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-default);
+}
+
+.gtg-trigger-btn:hover {
+  background: rgba(0, 212, 255, 0.15);
+  border-color: rgba(0, 212, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+.gtg-trigger-btn:active {
+  transform: translateY(0);
+}
+
+/* Modal */
+.gtg-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  animation: fadeIn 0.2s ease;
+}
+
+.gtg-modal {
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  background: rgba(20, 20, 28, 0.95);
+  border: var(--border-strong);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Header */
+.gtg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: var(--border-subtle);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.gtg-header-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gtg-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-base);
+  background: linear-gradient(135deg, #00D4FF, #A855F7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.gtg-header-text {
+  flex: 1;
+}
+
+.gtg-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.gtg-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 2px 0 0;
+}
+
+.gtg-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-base);
+  background: rgba(255, 255, 255, 0.05);
+  border: var(--border-strong);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-default);
+}
+
+.gtg-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.gtg-close-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Content */
+.gtg-content {
+  padding: 20px;
+  max-height: calc(90vh - 180px);
+  overflow-y: auto;
+}
+
+.gtg-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: #00D4FF;
+}
+
+.gtg-loading p {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.gtg-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* Tasks list */
+.gtg-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gtg-task {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.gtg-task.selected {
+  background: rgba(0, 212, 255, 0.08);
+  border-color: rgba(0, 212, 255, 0.3);
+}
+
+.gtg-task:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.gtg-task.selected:hover {
+  background: rgba(0, 212, 255, 0.12);
+}
+
+.gtg-checkbox {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.6px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  transition: all 0.2s ease;
+  margin-top: 2px;
+}
+
+.gtg-task.selected .gtg-checkbox {
+  background: #00D4FF;
+  border-color: #00D4FF;
+}
+
+.gtg-checkbox:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.gtg-checkbox-empty {
+  width: 12px;
+  height: 12px;
+}
+
+.gtg-task-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.gtg-task-title {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+
+.gtg-edit-input {
+  width: 100%;
+  padding: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  margin-bottom: 6px;
+}
+
+.gtg-edit-input:focus {
+  outline: none;
+  border-color: #00D4FF;
+}
+
+.gtg-task-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gtg-priority-select {
+  padding: 3px 6px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gtg-priority-select:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.gtg-time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.gtg-edit-btn {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.gtg-task:hover .gtg-edit-btn {
+  opacity: 1;
+}
+
+.gtg-edit-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+/* Footer */
+.gtg-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.gtg-regenerate-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 8px;
+  color: #A855F7;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gtg-regenerate-btn:hover {
+  background: rgba(168, 85, 247, 0.15);
+  border-color: rgba(168, 85, 247, 0.5);
+}
+
+.gtg-regenerate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.gtg-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.gtg-cancel-btn,
+.gtg-create-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gtg-cancel-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+}
+
+.gtg-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.gtg-create-btn {
+  background: linear-gradient(135deg, #00D4FF, #00A8CC);
+  border: none;
+  color: white;
+}
+
+.gtg-create-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+}
+
+.gtg-create-btn:active {
+  transform: translateY(0);
+}
+
+.gtg-create-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .gtg-modal {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .gtg-header {
+    padding: 16px;
+  }
+
+  .gtg-content {
+    padding: 16px;
+  }
+
+  .gtg-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .gtg-actions {
+    width: 100%;
+  }
+
+  .gtg-cancel-btn,
+  .gtg-create-btn {
+    flex: 1;
+  }
+}

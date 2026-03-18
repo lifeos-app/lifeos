@@ -1,0 +1,254 @@
+/* ══════════════════════════════════════════════════
+   Reflect Hub — Tab-based layout
+   ══════════════════════════════════════════════════ */
+
+.reflect-hub {
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* ── Icon Tab Grid (matches Health/Character pattern) ── */
+.reflect-icon-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 6px;
+  background: rgba(10,22,40,0.95);
+  border: 1px solid rgba(26,58,92,0.25);
+  border-radius: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+.reflect-icon-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 4px;
+  min-height: 54px;
+  position: relative;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+.reflect-icon-tab:hover {
+  color: rgba(255,255,255,0.75);
+  background: rgba(255,255,255,0.04);
+}
+.reflect-icon-tab svg { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+.reflect-icon-tab:hover svg { transform: scale(1.1); }
+
+.reflect-icon-tab.active {
+  color: var(--tab-color, #EC4899);
+  background: color-mix(in srgb, var(--tab-color) 12%, rgba(15,45,74,0.9));
+  border-color: color-mix(in srgb, var(--tab-color) 30%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--tab-color) 15%, transparent),
+              inset 0 1px 0 color-mix(in srgb, var(--tab-color) 12%, transparent);
+}
+.reflect-icon-tab.active svg {
+  filter: drop-shadow(0 0 4px var(--tab-color));
+  transform: scale(1.05);
+}
+.reflect-icon-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 4px; left: 25%; right: 25%;
+  height: 2px;
+  background: var(--tab-color);
+  border-radius: 2px;
+}
+.reflect-icon-tab-label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* ── Tab Slide Animations ── */
+@keyframes rh-tab-fade-left {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes rh-tab-fade-right {
+  from { opacity: 0; transform: translateX(8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes rh-tab-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.reflect-hub .h-tab-enter { animation: rh-tab-fade-in 0.2s ease-out both; }
+.reflect-hub .h-tab-enter--left { animation: rh-tab-fade-left 0.2s ease-out both; }
+.reflect-hub .h-tab-enter--right { animation: rh-tab-fade-right 0.2s ease-out both; }
+.reflect-hub .h-tab-enter--none { animation: rh-tab-fade-in 0.2s ease-out both; }
+
+/* ── Tab Content ── */
+.rh-tab-content { min-height: 200px; }
+
+/* ── Embedded Sub-page Overrides ── */
+.tab-embedded .page-header,
+.tab-embedded .jnl-back-btn,
+.tab-embedded [class*="back-btn"],
+.tab-embedded [style*="Back to Character"],
+.tab-embedded [style*="Back to Reflect"] { display: none; }
+
+/* ── Stats Summary ── */
+.rh-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.rh-stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: rgba(15, 45, 74, 0.4);
+  border: 1px solid rgba(26, 58, 92, 0.6);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.rh-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(236, 72, 153, 0.1);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.rh-stat-content { flex: 1; }
+
+.rh-stat-label {
+  font-size: 11px;
+  color: #8BA4BE;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.rh-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* ── Hub Cards ── */
+.rh-cards {
+  display: grid;
+  gap: 12px;
+}
+
+.rh-card {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  background: rgba(15, 45, 74, 0.4);
+  border: 1px solid rgba(26, 58, 92, 0.6);
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  width: 100%;
+  font-family: inherit;
+}
+
+.rh-card:hover {
+  background: rgba(15, 45, 74, 0.6);
+  border-color: rgba(236, 72, 153, 0.3);
+  transform: translateY(-2px);
+}
+
+.rh-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.rh-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.rh-card-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  font-family: var(--font-display);
+}
+
+.rh-card-body {
+  flex: 1;
+  margin-bottom: 8px;
+}
+
+.rh-card-description {
+  font-size: 13px;
+  color: #8BA4BE;
+  margin: 0 0 4px 0;
+  line-height: 1.4;
+}
+
+.rh-card-stat {
+  font-size: 12px;
+  color: #5A7A9A;
+  font-weight: 500;
+}
+
+.rh-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 6px;
+  border-top: 1px solid rgba(26, 58, 92, 0.3);
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .reflect-hub { padding: 16px; }
+  .reflect-icon-tabs {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 6px;
+  }
+  .reflect-icon-tabs::-webkit-scrollbar { display: none; }
+  .reflect-icon-tab {
+    flex-shrink: 0;
+    min-width: 64px;
+    padding: 8px 10px;
+  }
+  .rh-stats { grid-template-columns: 1fr; }
+  .rh-stat { padding: 12px; }
+}

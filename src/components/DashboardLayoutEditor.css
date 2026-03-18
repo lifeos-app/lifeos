@@ -1,0 +1,90 @@
+.dle-overlay {
+  position: fixed; inset: 0; z-index: 900;
+  background: rgba(0,0,0,0.6); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+  display: flex; justify-content: flex-end;
+  animation: fadeIn 0.15s ease;
+}
+.dle-panel {
+  width: 340px; max-width: 90vw; height: 100%;
+  background: #111827; border-left: 1px solid rgba(0,212,255,0.15);
+  display: flex; flex-direction: column;
+  animation: slideInRight 0.25s ease;
+  overflow-y: auto;
+}
+.dle-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.dle-header h3 {
+  margin: 0; font-size: 16px; font-weight: 600; color: #F9FAFB;
+  font-family: var(--font-display);
+}
+.dle-close {
+  background: none; border: none; color: #6B7280; cursor: pointer;
+  padding: 4px; border-radius: 6px; transition: all 0.2s;
+}
+.dle-close:hover { color: #fff; background: rgba(255,255,255,0.1); }
+.dle-hint {
+  padding: 12px 20px 8px; margin: 0;
+  font-size: 13px; color: #6B7280; line-height: 1.4;
+}
+.dle-list {
+  flex: 1; padding: 8px 12px;
+}
+.dle-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; border-radius: 10px;
+  margin-bottom: 4px; transition: all 0.2s;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid transparent;
+  cursor: default;
+}
+.dle-item:hover { background: rgba(255,255,255,0.06); border-color: rgba(0,212,255,0.1); }
+.dle-item.hidden-widget { opacity: 0.4; }
+
+/* Drag handle */
+.dle-drag-handle {
+  display: flex; align-items: center; justify-content: center;
+  cursor: grab; color: #4B5563; padding: 2px;
+  transition: color 0.15s;
+}
+.dle-drag-handle:hover { color: #9CA3AF; }
+.dle-drag-handle:active { cursor: grabbing; }
+
+/* Dragging states */
+.dle-item.dragging {
+  opacity: 0.35;
+  background: rgba(0,212,255,0.04);
+  border-color: rgba(0,212,255,0.15);
+}
+
+.dle-item.drop-target {
+  border-color: rgba(0,212,255,0.5);
+  background: rgba(0,212,255,0.08);
+  box-shadow: 0 0 12px rgba(0,212,255,0.1);
+  transform: scale(1.02);
+}
+
+.dle-item-icon { font-size: 18px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(255,255,255,0.04); flex-shrink: 0; }
+.dle-item-label { flex: 1; font-size: 14px; color: #D1D5DB; font-weight: 500; }
+.dle-item-actions { display: flex; gap: 2px; }
+.dle-btn {
+  background: none; border: none; color: #6B7280; cursor: pointer;
+  padding: 6px; border-radius: 6px; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.dle-btn:hover:not(:disabled) { color: #fff; background: rgba(255,255,255,0.1); }
+.dle-btn:disabled { opacity: 0.2; cursor: default; }
+.dle-toggle.visible { color: #39FF14; }
+.dle-toggle.hidden-toggle { color: #F43F5E; }
+.dle-reset {
+  display: flex; align-items: center; gap: 8px; justify-content: center;
+  margin: 12px 20px 20px; padding: 10px;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px; color: #6B7280; font-size: 13px;
+  cursor: pointer; transition: all 0.2s;
+}
+.dle-reset:hover { color: #F43F5E; border-color: rgba(244,63,94,0.3); background: rgba(244,63,94,0.05); }
+
+@keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

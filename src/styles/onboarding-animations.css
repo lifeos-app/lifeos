@@ -1,0 +1,285 @@
+/* ═══════════════════════════════════════════════════════════════════
+   LifeOS Onboarding Polish Animations
+   Imported globally via App.tsx so all onboarding components can use these.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Message slide-in animations ── */
+@keyframes msgSlideLeft {
+  from { opacity: 0; transform: translate(-14px, 6px); }
+  to   { opacity: 1; transform: translate(0, 0); }
+}
+@keyframes msgSlideRight {
+  from { opacity: 0; transform: translate(14px, 6px); }
+  to   { opacity: 1; transform: translate(0, 0); }
+}
+.msg-enter-left  { animation: msgSlideLeft  0.28s cubic-bezier(0.4, 0, 0.2, 1) both; }
+.msg-enter-right { animation: msgSlideRight 0.28s cubic-bezier(0.4, 0, 0.2, 1) both; }
+
+/* ── Typing indicator — 3 bouncing dots ── */
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0);   opacity: 0.35; }
+  30%           { transform: translateY(-6px); opacity: 1;    }
+}
+.typing-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  animation: typingBounce 1.3s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* ── Phase progress strip (top of Foundation/Health/Finance chat) ── */
+.ob-phase-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 7px 16px 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.ob-phase-strip-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.ob-phase-strip-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.22);
+  transition: all 0.4s ease;
+  position: relative;
+}
+.ob-phase-strip-dot.active {
+  border-color: rgba(0, 212, 255, 0.6);
+  background: rgba(0, 212, 255, 0.12);
+  color: #00D4FF;
+  box-shadow: 0 0 14px rgba(0, 212, 255, 0.22);
+}
+.ob-phase-strip-dot.active::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 212, 255, 0.28);
+  animation: phaseDotPulse 2s ease-in-out infinite;
+}
+@keyframes phaseDotPulse {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50%       { opacity: 1;    transform: scale(1.1); }
+}
+.ob-phase-strip-dot.done {
+  border-color: rgba(78, 203, 113, 0.55);
+  background: rgba(78, 203, 113, 0.1);
+  color: #4ECB71;
+}
+
+.ob-phase-strip-label {
+  font-size: 8.5px;
+  color: rgba(255, 255, 255, 0.22);
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  transition: color 0.3s;
+  font-family: var(--font-body);
+}
+.ob-phase-strip-label.active { color: rgba(0, 212, 255, 0.75); }
+.ob-phase-strip-label.done  { color: rgba(78, 203, 113, 0.55); }
+
+.ob-phase-strip-line {
+  width: 32px;
+  height: 1px;
+  margin-bottom: 14px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.07);
+  transition: background 0.4s;
+}
+.ob-phase-strip-line.filled { background: rgba(78, 203, 113, 0.35); }
+
+/* ── Send button pulse when ready ── */
+@keyframes sendReady {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0); }
+  60%       { box-shadow: 0 0 0 7px rgba(0, 212, 255, 0.1); }
+}
+.ob-chat-send.ready { animation: sendReady 2.2s ease-in-out infinite; }
+
+/* ── Confetti pieces ── */
+@keyframes confettiFall {
+  0%   { transform: translateY(-10px) rotate(var(--rot-start, 0deg)) scaleX(1);    opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateY(110vh)  rotate(var(--rot-end, 720deg)) scaleX(0.6); opacity: 0; }
+}
+.confetti-piece {
+  position: fixed;
+  top: -20px;
+  border-radius: 2px;
+  animation: confettiFall linear forwards;
+  pointer-events: none;
+  z-index: 9999;
+  will-change: transform, opacity;
+}
+
+/* ── Quick-reply button stagger ── */
+@keyframes quickReplyEnter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.quick-reply-btn {
+  animation: quickReplyEnter 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.quick-reply-btn:nth-child(1) { animation-delay:   0ms; }
+.quick-reply-btn:nth-child(2) { animation-delay:  60ms; }
+.quick-reply-btn:nth-child(3) { animation-delay: 120ms; }
+.quick-reply-btn:nth-child(4) { animation-delay: 180ms; }
+
+/* ── Materialisation step appear ── */
+@keyframes stepAppear {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.ob-phase-item { animation: stepAppear 0.35s cubic-bezier(0.4, 0, 0.2, 1) both; }
+.ob-phase-item:nth-child(1) { animation-delay:   0ms; }
+.ob-phase-item:nth-child(2) { animation-delay:  70ms; }
+.ob-phase-item:nth-child(3) { animation-delay: 140ms; }
+.ob-phase-item:nth-child(4) { animation-delay: 210ms; }
+.ob-phase-item:nth-child(5) { animation-delay: 280ms; }
+.ob-phase-item:nth-child(6) { animation-delay: 350ms; }
+
+/* ── Completion celebration ── */
+@keyframes completionRise {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.ob-completion-content {
+  animation: completionRise 0.55s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Stat pills that animate in */
+@keyframes statCountIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ob-completion-stats {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+.ob-stat-pill {
+  text-align: center;
+  padding: 14px 22px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  min-width: 84px;
+  animation: statCountIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.ob-stat-pill:nth-child(1) { animation-delay: 0.1s; }
+.ob-stat-pill:nth-child(2) { animation-delay: 0.2s; }
+.ob-stat-pill:nth-child(3) { animation-delay: 0.3s; }
+.ob-stat-num {
+  display: block;
+  font-size: 30px;
+  font-weight: 700;
+  color: #00D4FF;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.ob-stat-lbl {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.38);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+/* Enter LifeOS button pulse */
+@keyframes enterBtnPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.22); }
+  50%       { box-shadow: 0 0 30px 6px rgba(0, 212, 255, 0.16); }
+}
+.ob-enter-btn {
+  animation: enterBtnPulse 2.8s ease-in-out infinite;
+  animation-delay: 0.6s;
+}
+
+/* Player card pulse glow */
+@keyframes cardGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.1); }
+  50%       { box-shadow: 0 0 20px 2px rgba(0, 212, 255, 0.08); }
+}
+.ob-player-card-preview {
+  animation: cardGlow 3s ease-in-out infinite;
+  animation-delay: 0.8s;
+}
+
+/* XP bar fill animation */
+@keyframes xpFill {
+  from { width: 0%; }
+  to   { width: 8%; }
+}
+.ob-xp-fill {
+  animation: xpFill 1.2s 0.9s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ── Phase transition screen ── */
+@keyframes phaseTransIn {
+  from { opacity: 0; transform: scale(0.93) translateY(18px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.phase-transition-screen {
+  animation: phaseTransIn 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ── Error state shake ── */
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+.ob-error-shake {
+  animation: errorShake 0.4s ease;
+}
+
+/* ── Generic fade-in ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up { animation: fadeInUp 0.35s cubic-bezier(0.4, 0, 0.2, 1) both; }
+
+/* ── Reduced motion support ── */
+@media (prefers-reduced-motion: reduce) {
+  .msg-enter-left,
+  .msg-enter-right,
+  .ob-phase-strip-dot.active::after,
+  .confetti-piece,
+  .ob-completion-content,
+  .ob-stat-pill,
+  .ob-enter-btn,
+  .ob-player-card-preview,
+  .ob-xp-fill,
+  .phase-transition-screen,
+  .ob-phase-item,
+  .typing-dot,
+  .ob-chat-send.ready,
+  .quick-reply-btn,
+  .fade-in-up {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

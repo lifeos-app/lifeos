@@ -1,0 +1,1063 @@
+/* ═══════════════════════════════════════════════════════════
+   LifeOS Mobile CSS Hardening — Universal mobile fixes
+   Import this AFTER all page CSS files
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Global Mobile Reset ── */
+@media (max-width: 768px) {
+  /* Kill horizontal scroll everywhere */
+  *, *::before, *::after {
+    max-width: 100vw;
+  }
+
+  html, body {
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Prevent iOS auto-zoom on inputs */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Touch target minimum (44px recommended, 36px minimum) */
+  button:not(.stl-add),
+  [role="button"],
+  a {
+    min-height: 44px;
+  }
+
+  /* Consistent body text */
+  body {
+    font-size: 14px;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   DASHBOARD — Mobile Fixes
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .dash { padding-bottom: 16px; }
+
+  .dash-header {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .dash-name { font-size: 20px !important; }
+  .dash-greeting { font-size: 11px !important; }
+
+  /* Compact level + layout buttons on mobile */
+  .dash-header-actions { gap: 4px !important; }
+  .dash-level-btn { padding: 3px 6px !important; border-radius: 8px !important; }
+  .dash-layout-btn { padding: 5px 6px !important; }
+  .dash-layout-label { display: none !important; }
+  .dash-level-detail { display: none !important; }
+  .dash-cmd { display: none !important; }
+
+  .week-strip {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    gap: 0;
+    padding: 0 4px;
+  }
+
+  .week-cell {
+    scroll-snap-align: center;
+    min-width: 44px;
+    padding: 8px 4px;
+  }
+
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .stat-card {
+    padding: 12px !important;
+  }
+
+  .stat-val { font-size: 18px !important; }
+  .stat-lbl { font-size: 10px !important; }
+
+  .insights-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .insight-card { padding: 12px !important; }
+
+  /* Bento grid → 2 columns on mobile */
+  .dash-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  .dash-card {
+    padding: 12px !important;
+    overflow: hidden;
+  }
+
+  .dash-card.full-width {
+    grid-column: 1 / -1 !important;
+  }
+
+  /* Task rows — touch friendly */
+  .task-row {
+    padding: 10px 0 !important;
+    gap: 8px !important;
+    min-height: 44px;
+  }
+
+  .task-chk {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .task-badge {
+    font-size: 9px !important;
+    padding: 2px 6px !important;
+  }
+
+  /* Habit rows — touch friendly */
+  .dash-habit-row {
+    padding: 10px 8px !important;
+    min-height: 44px;
+  }
+
+  .dash-habit-check {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Finance section compact */
+  .dash-fin-bars { gap: 6px !important; }
+  .dash-fin-metrics { grid-template-columns: 1fr 1fr !important; gap: 6px !important; }
+  .dash-fin-net-hero { padding: 12px !important; }
+  .dash-fin-net-amount { font-size: 24px !important; }
+
+  /* Health vitals grid */
+  .dash-health-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  /* Journal section */
+  .dash-journal-stats { flex-wrap: wrap; }
+
+  /* Phase tracker compact */
+  .phase-tracker { padding: 12px !important; }
+
+  /* Filter pills scrollable */
+  .task-filters {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+    padding-bottom: 4px;
+  }
+
+  .task-filter-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  /* Inline task form */
+  .inline-task-form { padding: 10px !important; }
+  .inline-task-actions { flex-wrap: wrap; gap: 6px !important; }
+}
+
+/* ═══════════════════════════════════════════════
+   SCHEDULE — Mobile Fixes
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .sched-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .sched-title { font-size: 16px !important; }
+
+  .sched-nav {
+    width: 100%;
+  }
+
+  .sched-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .sched-add-btn {
+    padding: 8px 14px !important;
+    font-size: 13px !important;
+    min-height: 40px;
+  }
+
+  /* Event form full-width */
+  .sched-form {
+    padding: 12px !important;
+  }
+
+  .sched-form-row {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .sched-dur-pills, .sched-cat-pills {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  .sched-dur-pill, .sched-cat-pill {
+    min-height: 36px;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+  }
+
+  .sched-form-select {
+    width: 100% !important;
+    min-width: unset !important;
+  }
+
+  /* Timeline */
+  .sched-timeline {
+    margin-left: -4px;
+    margin-right: -4px;
+  }
+
+  .stl-label {
+    font-size: 10px !important;
+    width: 40px !important;
+    min-width: 40px !important;
+  }
+
+  .stl-event {
+    /* left/width controlled by inline styles for overlap column layout */
+    font-size: 12px !important;
+  }
+
+  .stl-ev-title { font-size: 12px !important; }
+  .stl-ev-time { font-size: 10px !important; }
+
+  /* Day context */
+  .sched-day-pills {
+    flex-wrap: wrap;
+    gap: 4px !important;
+  }
+
+  .sd-pill { font-size: 11px !important; }
+
+  .sd-item {
+    padding: 8px !important;
+    min-height: 44px;
+  }
+
+  .sd-chk {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+  }
+
+  .sd-habits-grid {
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+
+  .sd-habit {
+    min-height: 44px;
+    padding: 10px !important;
+  }
+
+  /* Calendar view */
+  .sched-calendar { padding: 0 !important; }
+  .cal-cell {
+    padding: 6px 2px !important;
+    min-height: 44px;
+  }
+  .cal-date { font-size: 13px !important; }
+}
+
+/* ═══════════════════════════════════════════════
+   GOALS — Mobile Fixes
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .goals-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .goals-title { font-size: 18px !important; }
+
+  .goals-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Tree indentation — reduce on mobile */
+  .tree-view .goal-card { margin-left: 0 !important; }
+  .tree-view > div > div { margin-left: 0 !important; }
+
+  /* Reduce tree nesting indentation */
+  .tree-children { padding-left: 8px !important; }
+  .tree-tasks { margin-left: 8px !important; }
+
+  /* Goal cards compact */
+  .goal-card {
+    padding: 10px !important;
+  }
+
+  .goal-main {
+    gap: 8px !important;
+  }
+
+  .goal-icon-lg { font-size: 20px !important; }
+  .goal-name-lg { font-size: 14px !important; }
+
+  .goal-meta {
+    flex-wrap: wrap;
+    gap: 4px !important;
+    font-size: 11px !important;
+  }
+
+  /* Goal form full-width */
+  .goals-form {
+    padding: 12px !important;
+  }
+
+  .goals-form-row {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .goals-form-group {
+    width: 100% !important;
+  }
+
+  .goals-icon-grid, .goals-color-grid {
+    flex-wrap: wrap;
+  }
+
+  .goals-icon-btn, .goals-color-btn {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px;
+  }
+
+  /* Filter bar scrollable */
+  .goals-filter-bar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+    padding-bottom: 4px;
+  }
+
+  .goals-filter-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-height: 36px;
+  }
+
+  /* Task rows in goals */
+  .goal-task-row {
+    padding: 8px 4px !important;
+    min-height: 40px;
+    gap: 6px !important;
+  }
+
+  .goal-task-chk {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Add menu */
+  .goals-add-menu {
+    right: 0;
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .goals-add-menu button {
+    min-height: 44px;
+    padding: 10px 12px !important;
+  }
+
+  /* Vision Tree compact */
+  .vision-tree { padding: 8px !important; }
+
+  /* Financial summary bar */
+  .goals-financial-bar {
+    flex-wrap: wrap;
+    gap: 6px !important;
+    font-size: 11px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   HABITS — Mobile Fixes
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .habits-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .habits-title { font-size: 18px !important; }
+
+  .habits-add-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  /* 1 column on phone, 2 on tablet */
+  .habits-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .habit-card {
+    padding: 14px !important;
+  }
+
+  /* Large tap target for toggle */
+  .habit-toggle {
+    width: 100%;
+    min-height: 44px;
+    font-size: 14px !important;
+    justify-content: center;
+  }
+
+  .habit-toggle-row {
+    gap: 6px !important;
+  }
+
+  .habit-note-toggle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* 7-day dots — larger */
+  .habit-day-dot {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  /* Streak display compact */
+  .habit-streak { font-size: 12px !important; }
+
+  /* Habit form */
+  .habits-form { padding: 12px !important; }
+  .habits-form-row { flex-direction: column !important; }
+
+  .habits-icon-grid {
+    gap: 4px !important;
+  }
+
+  .habits-icon-btn {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .habits-freq-pills {
+    flex-wrap: wrap !important;
+  }
+
+  .habits-freq-pill {
+    min-height: 36px;
+    padding: 6px 12px !important;
+  }
+
+  /* Heatmap — smaller cells */
+  .habit-heatmap-grid {
+    gap: 2px !important;
+  }
+
+  .heatmap-cell {
+    min-width: 24px !important;
+    min-height: 24px !important;
+  }
+
+  /* Stats grid */
+  .habit-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 481px) and (max-width: 768px) {
+  .habits-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   FINANCES — Mobile Fixes
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .fin-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .fin-title { font-size: 18px !important; }
+
+  .fin-header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 6px !important;
+  }
+
+  .fin-add-btn {
+    flex: 1;
+    min-height: 40px;
+    justify-content: center;
+    font-size: 13px !important;
+  }
+
+  /* Summary stats — compact 2x2 grid on mobile */
+  .fin-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .fin-stat {
+    padding: 8px 10px !important;
+    gap: 6px !important;
+  }
+
+  .fin-stat svg { width: 14px; height: 14px; }
+  .fin-stat-label { font-size: 9px !important; }
+  .fin-stat-value { font-size: 14px !important; }
+  .fin-stat-spark { width: 40px !important; }
+
+  /* Insights — stack on small screens */
+  .fin-insights-grid {
+    gap: 6px !important;
+  }
+  .fin-insight-item {
+    min-width: 120px !important;
+    padding: 6px 10px !important;
+  }
+  .fin-insight-icon { width: 24px !important; height: 24px !important; }
+  .fin-insight-value { font-size: 13px !important; }
+
+  /* Forms full-width */
+  .fin-form, .fin-income-form, .fin-expense-form {
+    padding: 12px !important;
+  }
+
+  .fin-form-row {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .fin-form-group { width: 100% !important; }
+
+  /* Charts responsive */
+  .fin-chart-card, .fin-predict-card { padding: 12px !important; }
+  .fin-dual-chart { flex-direction: column !important; gap: 12px !important; }
+  .fin-chart-half { width: 100% !important; }
+
+  /* Predict grid */
+  .fin-predict-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  /* Breakdowns stacked */
+  .fin-breakdowns {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .fin-breakdown-card { width: 100% !important; }
+
+  /* Business cards */
+  .fin-business-header {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  .fin-business-stats {
+    flex-wrap: wrap;
+    gap: 8px !important;
+  }
+
+  /* Transaction rows compact */
+  .fin-expense-row, .fin-income-row, .fin-client-row {
+    padding: 8px 4px !important;
+    min-height: 40px;
+  }
+
+  /* Budget health */
+  .fin-budget-health-row {
+    flex-direction: column !important;
+    gap: 4px !important;
+    align-items: stretch !important;
+  }
+
+  .fin-budget-health-amount {
+    justify-content: space-between;
+    font-size: 12px !important;
+  }
+
+  /* Bill rows */
+  .fin-bill-row, .fin-client-row {
+    min-height: 44px;
+  }
+
+  /* Goal budget flow */
+  .fin-budget-obj-header {
+    flex-wrap: wrap;
+    gap: 4px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   HEALTH — Mobile Fixes
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .health-header {
+    padding: 12px 0 !important;
+  }
+
+  .health-header h1 { font-size: 20px !important; }
+
+  /* Hero score card */
+  .hero-score-card {
+    flex-direction: column !important;
+    padding: 16px !important;
+    gap: 16px !important;
+  }
+
+  .hero-quick-rings {
+    justify-content: space-around !important;
+    gap: 8px !important;
+  }
+
+  /* Quick log row — stack on small phones */
+  .quick-log-row {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .quick-log-card {
+    width: 100% !important;
+    padding: 12px !important;
+  }
+
+  /* Mood buttons — large touch targets */
+  .mood-quick-btn, .mood-orb {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 8px !important;
+  }
+
+  .mood-orb-emoji { font-size: 24px !important; }
+
+  /* Energy buttons */
+  .energy-btn {
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  /* Water tracker */
+  .water-drop {
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  /* Trends grid */
+  .trends-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .trend-card { padding: 12px !important; }
+
+  /* Body tab */
+  .body-top-row {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  .body-metrics-card, .body-map-card {
+    width: 100% !important;
+  }
+
+  /* Body map responsive */
+  .body-map-svg-wrapper {
+    max-width: 200px;
+    margin: 0 auto;
+  }
+
+  /* Exercise inputs */
+  .input-with-btn input {
+    font-size: 16px !important;
+    min-height: 44px;
+    /* Force number pad on mobile */
+  }
+
+  input[type="number"] {
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+    inputmode: numeric;
+  }
+
+  /* Marker form */
+  .marker-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .pill-picker {
+    flex-wrap: wrap;
+    gap: 6px !important;
+  }
+
+  .pill {
+    min-height: 36px;
+    padding: 6px 12px !important;
+  }
+
+  .sev-circle {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px;
+  }
+
+  /* Exercise tab */
+  .workout-mega-card { padding: 14px !important; }
+  .wmc-actions button { min-height: 44px; }
+
+  /* Week visual */
+  .week-visual {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .week-day-card {
+    min-width: 50px;
+    flex-shrink: 0;
+  }
+
+  /* Templates grid */
+  .templates-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* Meditation section */
+  .meditation-start, .meditation-stop {
+    width: 100%;
+    min-height: 48px;
+    font-size: 16px !important;
+  }
+
+  /* Gratitude input */
+  .gratitude-input-row input {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+
+  .gratitude-categories {
+    flex-wrap: wrap;
+  }
+
+  .grat-cat-btn {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* Sleep hero */
+  .sleep-hero { padding: 16px !important; }
+  .sleep-big-number { font-size: 48px !important; }
+  .sleep-input-grid { flex-direction: column !important; gap: 12px !important; }
+
+  .quality-orbs {
+    flex-wrap: wrap;
+    gap: 6px !important;
+  }
+
+  .quality-orb {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Diet meals */
+  .meals-visual {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .meal-card-visual { padding: 12px !important; }
+  .meal-log-btn { min-height: 36px; }
+
+  /* Overview bottom grid */
+  .overview-bottom-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* Glass cards */
+  .glass-card { padding: 14px !important; }
+
+  /* Sections collapsible on mobile */
+  .health-content section {
+    border-radius: 12px;
+  }
+
+  /* Rest day card */
+  .rest-day-card { padding: 24px !important; }
+}
+
+/* ═══════════════════════════════════════════════
+   JOURNAL — Mobile Fixes
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .journal-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .journal-title { font-size: 18px !important; }
+
+  .journal-editor textarea {
+    font-size: 16px !important;
+    min-height: 200px;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   MODALS — Full screen on mobile
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Make modals full-screen on mobile */
+  .modal-overlay, .event-detail-overlay, .node-detail-overlay, .task-detail-overlay {
+    padding: 0 !important;
+  }
+
+  .modal-content, .event-detail, .node-detail, .task-detail {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+
+  .event-detail-card, .task-detail-card, .node-detail-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    overflow-y: auto;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Unset global button min-height inside modals to prevent layout blowout */
+  .node-detail-card button,
+  .task-detail-card button,
+  .event-detail-card button {
+    min-height: unset;
+  }
+
+  /* Confirm dialog stays centered but compact */
+  .confirm-dialog {
+    width: calc(100% - 32px) !important;
+    max-width: 360px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   SETTINGS — Mobile Fixes
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .settings-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .settings-card { padding: 14px !important; }
+}
+
+/* ═══════════════════════════════════════════════
+   REVIEW — Mobile Fixes
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .review-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   ONBOARDING — Mobile Fixes
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .onboarding-container, .ob-container {
+    padding: 16px !important;
+    max-width: 100% !important;
+  }
+
+  .ob-chat-input, .chat-input {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   AI CHAT — Mobile Fixes
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .ai-chat-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    right: 0 !important;
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important;
+    height: calc(100vh - 120px) !important;
+    height: calc(100dvh - 120px) !important;
+    border-radius: 16px 16px 0 0 !important;
+  }
+
+  .ai-chat-input {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+
+  /* FAB button position adjusted for bottom nav */
+  .ai-chat-fab, .ai-chat-trigger {
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 16px !important;
+    width: 52px !important;
+    height: 52px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   COMMAND BAR — Mobile Fixes
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .command-overlay { padding: 16px !important; }
+
+  .command-bar {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-top: 20px !important;
+  }
+
+  .command-input {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   TABLES → Card layout on mobile
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   SCROLLBAR — Subtle on mobile
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar { width: 2px; height: 2px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 1px; }
+}
+
+/* ═══════════════════════════════════════════════
+   SMALL PHONES (375px) — Force single column grids
+   ═══════════════════════════════════════════════ */
+@media (max-width: 400px) {
+  .stats-row,
+  .insights-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .fin-stats,
+  .fin-predict-grid,
+  .dash-health-grid,
+  .trends-grid,
+  .habit-stats-grid,
+  .fin-breakdowns,
+  .dash-fin-metrics,
+  .overview-bottom-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .hero-quick-rings {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  .meals-visual {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* EmptyState — shrink on tiny phones */
+  .empty-state {
+    padding: 32px 16px !important;
+    min-height: 200px !important;
+  }
+  .empty-state-visual {
+    width: 80px !important;
+    height: 80px !important;
+  }
+  .empty-state-title {
+    font-size: 16px !important;
+  }
+  .empty-state-desc {
+    font-size: 13px !important;
+    max-width: 280px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   WORK PAGE — Mobile fixes
+   ═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Force work page stat cards to stack */
+  .work-page [style*="display: flex"][style*="gap: 12px"][style*="flex-wrap"] {
+    flex-direction: column !important;
+  }
+
+  /* Ensure reflect hub cards are touch-friendly */
+  .rh-card {
+    min-height: 44px;
+  }
+
+  /* Reflect icon tabs — scrollable on small screens */
+  .reflect-icon-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-wrap: nowrap !important;
+  }
+  .reflect-icon-tabs::-webkit-scrollbar {
+    display: none;
+  }
+}

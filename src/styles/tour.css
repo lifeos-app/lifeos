@@ -1,0 +1,217 @@
+/* ══════════════════════════════════════════════════════════
+   LifeOS Tour — Complete driver.js CSS (no default import)
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Core driver.js structural requirements ── */
+.driver-active .driver-overlay,
+.driver-active * { pointer-events: none; }
+.driver-active .driver-active-element,
+.driver-active .driver-active-element *,
+.driver-popover,
+.driver-popover * { pointer-events: auto; }
+
+@keyframes animate-fade-in { 0% { opacity: 0; } to { opacity: 1; } }
+.driver-fade .driver-overlay { animation: animate-fade-in 0.2s ease-in-out; }
+.driver-fade .driver-popover { animation: animate-fade-in 0.2s; }
+
+.driver-no-interaction,
+.driver-no-interaction * { pointer-events: none !important; }
+:not(body):has(> .driver-active-element) { overflow: hidden !important; }
+
+/* ── Popover ── */
+.driver-popover {
+  all: unset;
+  box-sizing: border-box;
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1000000000;
+  min-width: 260px;
+  max-width: 320px;
+  margin: 0;
+  padding: 18px 20px 14px;
+  border-radius: 14px;
+  background: #0D1B2A;
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 212, 255, 0.06);
+  color: #E0E8F0;
+  font-family: 'Poppins', var(--font-body), system-ui, sans-serif;
+}
+
+.driver-popover * {
+  font-family: 'Poppins', var(--font-body), system-ui, sans-serif;
+}
+
+/* ── Title ── */
+.driver-popover-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #FFFFFF;
+  display: block;
+  position: relative;
+  line-height: 1.3;
+  margin: 0 0 6px;
+}
+
+/* ── Close button — hidden (we use skip button) ── */
+.driver-popover-close-btn {
+  display: none;
+}
+
+/* ── Description ── */
+.driver-popover-title[style*="block"] + .driver-popover-description {
+  margin-top: 4px;
+}
+
+.driver-popover-description {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+/* ── Footer ── */
+.driver-popover-footer {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ── Progress ── */
+.driver-popover-progress-text {
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Navigation buttons ── */
+.driver-popover-navigation-btns {
+  display: flex;
+  flex-grow: 1;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.driver-popover-navigation-btns button + button {
+  margin-left: 0; /* gap handles spacing */
+}
+
+/* All buttons base */
+.driver-popover-footer button {
+  all: unset;
+  display: inline-block;
+  box-sizing: border-box;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  padding: 7px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.driver-popover-footer .driver-popover-btn-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Next button — solid cyan */
+.driver-popover-next-btn {
+  background: #00D4FF;
+  color: #0A1929;
+}
+.driver-popover-next-btn:hover,
+.driver-popover-next-btn:focus {
+  background: #33DFFF;
+  box-shadow: 0 2px 12px rgba(0, 212, 255, 0.3);
+}
+
+/* Prev button — ghost */
+.driver-popover-prev-btn {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.driver-popover-prev-btn:hover,
+.driver-popover-prev-btn:focus {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ── Arrow ── */
+.driver-popover-arrow {
+  content: "";
+  position: absolute;
+  border: 5px solid #0D1B2A;
+}
+.driver-popover-arrow-side-over { display: none; }
+.driver-popover-arrow-side-left {
+  left: 100%;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  border-top-color: transparent;
+}
+.driver-popover-arrow-side-right {
+  right: 100%;
+  border-left-color: transparent;
+  border-bottom-color: transparent;
+  border-top-color: transparent;
+}
+.driver-popover-arrow-side-top {
+  top: 100%;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  border-left-color: transparent;
+}
+.driver-popover-arrow-side-bottom {
+  bottom: 100%;
+  border-left-color: transparent;
+  border-top-color: transparent;
+  border-right-color: transparent;
+}
+.driver-popover-arrow-side-center { display: none; }
+
+/* Arrow alignment */
+.driver-popover-arrow-side-left.driver-popover-arrow-align-start,
+.driver-popover-arrow-side-right.driver-popover-arrow-align-start { top: 15px; }
+.driver-popover-arrow-side-top.driver-popover-arrow-align-start,
+.driver-popover-arrow-side-bottom.driver-popover-arrow-align-start { left: 15px; }
+.driver-popover-arrow-align-end.driver-popover-arrow-side-left,
+.driver-popover-arrow-align-end.driver-popover-arrow-side-right { bottom: 15px; }
+.driver-popover-arrow-side-top.driver-popover-arrow-align-end,
+.driver-popover-arrow-side-bottom.driver-popover-arrow-align-end { right: 15px; }
+.driver-popover-arrow-side-left.driver-popover-arrow-align-center,
+.driver-popover-arrow-side-right.driver-popover-arrow-align-center { top: 50%; margin-top: -5px; }
+.driver-popover-arrow-side-top.driver-popover-arrow-align-center,
+.driver-popover-arrow-side-bottom.driver-popover-arrow-align-center { left: 50%; margin-left: -5px; }
+.driver-popover-arrow-none { display: none; }
+
+/* ── Highlighted element ── */
+.driver-active-element {
+  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.25);
+  border-radius: 10px;
+}
+
+/* ── Skip tour button (appended by SpotlightTour.tsx) ── */
+.tour-cancel-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 11px;
+  font-weight: 400;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+.tour-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.4);
+}

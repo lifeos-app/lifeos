@@ -1,0 +1,55 @@
+.dash-celestial {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.dc-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dc-moon-canvas {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.dc-moon-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dc-phase-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.dc-season {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dc-next-event {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+
+.dc-event-name {
+  font-size: 11px;
+  color: var(--text-secondary, #aaa);
+}
+
+.dc-event-days {
+  font-size: 11px;
+  color: #D4AF37;
+  font-weight: 500;
+}

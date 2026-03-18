@@ -1,0 +1,87 @@
+.subtask-tree {
+  margin-left: 20px;
+  border-left: 2px solid rgba(255, 255, 255, 0.06);
+  padding-left: 10px;
+  margin-top: 4px;
+}
+
+.subtask-tree.depth-0 {
+  margin-left: 0;
+  border-left: none;
+  padding-left: 0;
+}
+
+.subtask-item {
+  margin-bottom: 3px;
+}
+
+.subtask-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 7px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+
+.subtask-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.subtask-row.done {
+  opacity: 0.55;
+}
+
+.subtask-spacer {
+  width: 13px;
+  flex-shrink: 0;
+}
+
+.subtask-toggle,
+.subtask-check,
+.subtask-add {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.45);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.subtask-toggle:hover,
+.subtask-add:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.subtask-title {
+  flex: 1;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subtask-title:hover {
+  color: white;
+}
+
+.subtask-title.strikethrough {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.subtask-progress {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+  flex-shrink: 0;
+}

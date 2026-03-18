@@ -1,0 +1,399 @@
+/* ═══════════════════════════════════════════════════════════
+   GoalCoachCard — AI Goal Coach styles
+   Dark theme, glass-card, compact rows with action buttons
+   ═══════════════════════════════════════════════════════════ */
+
+.goal-coach-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(12px);
+  animation: fadeUp 0.3s ease;
+}
+
+.goal-coach-card.compact {
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+/* ── Header ── */
+
+.gc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  gap: 8px;
+}
+
+.gc-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gc-brain-icon {
+  color: #A855F7;
+  filter: drop-shadow(0 0 4px rgba(168, 85, 247, 0.4));
+}
+
+.gc-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.gc-badge {
+  background: #F43F5E;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  line-height: 16px;
+}
+
+.gc-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gc-summary {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.gc-refresh-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+}
+
+.gc-refresh-btn:hover {
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Body ── */
+
+.gc-body {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gc-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px 0;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+}
+
+.gc-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 0 4px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+}
+
+.gc-empty svg {
+  color: #39FF14;
+}
+
+/* ── Insight Row ── */
+
+.gc-insight-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.gc-insight-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.gc-insight-row.status-neglected {
+  border-left: 3px solid #F43F5E;
+}
+
+.gc-insight-row.status-behind {
+  border-left: 3px solid #F97316;
+}
+
+.gc-insight-row.status-stalled {
+  border-left: 3px solid #FACC15;
+}
+
+/* ── Icon ── */
+
+.gc-insight-icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ── Content ── */
+
+.gc-insight-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gc-insight-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.gc-insight-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gc-insight-status {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Meta ── */
+
+.gc-insight-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.gc-insight-activity,
+.gc-insight-progress {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.gc-expected {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Suggestion ── */
+
+.gc-insight-suggestion {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.35;
+  padding: 4px 8px;
+  background: rgba(168, 85, 247, 0.08);
+  border-radius: 6px;
+  margin-top: 2px;
+}
+
+.gc-insight-suggestion svg {
+  color: #A855F7;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── Actions ── */
+
+.gc-insight-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.gc-accept-btn,
+.gc-dismiss-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.gc-accept-btn:hover {
+  background: rgba(57, 255, 20, 0.15);
+  border-color: rgba(57, 255, 20, 0.3);
+  color: #39FF14;
+}
+
+.gc-dismiss-btn:hover {
+  background: rgba(244, 63, 94, 0.12);
+  border-color: rgba(244, 63, 94, 0.25);
+  color: #F43F5E;
+}
+
+.gc-accept-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Pro Hint ── */
+
+.gc-pro-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 0 2px;
+  font-size: 10.5px;
+  color: rgba(168, 85, 247, 0.5);
+  text-align: center;
+}
+
+/* ── Spin animation ── */
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Inline status (collapsed state) ── */
+
+.gc-inline-status {
+  font-size: 11px;
+  color: rgba(57, 255, 20, 0.7);
+  white-space: nowrap;
+}
+
+.gc-inline-status.gc-inline-warn {
+  color: rgba(249, 115, 22, 0.8);
+}
+
+.gc-chevron {
+  color: rgba(255, 255, 255, 0.25);
+  flex-shrink: 0;
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 600px) {
+  .gc-summary {
+    display: none;
+  }
+
+  .gc-insight-row {
+    padding: 8px 10px;
+  }
+
+  .gc-insight-top {
+    flex-wrap: wrap;
+  }
+}
+
+/* ── AI Generate / Tweak buttons ── */
+.gc-empty--no-goals {
+  padding: 20px 14px;
+  text-align: center;
+}
+
+.gc-empty-sub {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  margin: 4px 0 12px;
+  line-height: 1.4;
+}
+
+.gc-ai-generate-btn,
+.gc-ai-tweak-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gc-ai-generate-btn {
+  background: linear-gradient(135deg, #A855F7, #6366F1);
+  color: white;
+  box-shadow: 0 2px 12px rgba(168, 85, 247, 0.3);
+}
+
+.gc-ai-generate-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
+}
+
+.gc-ai-tweak-btn {
+  margin-top: 10px;
+  background: rgba(168, 85, 247, 0.15);
+  color: #A855F7;
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  padding: 7px 14px;
+  font-size: 12px;
+}
+
+.gc-ai-tweak-btn:hover {
+  background: rgba(168, 85, 247, 0.25);
+}

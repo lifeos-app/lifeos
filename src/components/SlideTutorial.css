@@ -1,0 +1,136 @@
+.st-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: st-fade-in 0.3s ease;
+}
+
+@keyframes st-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.st-card {
+  width: 90vw;
+  max-width: 420px;
+  background: rgba(13, 21, 32, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+  animation: st-slide-up 0.35s ease;
+}
+
+@keyframes st-slide-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.st-image {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0d1520 0%, #1a2a3e 50%, #0a3d5c 100%);
+}
+
+.st-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.st-content {
+  padding: 20px 20px 12px;
+}
+
+.st-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+  margin: 0 0 8px;
+}
+
+.st-desc {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted, #999);
+  margin: 0;
+}
+
+.st-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px 16px;
+}
+
+.st-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.st-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.st-dot.active {
+  background: #00D4FF;
+  transform: scale(1.3);
+}
+
+.st-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.st-skip {
+  background: none;
+  border: none;
+  color: var(--text-muted, #999);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 6px 10px;
+}
+
+.st-skip:hover {
+  color: var(--text-primary, #fff);
+}
+
+.st-next {
+  background: rgba(0, 212, 255, 0.12);
+  border: 1px solid rgba(0, 212, 255, 0.25);
+  color: #00D4FF;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.st-next:hover {
+  background: rgba(0, 212, 255, 0.2);
+}
+
+@media (max-width: 480px) {
+  .st-card {
+    width: 95vw;
+    max-width: none;
+    margin: 0 auto;
+  }
+  .st-image {
+    height: 160px;
+  }
+}

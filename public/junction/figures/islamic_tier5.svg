@@ -1,0 +1,49 @@
+<svg width="512" height="768" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628"/>
+      <stop offset="100%" style="stop-color:#0d2137"/>
+    </linearGradient>
+    <radialGradient id="glow5" cx="50%" cy="44%" r="35%">
+      <stop offset="0%" style="stop-color:#D4AF37;stop-opacity:0.08"/>
+      <stop offset="100%" style="stop-color:#0a1628;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="768" fill="url(#bg5)"/>
+  <rect width="512" height="768" fill="url(#glow5)"/>
+  <rect x="16" y="16" width="480" height="736" rx="12" fill="none" stroke="#D4AF37" stroke-width="1.5" opacity="0.4"/>
+  <rect x="24" y="24" width="464" height="720" rx="8" fill="none" stroke="#2E7D32" stroke-width="0.5" opacity="0.3"/>
+  
+  <!-- Complex calligraphic geometric blend -->
+  <g transform="translate(256, 330)" fill="none" stroke-width="1">
+    <!-- Outer calligraphic swirls -->
+    <path d="M0,-150 Q80,-140 120,-80 Q160,-20 120,40 Q80,100 0,120 Q-80,100 -120,40 Q-160,-20 -120,-80 Q-80,-140 0,-150Z" stroke="#D4AF37" opacity="0.4"/>
+    <path d="M0,-130 Q70,-120 100,-70 Q130,-20 100,30 Q70,80 0,100 Q-70,80 -100,30 Q-130,-20 -100,-70 Q-70,-120 0,-130Z" stroke="#2E7D32" opacity="0.4"/>
+    
+    <!-- 12-pointed star -->
+    <polygon points="0,-110 19,-19 110,0 19,19 0,110 -19,19 -110,0 -19,-19" stroke="#D4AF37" opacity="0.5"/>
+    <polygon points="0,-110 19,-19 110,0 19,19 0,110 -19,19 -110,0 -19,-19" stroke="#D4AF37" opacity="0.5" transform="rotate(30)"/>
+    <polygon points="0,-110 19,-19 110,0 19,19 0,110 -19,19 -110,0 -19,-19" stroke="#2E7D32" opacity="0.35" transform="rotate(15)"/>
+    
+    <!-- Inner geometric layers -->
+    <polygon points="0,-75 65,-37 65,37 0,75 -65,37 -65,-37" stroke="#D4AF37" opacity="0.6"/>
+    <polygon points="0,-75 65,-37 65,37 0,75 -65,37 -65,-37" stroke="#2E7D32" opacity="0.5" transform="rotate(30)"/>
+    <polygon points="0,-50 43,-25 43,25 0,50 -43,25 -43,-25" stroke="#D4AF37" opacity="0.7"/>
+    <circle cx="0" cy="0" r="30" stroke="#2E7D32" opacity="0.5"/>
+    <circle cx="0" cy="0" r="18" stroke="#D4AF37" opacity="0.6"/>
+    
+    <!-- Flowing arabesque connectors -->
+    <path d="M-95,-55 Q-50,-90 0,-55 Q50,-90 95,-55" stroke="#D4AF37" opacity="0.25"/>
+    <path d="M-95,55 Q-50,90 0,55 Q50,90 95,55" stroke="#D4AF37" opacity="0.25"/>
+    <path d="M55,-95 Q90,-50 55,0 Q90,50 55,95" stroke="#2E7D32" opacity="0.2"/>
+    <path d="M-55,-95 Q-90,-50 -55,0 Q-90,50 -55,95" stroke="#2E7D32" opacity="0.2"/>
+    
+    <!-- Center jewel -->
+    <circle cx="0" cy="0" r="6" fill="#D4AF37" opacity="0.4"/>
+  </g>
+  
+  <text x="256" y="560" text-anchor="middle" fill="#e8e0d0" font-size="22" font-family="Georgia, serif">Calligraphic Geometry</text>
+  <text x="256" y="590" text-anchor="middle" fill="#2E7D32" font-size="14" font-family="Georgia, serif">Sacred Geometry · Tier 5</text>
+  <rect x="186" y="640" width="140" height="30" rx="15" fill="rgba(46,125,50,0.15)" stroke="#2E7D32" stroke-width="1"/>
+  <text x="256" y="660" text-anchor="middle" fill="#2E7D32" font-size="12" font-family="system-ui">☪️ TIER 5 · ELDER</text>
+</svg>

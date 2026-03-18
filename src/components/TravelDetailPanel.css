@@ -1,0 +1,208 @@
+/* ═══════════════════════════════════════════════════
+   TravelDetailPanel — Map + Route + Vehicle
+   ═══════════════════════════════════════════════════ */
+
+.travel-detail-panel {
+  padding: 0;
+}
+
+/* ── Map ── */
+.travel-map-container {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 8px 12px;
+  width: calc(100% - 24px);
+}
+
+.travel-map-embed {
+  width: 100%;
+  height: 100%;
+}
+
+.travel-map-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 10px;
+  filter: invert(90%) hue-rotate(180deg) brightness(0.9) contrast(1.1);
+  /* Dark mode filter for Google Maps embed */
+}
+
+.travel-map-loading,
+.travel-map-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  z-index: 1;
+}
+
+.travel-map-error {
+  color: rgba(239, 68, 68, 0.6);
+}
+
+/* ── Route Info ── */
+.travel-route-info {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.travel-route-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.travel-icon {
+  color: #06B6D4;
+  flex-shrink: 0;
+}
+
+.travel-destination {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.travel-time-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.travel-stats-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.travel-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.travel-stat.deduction {
+  color: #22C55E;
+  background: rgba(34, 197, 94, 0.1);
+}
+
+/* ── Vehicle Card ── */
+.travel-vehicle-card {
+  margin: 4px 12px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.travel-vehicle-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.travel-vehicle-header:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.travel-vehicle-name {
+  flex: 1;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+.travel-vehicle-year {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.travel-vehicle-body {
+  padding: 0 12px 12px;
+  animation: travel-slide-in 0.2s ease;
+}
+
+@keyframes travel-slide-in {
+  from { opacity: 0; max-height: 0; }
+  to { opacity: 1; max-height: 200px; }
+}
+
+.travel-vehicle-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.travel-v-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.travel-v-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.travel-v-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ── No Vehicle ── */
+.travel-no-vehicle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 14px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+/* ── Location Denied ── */
+.travel-location-denied {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 14px;
+  font-size: 11px;
+  color: rgba(245, 158, 11, 0.6);
+}

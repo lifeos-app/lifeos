@@ -1,0 +1,74 @@
+/* ── Offline Banner ── */
+.offline-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: 500;
+  animation: ob-slideDown 0.3s ease;
+}
+
+.offline-banner.offline {
+  background: rgba(244, 63, 94, 0.12);
+  color: #F43F5E;
+  border-bottom: 1px solid rgba(244, 63, 94, 0.2);
+}
+
+.offline-banner.pending {
+  background: rgba(250, 204, 21, 0.08);
+  color: #FACC15;
+  border-bottom: 1px solid rgba(250, 204, 21, 0.15);
+}
+
+.offline-banner.synced {
+  background: rgba(57, 255, 20, 0.08);
+  color: #39FF14;
+  border-bottom: 1px solid rgba(57, 255, 20, 0.15);
+}
+
+.ob-queue {
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+.ob-cache-age {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  font-size: 10px;
+  opacity: 0.8;
+}
+
+.ob-sync-btn {
+  padding: 3px 10px;
+  background: rgba(250, 204, 21, 0.15);
+  border: 1px solid rgba(250, 204, 21, 0.3);
+  border-radius: 6px;
+  color: #FACC15;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 28px;
+}
+
+.ob-spin {
+  animation: ob-rotate 0.8s linear infinite;
+}
+
+@keyframes ob-slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes ob-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

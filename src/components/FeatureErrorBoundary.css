@@ -1,0 +1,71 @@
+/* ── Feature Error Boundary — per-widget crash fallback ── */
+
+.feb-card {
+  background: rgba(244, 63, 94, 0.04);
+  border: 1px solid rgba(244, 63, 94, 0.12);
+  border-radius: 14px;
+  padding: 24px 20px;
+  text-align: center;
+  font-family: var(--font-body, 'Poppins', sans-serif);
+}
+
+.feb-compact {
+  padding: 14px 12px;
+  border-radius: 10px;
+}
+
+.feb-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.feb-feature {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.feb-msg {
+  font-size: 13px;
+  color: rgba(244, 63, 94, 0.8);
+  font-weight: 500;
+}
+
+.feb-detail {
+  font-size: 11px;
+  color: rgba(244, 63, 94, 0.5);
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.feb-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 6px 14px;
+  background: rgba(0, 212, 255, 0.08);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 8px;
+  color: #00D4FF;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.feb-compact .feb-retry {
+  margin-top: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+.feb-retry:hover {
+  background: rgba(0, 212, 255, 0.14);
+}

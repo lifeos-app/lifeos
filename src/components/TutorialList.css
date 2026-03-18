@@ -1,0 +1,198 @@
+/* ── Tutorial List Panel ── */
+
+.tut-list-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10005;
+  display: flex;
+  justify-content: flex-start;
+  align-items: stretch;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.tut-list-panel {
+  width: 340px;
+  max-width: 90vw;
+  background: #0D1B2A;
+  border-right: 1px solid rgba(0, 212, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  animation: tut-slide-in 0.2s ease;
+  overflow: hidden;
+}
+
+@keyframes tut-slide-in {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.tut-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tut-list-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.tut-list-header-left svg {
+  color: #D4AF37;
+}
+
+.tut-list-close {
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  border-radius: 8px;
+  padding: 6px;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tut-list-close:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+/* Progress bar */
+.tut-list-progress {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.tut-list-progress-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.tut-list-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #D4AF37, #FFD700);
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tut-list-progress-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+}
+
+/* Items */
+.tut-list-items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  -webkit-overflow-scrolling: touch;
+}
+
+.tut-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  transition: all 0.2s;
+  cursor: default;
+}
+
+.tut-list-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tut-list-item.complete {
+  opacity: 0.6;
+}
+
+.tut-list-item-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tut-list-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tut-list-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tut-list-check {
+  color: #4ECB71;
+}
+
+.tut-list-item-desc {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.tut-list-item-actions {
+  flex-shrink: 0;
+}
+
+.tut-list-start-btn,
+.tut-list-replay-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tut-list-start-btn {
+  background: rgba(0, 212, 255, 0.1);
+  color: #00D4FF;
+}
+
+.tut-list-start-btn:hover {
+  background: rgba(0, 212, 255, 0.2);
+}
+
+.tut-list-replay-btn {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.tut-list-replay-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Mobile: full width */
+@media (max-width: 480px) {
+  .tut-list-panel {
+    width: 100vw;
+    max-width: 100vw;
+  }
+}

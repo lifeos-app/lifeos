@@ -1,0 +1,375 @@
+/* ══════════════════════════════════════════════════
+   FullscreenPage — Reusable immersive page wrapper
+   ══════════════════════════════════════════════════ */
+
+/* ── Container ─────────────────────────────────── */
+
+.fsp {
+  position: fixed;
+  inset: 0;
+  z-index: 7000;
+  background:
+    radial-gradient(ellipse at 50% -10%, color-mix(in srgb, var(--fsp-color, #F97316) 6%, transparent) 0%, transparent 55%),
+    linear-gradient(180deg, #080C18 0%, #0D1B2A 50%, #080C18 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  transform: scale(0.97);
+  transition: opacity 0.35s ease-out, transform 0.35s ease-out;
+}
+
+.fsp--entered {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ── Hide App Chrome ───────────────────────────── */
+
+/* Always hide these (FSP has its own header/nav) */
+body.fsp-active .mobile-nav,
+body.fsp-active .mobile-header,
+body.fsp-active .desktop-header {
+  display: none !important;
+}
+
+body.fsp-active .layout-main {
+  padding: 0 !important;
+}
+
+body.fsp-active .layout-content {
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Mobile: hide sidebar completely (FSP has hamburger) */
+@media (max-width: 768px) {
+  body.fsp-active .sidebar-wrap {
+    display: none !important;
+  }
+  body.fsp-active .sidebar-wrap.mobile-open {
+    display: flex !important;
+    z-index: 7800 !important;
+  }
+}
+
+/* Desktop: keep sidebar visible, offset FSP */
+@media (min-width: 769px) {
+  .fsp {
+    left: var(--sidebar-w, 240px);
+    width: calc(100% - var(--sidebar-w, 240px));
+    right: auto;
+    transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Hide hamburger — sidebar provides navigation */
+  .fsp-hamburger {
+    display: none;
+  }
+}
+
+/* ── Header ────────────────────────────────────── */
+
+.fsp-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  padding-top: calc(10px + env(safe-area-inset-top));
+  flex-shrink: 0;
+  z-index: 5;
+}
+
+.fsp-hamburger {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #8BA4BE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Desktop: hide hamburger — sidebar provides navigation (must come AFTER base rule) */
+@media (min-width: 769px) {
+  .fsp-hamburger {
+    display: none !important;
+  }
+}
+
+.fsp-hamburger:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #E8F0FE;
+}
+
+.fsp-hamburger:active {
+  transform: scale(0.92);
+}
+
+.fsp-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--fsp-color, #F97316);
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  transition: color 0.3s ease;
+  flex: 1;
+}
+
+/* ── Header Right (Level + Messages) ───────────── */
+
+.fsp-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.fsp-level-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(255, 215, 0, 0.06));
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 20px;
+  padding: 3px 8px 3px 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fsp-level-badge:hover {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.18), rgba(255, 215, 0, 0.1));
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+.fsp-level-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #D4AF37, #FFD700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Orbitron', monospace;
+  font-weight: 900;
+  font-size: 9px;
+  color: #0A0E1A;
+  box-shadow: 0 0 6px rgba(212, 175, 55, 0.4);
+}
+
+.fsp-level-xp {
+  font-size: 10px;
+  color: #D4AF37;
+  font-weight: 600;
+}
+
+.fsp-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #8BA4BE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fsp-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #E8F0FE;
+}
+
+.fsp-icon-btn:active {
+  transform: scale(0.92);
+}
+
+/* ── Scrollable Content ────────────────────────── */
+
+.fsp-content {
+  flex: 1;
+  min-height: 0; /* prevent flex child from overflowing past nav */
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 16px 16px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+  position: relative;
+  z-index: 1;
+}
+
+.fsp-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.fsp-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fsp-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+
+/* ── Tab Slide Animations ──────────────────────── */
+
+@keyframes fsp-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes fsp-slide-left {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes fsp-slide-right {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.fsp-slide { animation: fsp-fade-in 0.25s ease-out both; }
+.fsp-slide--left { animation: fsp-slide-left 0.25s ease-out both; }
+.fsp-slide--right { animation: fsp-slide-right 0.25s ease-out both; }
+.fsp-slide--none { animation: fsp-fade-in 0.25s ease-out both; }
+
+/* ── Floating Bottom Tab Bar ───────────────────── */
+
+.fsp-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 6px 8px;
+  padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  background: rgba(6, 10, 20, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.fsp-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 10px;
+  min-width: 48px;
+  background: none;
+  border: none;
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  font-family: var(--font-body, inherit);
+}
+
+.fsp-tab:hover {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.fsp-tab:active {
+  transform: scale(0.92);
+}
+
+.fsp-tab.active {
+  color: var(--tab-color, #F97316);
+}
+
+.fsp-tab.active::before {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 2px;
+  background: var(--tab-color);
+  border-radius: 1px;
+  box-shadow: 0 0 10px var(--tab-color), 0 0 20px color-mix(in srgb, var(--tab-color) 40%, transparent);
+}
+
+.fsp-tab.active svg {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--tab-color) 60%, transparent));
+  transform: scale(1.08);
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+
+.fsp-tab-label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* ── Sidebar Overlay ───────────────────────────── */
+
+.fsp-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 7500;
+  animation: fsp-overlay-in 0.2s ease-out;
+  cursor: pointer;
+}
+
+/* Desktop: sidebar is always visible, never needs overlay */
+@media (min-width: 769px) {
+  .fsp-sidebar-overlay {
+    display: none !important;
+  }
+}
+
+@keyframes fsp-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Loading ───────────────────────────────────── */
+
+.fsp-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  height: 200px;
+  color: #5A7A9A;
+  font-size: 14px;
+}
+
+/* ── Mobile ────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .fsp-nav {
+    padding: 4px 4px;
+    padding-bottom: calc(4px + env(safe-area-inset-bottom));
+  }
+
+  .fsp-tab {
+    padding: 6px 6px;
+    min-width: 42px;
+  }
+
+  .fsp-tab-label {
+    font-size: 8px;
+  }
+}

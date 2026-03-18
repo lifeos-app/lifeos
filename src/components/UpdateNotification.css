@@ -1,0 +1,72 @@
+/* ── Update Notification ── */
+.update-notification {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(139, 92, 246, 0.1);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+  font-size: 13px;
+  z-index: 500;
+  animation: un-slideDown 0.3s ease;
+}
+
+.update-notification-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #A78BFA;
+  font-weight: 500;
+}
+
+.update-notification-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.un-update-btn {
+  padding: 5px 14px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 6px;
+  color: #A78BFA;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  min-height: 28px;
+}
+
+.un-update-btn:hover {
+  background: rgba(139, 92, 246, 0.25);
+}
+
+.un-dismiss-btn {
+  padding: 5px 10px;
+  background: transparent;
+  border: none;
+  color: #5A7A9A;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.un-dismiss-btn:hover {
+  color: #8BA4BE;
+}
+
+.un-spin {
+  animation: un-rotate 0.8s linear infinite;
+}
+
+@keyframes un-slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes un-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

@@ -1,0 +1,51 @@
+<svg width="512" height="768" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628"/>
+      <stop offset="100%" style="stop-color:#0d2137"/>
+    </linearGradient>
+    <radialGradient id="glow4" cx="50%" cy="45%" r="40%">
+      <stop offset="0%" style="stop-color:#2E7D32;stop-opacity:0.1"/>
+      <stop offset="100%" style="stop-color:#0a1628;stop-opacity:0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="768" fill="url(#bg4)"/>
+  <rect width="512" height="768" fill="url(#glow4)"/>
+  <rect x="16" y="16" width="480" height="736" rx="12" fill="none" stroke="#D4AF37" stroke-width="1" opacity="0.3"/>
+  
+  <!-- Muqarnas (stalactite vaulting) pattern -->
+  <g transform="translate(256, 330)" fill="none" stroke-width="1">
+    <!-- Concentric arch layers - muqarnas effect -->
+    <path d="M-150,80 Q-150,-20 -75,-60 Q0,-100 75,-60 Q150,-20 150,80" stroke="#D4AF37" opacity="0.6"/>
+    <path d="M-130,70 Q-130,-10 -65,-50 Q0,-80 65,-50 Q130,-10 130,70" stroke="#2E7D32" opacity="0.5"/>
+    <path d="M-110,60 Q-110,0 -55,-35 Q0,-65 55,-35 Q110,0 110,60" stroke="#D4AF37" opacity="0.5"/>
+    <path d="M-90,50 Q-90,10 -45,-20 Q0,-45 45,-20 Q90,10 90,50" stroke="#2E7D32" opacity="0.6"/>
+    <path d="M-70,40 Q-70,15 -35,-10 Q0,-30 35,-10 Q70,15 70,40" stroke="#D4AF37" opacity="0.7"/>
+    <path d="M-50,30 Q-50,20 -25,0 Q0,-15 25,0 Q50,20 50,30" stroke="#2E7D32" opacity="0.7"/>
+    
+    <!-- Vertical divisions -->
+    <line x1="-75" y1="-60" x2="-75" y2="80" stroke="#D4AF37" opacity="0.2"/>
+    <line x1="0" y1="-100" x2="0" y2="80" stroke="#D4AF37" opacity="0.3"/>
+    <line x1="75" y1="-60" x2="75" y2="80" stroke="#D4AF37" opacity="0.2"/>
+    <line x1="-37" y1="-80" x2="-37" y2="80" stroke="#2E7D32" opacity="0.15"/>
+    <line x1="37" y1="-80" x2="37" y2="80" stroke="#2E7D32" opacity="0.15"/>
+    
+    <!-- Cell decorations -->
+    <circle cx="0" cy="-40" r="8" stroke="#D4AF37" opacity="0.5"/>
+    <circle cx="-37" cy="-15" r="6" stroke="#2E7D32" opacity="0.4"/>
+    <circle cx="37" cy="-15" r="6" stroke="#2E7D32" opacity="0.4"/>
+    <circle cx="-75" cy="10" r="5" stroke="#D4AF37" opacity="0.3"/>
+    <circle cx="75" cy="10" r="5" stroke="#D4AF37" opacity="0.3"/>
+    
+    <!-- Bottom star -->
+    <g transform="translate(0, 120)">
+      <polygon points="0,-30 8,-8 30,0 8,8 0,30 -8,8 -30,0 -8,-8" stroke="#D4AF37" opacity="0.6"/>
+      <polygon points="0,-30 8,-8 30,0 8,8 0,30 -8,8 -30,0 -8,-8" stroke="#2E7D32" opacity="0.4" transform="rotate(45)"/>
+    </g>
+  </g>
+  
+  <text x="256" y="560" text-anchor="middle" fill="#e8e0d0" font-size="22" font-family="Georgia, serif">Muqarnas Vault</text>
+  <text x="256" y="590" text-anchor="middle" fill="#2E7D32" font-size="14" font-family="Georgia, serif">Sacred Geometry · Tier 4</text>
+  <rect x="186" y="640" width="140" height="30" rx="15" fill="rgba(46,125,50,0.15)" stroke="#2E7D32" stroke-width="1"/>
+  <text x="256" y="660" text-anchor="middle" fill="#2E7D32" font-size="12" font-family="system-ui">☪️ TIER 4 · PILGRIM</text>
+</svg>

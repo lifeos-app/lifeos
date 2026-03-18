@@ -1,0 +1,182 @@
+/* ══════════════════════════════════════════════════
+   Desktop Header — Slim top bar (desktop only)
+   ══════════════════════════════════════════════════ */
+
+.desktop-header {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 24px;
+  background: rgba(10, 14, 26, 0.92);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  min-height: 48px;
+}
+
+/* Show on desktop only */
+@media (min-width: 769px) {
+  .desktop-header {
+    display: flex;
+  }
+}
+
+/* ── Page Title ── */
+.dh-title {
+  font-family: var(--font-display, 'Inter', sans-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary, #E2E8F0);
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+/* ── Right-side actions ── */
+.dh-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Level Badge ── */
+.dh-level-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(255, 215, 0, 0.06));
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 20px;
+  padding: 3px 8px 3px 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dh-level-badge:hover {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.18), rgba(255, 215, 0, 0.1));
+  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.15);
+}
+
+.dh-level-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #D4AF37, #FFD700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 10px;
+  color: #0A0E1A;
+  box-shadow: 0 0 6px rgba(212, 175, 55, 0.4);
+}
+
+.dh-level-title {
+  font-size: 10px;
+  color: #D4AF37;
+  font-weight: 600;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dh-xp-pct {
+  font-size: 10px;
+  color: #D4AF37;
+  font-weight: 600;
+}
+
+/* ── Messages Button ── */
+.dh-messages-btn {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #9CA3AF;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dh-messages-btn:hover {
+  background: rgba(0, 212, 255, 0.08);
+  color: #00D4FF;
+  border-color: rgba(0, 212, 255, 0.25);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.15);
+}
+
+/* ── Character (Swords) Button ── */
+.dh-character-btn {
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  color: #D4AF37;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dh-character-btn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.2);
+}
+
+/* ── Notification Bell Button ── */
+.dh-notif-btn {
+  position: relative;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #9CA3AF;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dh-notif-btn:hover {
+  background: rgba(0, 212, 255, 0.08);
+  color: #00D4FF;
+  border-color: rgba(0, 212, 255, 0.25);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.15);
+}
+
+.dh-notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #EF4444;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+@media (min-width: 1024px) {
+  .desktop-header { padding: 12px 32px; min-height: 52px; }
+  .dh-title { font-size: 17px; }
+  .dh-actions { gap: 12px; }
+}

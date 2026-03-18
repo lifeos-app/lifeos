@@ -1,0 +1,472 @@
+/* ── Skeleton Loader — Shared Shimmer Primitives ── */
+
+@keyframes sk-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes sk-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Base skeleton element */
+.sk {
+  background: linear-gradient(
+    90deg,
+    #0f1a2b 0%,
+    #1a2d45 40%,
+    #1a2d45 60%,
+    #0f1a2b 100%
+  );
+  background-size: 200% 100%;
+  animation:
+    sk-shimmer 1.5s ease-in-out infinite,
+    sk-fade-in 0.3s ease forwards;
+  opacity: 0;
+  border-radius: 6px;
+}
+
+/* ── Variants ── */
+
+.sk-text {
+  height: 14px;
+  width: 100%;
+  border-radius: 4px;
+}
+
+.sk-title {
+  height: 24px;
+  width: 60%;
+  border-radius: 6px;
+}
+
+.sk-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sk-card {
+  min-height: 120px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.sk-chart {
+  height: 180px;
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* List variant */
+.sk-list-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sk-list-line {
+  height: 14px;
+  border-radius: 4px;
+}
+
+/* ── Page Skeleton Layouts ── */
+
+.sk-page {
+  padding: 0;
+  animation: sk-fade-in 0.3s ease forwards;
+}
+
+/* Dashboard skeleton */
+.sk-dash {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sk-dash-greeting {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.sk-dash-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.sk-dash-action {
+  height: 44px;
+  flex: 1;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.sk-dash-week {
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.sk-dash-week-cell {
+  flex: 1;
+  height: 52px;
+  border-radius: 10px;
+}
+
+.sk-dash-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.sk-dash-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+}
+
+.sk-dash-insights {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.sk-dash-insight {
+  height: 130px;
+  border-radius: 14px;
+}
+
+.sk-dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.sk-dash-card {
+  min-height: 180px;
+  border-radius: 14px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Schedule skeleton */
+.sk-sched {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sk-sched-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sk-sched-cal-strip {
+  display: flex;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.sk-sched-day {
+  width: 44px;
+  height: 60px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.sk-sched-events {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sk-sched-event {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.sk-sched-timeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.sk-sched-hour {
+  height: 40px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  padding-top: 4px;
+}
+
+.sk-sched-hour-label {
+  width: 40px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.sk-sched-hour-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Health skeleton */
+.sk-health {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sk-health-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.sk-health-tab {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+}
+
+.sk-health-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.sk-health-metric {
+  height: 100px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Finances skeleton */
+.sk-fin {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sk-fin-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.sk-fin-tab {
+  height: 36px;
+  flex: 1;
+  border-radius: 8px;
+}
+
+.sk-fin-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.sk-fin-summary-card {
+  height: 90px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.sk-fin-transactions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sk-fin-tx {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Habits skeleton */
+.sk-habits {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sk-habits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.sk-habit-card {
+  height: 140px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Goals skeleton */
+.sk-goals {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sk-goals-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sk-goal-card {
+  padding: 16px 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sk-goal-bar {
+  height: 6px;
+  border-radius: 3px;
+  width: 100%;
+}
+
+/* Journal skeleton */
+.sk-journal {
+  display: flex;
+  gap: 16px;
+  min-height: 400px;
+}
+
+.sk-journal-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sk-journal-entry-item {
+  height: 56px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.sk-journal-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sk-journal-editor-area {
+  flex: 1;
+  min-height: 300px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Junction skeleton */
+.sk-junction {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sk-junction-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.sk-junction-card {
+  height: 200px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* EventDrawer skeleton */
+.sk-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+
+.sk-drawer-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sk-drawer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 1100px) {
+  .sk-dash-stats { grid-template-columns: repeat(2, 1fr); }
+  .sk-dash-insights { grid-template-columns: repeat(2, 1fr); }
+  .sk-health-metrics { grid-template-columns: repeat(2, 1fr); }
+  .sk-fin-summary { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .sk-dash-grid { grid-template-columns: 1fr; }
+  .sk-dash-stats { grid-template-columns: repeat(2, 1fr); }
+  .sk-dash-insights { grid-template-columns: 1fr 1fr; }
+  .sk-journal { flex-direction: column; }
+  .sk-journal-sidebar { width: 100%; }
+  .sk-health-metrics { grid-template-columns: 1fr 1fr; }
+  .sk-fin-summary { grid-template-columns: 1fr; }
+}

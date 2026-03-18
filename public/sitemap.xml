@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <!-- App Dashboard (Main Entry) -->
+  <url>
+    <loc>https://app.runlifeos.com/app/</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- AI Smart Schedule -->
+  <url>
+    <loc>https://app.runlifeos.com/app/schedule</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- Goal Tracking -->
+  <url>
+    <loc>https://app.runlifeos.com/app/goals</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- Habit Tracker -->
+  <url>
+    <loc>https://app.runlifeos.com/app/habits</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- Finance Manager -->
+  <url>
+    <loc>https://app.runlifeos.com/app/finances</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Health Tracker -->
+  <url>
+    <loc>https://app.runlifeos.com/app/health</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Character Hub / Gamification -->
+  <url>
+    <loc>https://app.runlifeos.com/app/character</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Spiritual Junction -->
+  <url>
+    <loc>https://app.runlifeos.com/app/character/junction</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Reflection Hub -->
+  <url>
+    <loc>https://app.runlifeos.com/app/reflect</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Journal -->
+  <url>
+    <loc>https://app.runlifeos.com/app/reflect/journal</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Weekly Review -->
+  <url>
+    <loc>https://app.runlifeos.com/app/reflect/review</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Life Story -->
+  <url>
+    <loc>https://app.runlifeos.com/app/reflect/story</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <!-- Work / Client Management -->
+  <url>
+    <loc>https://app.runlifeos.com/app/work</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Social -->
+  <url>
+    <loc>https://app.runlifeos.com/app/social</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <!-- Settings -->
+  <url>
+    <loc>https://app.runlifeos.com/app/settings</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Privacy Policy -->
+  <url>
+    <loc>https://app.runlifeos.com/app/privacy.html</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <!-- Terms of Service -->
+  <url>
+    <loc>https://app.runlifeos.com/app/terms.html</loc>
+    <lastmod>2026-02-27</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.2</priority>
+  </url>
+
+</urlset>

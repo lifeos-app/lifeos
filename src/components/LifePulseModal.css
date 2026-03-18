@@ -1,0 +1,216 @@
+/* LifePulseModal — Full-screen popup for timed check-ins */
+
+.lp-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(5, 14, 26, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: lp-fade-in 0.3s ease-out;
+}
+
+.lp-modal-overlay.lp-closing {
+  animation: lp-fade-out 0.3s ease-in forwards;
+}
+
+.lp-modal {
+  width: 100%;
+  max-width: 400px;
+  background: linear-gradient(135deg, #0A1929 0%, #0F2D4A 100%);
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 20px;
+  padding: 28px 24px 24px;
+  position: relative;
+  box-shadow:
+    0 0 40px rgba(0, 212, 255, 0.08),
+    0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: lp-slide-up 0.3s ease-out;
+}
+
+.lp-modal.lp-modal-closing {
+  animation: lp-slide-down 0.3s ease-in forwards;
+}
+
+/* Close button */
+.lp-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.lp-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Header */
+.lp-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.lp-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #00D4FF;
+  letter-spacing: 0.5px;
+}
+.lp-subtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 4px;
+}
+.lp-streak {
+  font-size: 12px;
+  color: #EAB308;
+  margin-top: 6px;
+}
+
+/* Section */
+.lp-section {
+  margin-bottom: 20px;
+}
+.lp-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+/* Button row */
+.lp-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* Selection buttons */
+.lp-btn {
+  min-width: 54px;
+  min-height: 54px;
+  border-radius: 14px;
+  border: 2px solid rgba(26, 58, 92, 0.3);
+  background: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.15s;
+  padding: 6px 4px;
+}
+.lp-btn:active {
+  transform: scale(0.95);
+}
+.lp-btn-active {
+  transform: scale(1.08);
+}
+.lp-btn-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--text-muted);
+}
+
+/* Water row */
+.lp-water-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.lp-water-btn {
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 14px;
+  border: 2px solid rgba(26, 58, 92, 0.3);
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+.lp-water-btn:active {
+  transform: scale(0.95);
+  background: rgba(0, 212, 255, 0.08);
+}
+.lp-water-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #00D4FF;
+  min-width: 60px;
+  justify-content: center;
+}
+
+/* Done button */
+.lp-done {
+  width: 100%;
+  padding: 14px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(57, 255, 20, 0.1));
+  color: #00D4FF;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.5px;
+}
+.lp-done:hover {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.25), rgba(57, 255, 20, 0.15));
+}
+.lp-done:active {
+  transform: scale(0.98);
+}
+
+/* Animations */
+@keyframes lp-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes lp-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes lp-slide-up {
+  from { opacity: 0; transform: translateY(40px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes lp-slide-down {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(40px) scale(0.95); }
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+  .lp-modal {
+    max-width: 100%;
+    border-radius: 16px;
+    padding: 24px 18px 20px;
+  }
+  .lp-btn {
+    min-width: 48px;
+    min-height: 48px;
+  }
+}

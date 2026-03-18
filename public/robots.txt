@@ -1,0 +1,22 @@
+# LifeOS — Free AI Life Operating System
+# https://app.runlifeos.com
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://app.runlifeos.com/app/sitemap.xml
+
+# Allow all crawlers to index the app
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Block API endpoints from indexing
+Disallow: /api/
+Disallow: /rest/
+
+# Cache control hint
+Crawl-delay: 1

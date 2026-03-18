@@ -1,0 +1,221 @@
+/* ── Setup List Panel ── */
+
+.setup-list-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10005;
+  display: flex;
+  justify-content: flex-start;
+  align-items: stretch;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.setup-list-panel {
+  width: 340px;
+  max-width: 90vw;
+  background: #0D1B2A;
+  border-right: 1px solid rgba(0, 212, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  animation: setup-slide-in 0.2s ease;
+  overflow: hidden;
+}
+
+@keyframes setup-slide-in {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.setup-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.setup-list-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.setup-list-header-left svg {
+  color: #00D4FF;
+}
+
+.setup-list-close {
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  border-radius: 8px;
+  padding: 6px;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.setup-list-close:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+/* Progress bar */
+.setup-list-progress {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.setup-list-progress-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.setup-list-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00D4FF, #0088CC);
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.setup-list-progress-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+}
+
+/* Cards container */
+.setup-list-cards {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Each phase card — vertical stack layout for clean alignment */
+.setup-list-card {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  transition: all 0.2s;
+  gap: 12px;
+}
+
+.setup-list-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--phase-color, rgba(255, 255, 255, 0.1));
+}
+
+.setup-list-card:active {
+  transform: scale(0.98);
+}
+
+.setup-list-card.complete {
+  opacity: 0.65;
+}
+
+/* NPC image — centered at top of card */
+.setup-list-card-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+/* Text info block */
+.setup-list-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.setup-list-card-npc {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--phase-color, #00D4FF);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+
+.setup-list-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.3;
+}
+
+.setup-list-card-subtitle {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+/* Phase card progress bar */
+.setup-list-card-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.setup-list-card-progress-bar {
+  flex: 1;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.setup-list-card-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.setup-list-card-pct {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  min-width: 28px;
+  text-align: right;
+}
+
+/* Action row — arrow + label at bottom right */
+.setup-list-card-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-end;
+}
+
+.setup-list-card-btn-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Mobile: full width */
+@media (max-width: 480px) {
+  .setup-list-panel {
+    width: 100vw;
+    max-width: 100vw;
+  }
+}

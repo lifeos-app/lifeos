@@ -1,0 +1,42 @@
+<svg width="512" height="768" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628"/>
+      <stop offset="100%" style="stop-color:#0d2137"/>
+    </linearGradient>
+    <pattern id="tess" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+      <polygon points="40,0 80,20 80,60 40,80 0,60 0,20" fill="none" stroke="#2E7D32" stroke-width="0.8" opacity="0.4"/>
+      <polygon points="40,10 70,25 70,55 40,70 10,55 10,25" fill="none" stroke="#D4AF37" stroke-width="0.5" opacity="0.3"/>
+    </pattern>
+  </defs>
+  <rect width="512" height="768" fill="url(#bg3)"/>
+  
+  <!-- Tessellation background -->
+  <rect x="40" y="80" width="432" height="480" fill="url(#tess)" opacity="0.5"/>
+  
+  <rect x="16" y="16" width="480" height="736" rx="12" fill="none" stroke="#D4AF37" stroke-width="1" opacity="0.3"/>
+  
+  <!-- Central intricate tessellation -->
+  <g transform="translate(256, 340)" fill="none" stroke-width="1">
+    <!-- Hexagonal tessellation core -->
+    <polygon points="0,-130 113,-65 113,65 0,130 -113,65 -113,-65" stroke="#D4AF37" opacity="0.5"/>
+    <polygon points="0,-100 87,-50 87,50 0,100 -87,50 -87,-50" stroke="#2E7D32" opacity="0.6"/>
+    <polygon points="0,-70 61,-35 61,35 0,70 -61,35 -61,-35" stroke="#D4AF37" opacity="0.7"/>
+    <polygon points="0,-40 35,-20 35,20 0,40 -35,20 -35,-20" stroke="#2E7D32" opacity="0.8"/>
+    <!-- Cross-tessellation lines -->
+    <line x1="0" y1="-130" x2="0" y2="130" stroke="#D4AF37" opacity="0.2"/>
+    <line x1="-113" y1="0" x2="113" y2="0" stroke="#D4AF37" opacity="0.2"/>
+    <line x1="-65" y1="-113" x2="65" y2="113" stroke="#2E7D32" opacity="0.2"/>
+    <line x1="65" y1="-113" x2="-65" y2="113" stroke="#2E7D32" opacity="0.2"/>
+    <!-- Star overlay -->
+    <polygon points="0,-110 29,-29 110,0 29,29 0,110 -29,29 -110,0 -29,-29" stroke="#D4AF37" opacity="0.4" transform="rotate(15)"/>
+    <polygon points="0,-110 29,-29 110,0 29,29 0,110 -29,29 -110,0 -29,-29" stroke="#2E7D32" opacity="0.4" transform="rotate(-15)"/>
+    <circle cx="0" cy="0" r="20" stroke="#D4AF37" opacity="0.6"/>
+    <circle cx="0" cy="0" r="8" fill="#D4AF37" opacity="0.3"/>
+  </g>
+  
+  <text x="256" y="560" text-anchor="middle" fill="#e8e0d0" font-size="22" font-family="Georgia, serif">Tessellation</text>
+  <text x="256" y="590" text-anchor="middle" fill="#2E7D32" font-size="14" font-family="Georgia, serif">Sacred Geometry · Tier 3</text>
+  <rect x="186" y="640" width="140" height="30" rx="15" fill="rgba(46,125,50,0.15)" stroke="#2E7D32" stroke-width="1"/>
+  <text x="256" y="660" text-anchor="middle" fill="#2E7D32" font-size="12" font-family="system-ui">☪️ TIER 3 · DISCIPLE</text>
+</svg>

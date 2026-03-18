@@ -1,0 +1,375 @@
+/* ═══════════════════════════════════════════════════════════
+   JunctionAI — Holistic Spiritual/Junction Domain AI Card
+   Glass card, purple → indigo gradient, collapsible
+   ═══════════════════════════════════════════════════════════ */
+
+.junction-ai-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(168, 85, 247, 0.12);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(12px);
+  animation: jncAiFadeUp 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.junction-ai-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #A855F7, #6366F1);
+  opacity: 0.6;
+}
+
+/* ── Header ── */
+
+.jai-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  gap: 8px;
+}
+
+.jai-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jai-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.jai-icon-compass {
+  color: #A855F7;
+  filter: drop-shadow(0 0 4px rgba(168, 85, 247, 0.4));
+}
+
+.jai-icon-sparkles {
+  color: #6366F1;
+  filter: drop-shadow(0 0 4px rgba(99, 102, 241, 0.4));
+  margin-left: -4px;
+}
+
+.jai-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.jai-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jai-refresh-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+}
+
+.jai-refresh-btn:hover {
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.jai-chevron {
+  color: rgba(255, 255, 255, 0.3);
+  transition: transform 0.2s;
+}
+
+/* ── Body ── */
+
+.jai-body {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Loading ── */
+
+.jai-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px 0;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+}
+
+.jai-loading .jai-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #A855F7;
+  animation: jaiPulse 1.2s ease-in-out infinite;
+}
+
+.jai-loading .jai-pulse-dot:nth-child(2) { animation-delay: 0.2s; }
+.jai-loading .jai-pulse-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes jaiPulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* ── Summary ── */
+
+.jai-summary {
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.75);
+  padding: 10px 12px;
+  background: rgba(168, 85, 247, 0.05);
+  border: 1px solid rgba(168, 85, 247, 0.08);
+  border-radius: 10px;
+  white-space: pre-line;
+}
+
+/* ── Status Cards ── */
+
+.jai-status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.jai-status-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+}
+
+.jai-status-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.jai-status-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.jai-status-value.highlight {
+  color: #A855F7;
+}
+
+/* ── XP Progress ── */
+
+.jai-xp-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.jai-xp-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.jai-xp-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.jai-xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #A855F7, #6366F1);
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+/* ── Quick Actions ── */
+
+.jai-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.jai-quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.jai-quick-btn:hover {
+  background: rgba(168, 85, 247, 0.1);
+  border-color: rgba(168, 85, 247, 0.2);
+  color: #A855F7;
+}
+
+.jai-quick-btn svg {
+  flex-shrink: 0;
+}
+
+/* ── Ask AI Input ── */
+
+.jai-ask-row {
+  display: flex;
+  gap: 6px;
+}
+
+.jai-ask-input {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.jai-ask-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.jai-ask-input:focus {
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.jai-ask-send {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  background: rgba(168, 85, 247, 0.08);
+  color: #A855F7;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.jai-ask-send:hover {
+  background: rgba(168, 85, 247, 0.15);
+}
+
+.jai-ask-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── AI Answer ── */
+
+.jai-answer {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 10px 12px;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.08);
+  border-radius: 10px;
+  white-space: pre-line;
+}
+
+.jai-answer-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6366F1;
+  margin-bottom: 6px;
+}
+
+/* ── New User Welcome ── */
+
+.jai-welcome {
+  text-align: center;
+  padding: 12px 8px;
+}
+
+.jai-welcome-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.jai-welcome h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 6px;
+}
+
+.jai-welcome p {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Animations ── */
+
+@keyframes jncAiFadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 600px) {
+  .junction-ai-card {
+    padding: 12px;
+  }
+
+  .jai-status-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .jai-quick-actions {
+    gap: 4px;
+  }
+
+  .jai-quick-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}

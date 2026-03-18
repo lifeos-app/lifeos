@@ -1,0 +1,196 @@
+/* ── Character Creation Panel ─────────────────── */
+/* Slides up over the dialogue area during identity scene */
+
+.char-creation-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: rgba(13, 13, 43, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 16px 16px 0 0;
+  animation: char-creation-slide-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  max-height: 55%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.char-creation-inner {
+  padding: 16px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.char-creation-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: bold;
+  color: #D4AF37;
+  text-align: center;
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: 0.5px;
+}
+
+/* ── Swatch row ──────────────────────────────── */
+
+.char-creation-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.char-creation-label {
+  font-size: 11px;
+  color: rgba(212, 175, 55, 0.6);
+  font-family: 'Courier New', Courier, monospace;
+  min-width: 38px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.char-creation-swatches {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.char-creation-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  outline: none;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.char-creation-swatch:hover {
+  transform: scale(1.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.char-creation-swatch--selected {
+  border-color: #D4AF37;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.5), 0 0 20px rgba(212, 175, 55, 0.2);
+  transform: scale(1.1);
+}
+
+/* ── Name input ──────────────────────────────── */
+
+.char-creation-name-row {
+  padding-top: 4px;
+}
+
+.char-creation-name-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(13, 13, 43, 0.8);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 8px;
+  color: #e0d8c8;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.char-creation-name-input:focus {
+  border-color: #D4AF37;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.2);
+}
+
+.char-creation-name-input::placeholder {
+  color: rgba(224, 216, 200, 0.35);
+}
+
+/* ── Confirm button ──────────────────────────── */
+
+.char-creation-confirm {
+  width: 100%;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.1));
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  border-radius: 10px;
+  color: #D4AF37;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.char-creation-confirm:hover {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.15));
+  border-color: #D4AF37;
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.3);
+}
+
+.char-creation-confirm:active {
+  transform: scale(0.98);
+}
+
+/* ── Slide-up animation ──────────────────────── */
+
+@keyframes char-creation-slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ── Mobile optimization (375px width) ───────── */
+
+@media (max-width: 400px) {
+  .char-creation-inner {
+    padding: 12px 14px 20px;
+    gap: 10px;
+  }
+
+  .char-creation-swatch {
+    width: 32px;
+    height: 32px;
+  }
+
+  .char-creation-swatches {
+    gap: 6px;
+  }
+
+  .char-creation-label {
+    min-width: 32px;
+    font-size: 10px;
+  }
+}
+
+@media (max-height: 667px) {
+  .char-creation-panel {
+    max-height: 60%;
+  }
+
+  .char-creation-inner {
+    padding: 10px 14px 16px;
+    gap: 8px;
+  }
+
+  .char-creation-title {
+    font-size: 13px;
+  }
+
+  .char-creation-swatch {
+    width: 30px;
+    height: 30px;
+  }
+}

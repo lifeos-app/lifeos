@@ -1,0 +1,96 @@
+.mobile-header {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(10, 14, 26, 0.92);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.mh-hamburger, .mh-command {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary, #9CA3AF);
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mh-hamburger:hover, .mh-command:hover {
+  background: rgba(0, 212, 255, 0.08);
+  color: var(--cyan, #00D4FF);
+}
+
+.mh-logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--cyan, #00D4FF);
+  letter-spacing: 2px;
+}
+
+.mh-zap { filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.4)); }
+
+/* Notification bell button */
+.mh-notif-btn {
+  position: relative;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #9CA3AF !important;
+  transition: all 0.2s;
+}
+.mh-notif-btn:hover {
+  color: #00D4FF !important;
+  border-color: rgba(0, 212, 255, 0.25) !important;
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.15);
+}
+.mh-notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #EF4444;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .mobile-header { display: flex; }
+}
+
+/* ── Character (Swords) Button ── */
+.mh-character-btn {
+  color: #D4AF37 !important;
+  border-color: rgba(212, 175, 55, 0.2) !important;
+  background: rgba(212, 175, 55, 0.08) !important;
+}
+.mh-character-btn:hover {
+  background: rgba(212, 175, 55, 0.15) !important;
+  border-color: rgba(212, 175, 55, 0.4) !important;
+  color: #D4AF37 !important;
+}
+
+@media (min-width: 769px) {
+  .mobile-header { display: none !important; }
+}

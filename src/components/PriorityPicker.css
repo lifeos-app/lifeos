@@ -1,0 +1,51 @@
+.priority-picker {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.priority-picker-full {
+  gap: 8px;
+}
+
+.priority-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.priority-option:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.priority-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.priority-badge:hover:not(:disabled) {
+  opacity: 0.85;
+  transform: scale(1.05);
+}

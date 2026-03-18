@@ -1,0 +1,688 @@
+/* ── Onboarding Quest — The Awakening ──────────── */
+
+/* Hide AI/Voice FABs and other overlays during onboarding */
+body:has(.realm-onboarding-container) .voice-fab,
+body:has(.realm-onboarding-container) .ai-chat-fab,
+body:has(.realm-onboarding-container) .ai-chat-panel,
+body:has(.realm-onboarding-container) .chat-widget,
+body:has(.realm-onboarding-container) .agent-nudge-bar,
+body:has(.realm-onboarding-container) .ed-handle,
+body:has(.realm-onboarding-container) .event-drawer,
+body:has(.realm-onboarding-container) .ed-drawer,
+body:has(.realm-onboarding-container) .whats-new-overlay,
+body:has(.realm-onboarding-container) .whats-new-modal,
+body:has(.realm-onboarding-container) .update-banner,
+body:has(.realm-onboarding-container) .update-notification {
+  display: none !important;
+}
+
+.realm-onboarding-container {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #0D0D2B;
+  color: #e0d8c8;
+  font-family: 'Courier New', Courier, monospace;
+  overflow: hidden;
+  z-index: 100;
+}
+
+/* ── Progress dots ──────────────────────────────── */
+
+.realm-onboarding-progress {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 0 8px;
+  z-index: 2;
+}
+
+.realm-onboarding-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(212, 175, 55, 0.4);
+  background: transparent;
+  transition: all 0.4s ease;
+}
+
+.realm-onboarding-dot--completed {
+  background: #D4AF37;
+  border-color: #D4AF37;
+  animation: realm-onboarding-dot-glow 2s ease-in-out infinite;
+}
+
+.realm-onboarding-dot--current {
+  border-color: #D4AF37;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+}
+
+.realm-onboarding-dot--future {
+  border-color: rgba(212, 175, 55, 0.2);
+}
+
+/* ── Later button (two-step confirm) ───────────── */
+
+.realm-onboarding-later-trigger {
+  position: absolute;
+  top: 36px;
+  left: 8px;
+  z-index: 90;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  backdrop-filter: blur(12px);
+  transition: all 0.2s ease;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.realm-onboarding-later-trigger:hover {
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.realm-onboarding-later-confirm {
+  position: absolute;
+  top: 34px;
+  left: 8px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  animation: realm-onboarding-fade-in 0.2s ease;
+}
+
+.realm-onboarding-later-btn {
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: inherit;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.realm-onboarding-later-btn:hover {
+  color: rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* ── Close button (top-right escape hatch) ──────── */
+
+.realm-onboarding-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 91;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(12px);
+  transition: all 0.2s ease;
+}
+.realm-onboarding-close-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* ── Scene area (top ~55%) ─────────────────────── */
+
+.realm-onboarding-scene {
+  flex: 0 0 40%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: background 0.8s ease;
+}
+
+.realm-onboarding-scene--awakening {
+  background: radial-gradient(ellipse at center, #1a1a2e 0%, #000 100%);
+}
+
+.realm-onboarding-scene--path_selection {
+  background: radial-gradient(ellipse at center, #2B2200 0%, #0D0D2B 100%);
+}
+
+.realm-onboarding-scene--identity {
+  background: radial-gradient(ellipse at center, #1a2a3e 0%, #0D0D2B 100%);
+}
+
+.realm-onboarding-scene--first_seed {
+  background: radial-gradient(ellipse at center, #0D2B1A 0%, #0D0D2B 100%);
+}
+
+.realm-onboarding-scene--the_dream {
+  background: radial-gradient(ellipse at center, #2B1A0D 0%, #0D0D2B 100%);
+}
+
+.realm-onboarding-scene--first_words {
+  background: radial-gradient(ellipse at center, #1A0D2B 0%, #0D0D2B 100%);
+}
+
+.realm-onboarding-scene--reveal {
+  background: radial-gradient(ellipse at center, #2B2200 0%, #0D0D2B 100%);
+  animation: realm-onboarding-golden-pulse 2s ease-in-out infinite;
+}
+
+.realm-onboarding-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ── Dialogue area (bottom ~45%) ───────────────── */
+
+.realm-onboarding-dialogue-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 16px 16px;
+  min-height: 0;
+  position: relative;
+}
+
+.realm-onboarding-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.realm-onboarding-message {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 15px;
+  line-height: 1.5;
+  animation: realm-onboarding-fade-in 0.3s ease;
+}
+
+.realm-onboarding-message--sage {
+  align-self: flex-start;
+  color: #D4AF37;
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.realm-onboarding-sage-portrait {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(212, 175, 55, 0.3);
+  flex-shrink: 0;
+}
+
+.realm-onboarding-message-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.realm-onboarding-message--user {
+  align-self: flex-end;
+  color: #c8d8e8;
+  background: rgba(74, 144, 217, 0.15);
+  border: 1px solid rgba(74, 144, 217, 0.2);
+}
+
+.realm-onboarding-cursor {
+  display: inline-block;
+  animation: realm-onboarding-blink 0.8s step-end infinite;
+}
+
+/* ── Thinking indicator ────────────────────────── */
+
+.realm-onboarding-thinking {
+  align-self: flex-start;
+  color: rgba(212, 175, 55, 0.6);
+  font-size: 13px;
+  padding: 8px 0;
+  font-style: italic;
+}
+
+.realm-onboarding-thinking-dots {
+  display: inline-block;
+}
+
+.realm-onboarding-thinking-dots span {
+  animation: realm-onboarding-dot-pulse 1.4s infinite;
+  opacity: 0;
+}
+
+.realm-onboarding-thinking-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.realm-onboarding-thinking-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* ── Fallback UI ───────────────────────────────── */
+
+.realm-onboarding-fallback-area {
+  padding: 8px 0;
+}
+
+.realm-onboarding-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.realm-onboarding-pill {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  background: rgba(212, 175, 55, 0.08);
+  color: #D4AF37;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.realm-onboarding-pill:hover {
+  background: rgba(212, 175, 55, 0.2);
+  border-color: #D4AF37;
+}
+
+.realm-onboarding-class-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  max-width: 100%;
+  justify-items: center;
+}
+
+.realm-onboarding-class-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.realm-onboarding-class-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.realm-onboarding-class-card-icon {
+  font-size: 24px;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+img.realm-onboarding-class-card-icon {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.realm-onboarding-class-card-name {
+  font-size: 12px;
+  font-weight: bold;
+  color: #e0d8c8;
+}
+
+.realm-onboarding-class-card-desc {
+  font-size: 10px;
+  color: rgba(224, 216, 200, 0.6);
+}
+
+/* ── Input ─────────────────────────────────────── */
+
+.realm-onboarding-input-area {
+  padding-top: 8px;
+}
+
+.realm-onboarding-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.realm-onboarding-input-row .realm-onboarding-input,
+.realm-onboarding-input-row .realm-onboarding-textarea {
+  flex: 1;
+  min-width: 0;
+}
+
+.realm-onboarding-send-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  background: rgba(212, 175, 55, 0.15);
+  color: #D4AF37;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.realm-onboarding-send-btn:hover:not(:disabled) {
+  background: rgba(212, 175, 55, 0.3);
+  border-color: #D4AF37;
+  transform: scale(1.05);
+}
+
+.realm-onboarding-send-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.realm-onboarding-input-label {
+  font-size: 11px;
+  color: rgba(212, 175, 55, 0.6);
+  margin-bottom: 4px;
+}
+
+.realm-onboarding-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(13, 13, 43, 0.8);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 8px;
+  color: #e0d8c8;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.realm-onboarding-input:focus {
+  border-color: #D4AF37;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.2);
+}
+
+.realm-onboarding-input:disabled {
+  opacity: 0.5;
+}
+
+.realm-onboarding-textarea {
+  width: 100%;
+  min-height: 80px;
+  max-height: 120px;
+  padding: 10px 14px;
+  background: rgba(13, 13, 43, 0.8);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 8px;
+  color: #e0d8c8;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.realm-onboarding-textarea:focus {
+  border-color: #D4AF37;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.2);
+}
+
+.realm-onboarding-textarea:disabled {
+  opacity: 0.5;
+}
+
+/* ── Skip button ───────────────────────────────── */
+
+.realm-onboarding-skip {
+  position: absolute;
+  bottom: 10px;
+  right: 16px;
+  padding: 4px 10px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  font-family: inherit;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 5;
+}
+
+.realm-onboarding-skip:hover {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.realm-onboarding-skip-confirm {
+  position: absolute;
+  bottom: 8px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  z-index: 5;
+}
+
+.realm-onboarding-skip-btn {
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.realm-onboarding-skip-btn:hover {
+  color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* ── Scene transition ──────────────────────────── */
+
+.realm-onboarding-scene-transition {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 10;
+  animation: realm-onboarding-crossfade 0.6s ease forwards;
+  pointer-events: none;
+}
+
+/* ── ESBI path cards ──────────────────────────── */
+
+.realm-onboarding-esbi-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.realm-onboarding-esbi-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  background: rgba(212, 175, 55, 0.06);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  font-family: inherit;
+}
+
+.realm-onboarding-esbi-card:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: rgba(212, 175, 55, 0.5);
+  transform: translateY(-2px);
+}
+
+.realm-onboarding-esbi-card-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.realm-onboarding-esbi-card-icon {
+  font-size: 28px;
+}
+
+.realm-onboarding-esbi-card-name {
+  font-size: 13px;
+  font-weight: bold;
+  color: #D4AF37;
+}
+
+.realm-onboarding-esbi-card-desc {
+  font-size: 11px;
+  color: rgba(224, 216, 200, 0.6);
+  line-height: 1.3;
+}
+
+/* ── Reveal scene ──────────────────────────────── */
+
+.realm-onboarding-reveal-text {
+  text-align: center;
+  padding: 24px 16px;
+}
+
+.realm-onboarding-reveal-text h2 {
+  color: #D4AF37;
+  font-size: 20px;
+  margin: 0 0 8px;
+}
+
+.realm-onboarding-reveal-text p {
+  color: rgba(224, 216, 200, 0.7);
+  font-size: 14px;
+  margin: 0;
+}
+
+.realm-onboarding-creating {
+  text-align: center;
+  color: rgba(212, 175, 55, 0.7);
+  font-size: 13px;
+  padding: 16px;
+}
+
+/* ── Keyframes ─────────────────────────────────── */
+
+@keyframes realm-onboarding-fade {
+  0% { opacity: 1; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes realm-onboarding-crossfade {
+  0% { opacity: 0; }
+  40% { opacity: 1; }
+  60% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes realm-onboarding-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes realm-onboarding-golden-pulse {
+  0%, 100% { background: radial-gradient(ellipse at center, #2B2200 0%, #0D0D2B 100%); }
+  50% { background: radial-gradient(ellipse at center, #3D3000 0%, #0D0D2B 100%); }
+}
+
+@keyframes realm-onboarding-blink {
+  50% { opacity: 0; }
+}
+
+@keyframes realm-onboarding-dot-pulse {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+@keyframes realm-onboarding-dot-glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(212, 175, 55, 0.4); }
+  50% { box-shadow: 0 0 10px rgba(212, 175, 55, 0.8); }
+}
+
+/* ── Mobile adjustments ────────────────────────── */
+
+@media (max-height: 667px) {
+  .realm-onboarding-scene {
+    flex: 0 0 35%;
+    max-height: 240px;
+  }
+
+  .realm-onboarding-message {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+
+  .realm-onboarding-esbi-cards {
+    gap: 6px;
+  }
+
+  .realm-onboarding-esbi-card {
+    padding: 10px 6px;
+  }
+}
+
+@media (max-width: 400px) {
+  .realm-onboarding-class-cards {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+}

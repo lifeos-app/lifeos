@@ -1,0 +1,314 @@
+/* ══════════════════════════════════════
+   GUILD OBJECTIVES
+   ══════════════════════════════════════ */
+
+.guild-objective-panel {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(57, 255, 20, 0.05));
+  border-bottom: 1px solid rgba(0, 212, 255, 0.15);
+  padding: 14px;
+  margin-bottom: 0;
+}
+
+.guild-objective-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.guild-objective-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #00D4FF;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.guild-objective-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  font-size: 20px;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.guild-objective-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.guild-objective-progress {
+  margin-bottom: 10px;
+}
+
+.guild-progress-bar {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 6px;
+}
+
+.guild-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00D4FF, #39FF14);
+  transition: width 0.5s ease;
+  border-radius: 4px;
+}
+
+.guild-progress-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+}
+
+.guild-objective-deadline {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.guild-leaderboard {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.guild-leaderboard-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #FACC15;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.guild-leaderboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.guild-leaderboard-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  padding: 6px 8px;
+  background: rgba(0, 212, 255, 0.05);
+  border-radius: 6px;
+  border-left: 2px solid #00D4FF;
+}
+
+.guild-leaderboard-item:nth-child(1) {
+  border-left-color: #FACC15;
+}
+
+.guild-leaderboard-item:nth-child(1) .guild-leaderboard-rank {
+  color: #FACC15;
+}
+
+.guild-leaderboard-item:nth-child(2) {
+  border-left-color: #C0C0C0;
+}
+
+.guild-leaderboard-item:nth-child(2) .guild-leaderboard-rank {
+  color: #C0C0C0;
+}
+
+.guild-leaderboard-item:nth-child(3) {
+  border-left-color: #CD7F32;
+}
+
+.guild-leaderboard-item:nth-child(3) .guild-leaderboard-rank {
+  color: #CD7F32;
+}
+
+.guild-leaderboard-rank {
+  font-weight: 700;
+  color: #00D4FF;
+  min-width: 24px;
+}
+
+.guild-leaderboard-name {
+  flex: 1;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.guild-leaderboard-score {
+  font-weight: 600;
+  color: #39FF14;
+}
+
+.guild-log-progress-btn {
+  width: 100%;
+  padding: 8px;
+  background: linear-gradient(135deg, #00D4FF, #0099FF);
+  border: none;
+  border-radius: 8px;
+  color: #0A2540;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.guild-log-progress-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+}
+
+.guild-log-progress-form {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.guild-progress-input,
+.guild-progress-note {
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 6px;
+  color: #FFF;
+  font-size: 12px;
+  width: 100%;
+  font-family: inherit;
+}
+
+.guild-progress-input:focus,
+.guild-progress-note:focus {
+  outline: none;
+  border-color: #00D4FF;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.guild-progress-submit {
+  padding: 8px 16px;
+  background: #39FF14;
+  border: none;
+  border-radius: 6px;
+  color: #0A2540;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.guild-progress-submit:hover:not(:disabled) {
+  background: #4FFF30;
+  transform: translateY(-1px);
+}
+
+.guild-progress-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.guild-progress-cancel {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.guild-progress-cancel:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.guild-show-objective-btn {
+  width: 100%;
+  padding: 6px;
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 6px;
+  color: #00D4FF;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.2s;
+  margin-bottom: 8px;
+}
+
+.guild-show-objective-btn:hover {
+  background: rgba(0, 212, 255, 0.15);
+}
+
+/* Guild Members Bar (for DMs) */
+.guild-members-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  overflow-x: auto;
+}
+
+.guild-member-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00D4FF, #39FF14);
+  border: 2px solid rgba(0, 212, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0A2540;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.guild-member-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.guild-member-avatar:hover {
+  transform: scale(1.1);
+  border-color: #00D4FF;
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+}
+
+.guild-member-more {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+}

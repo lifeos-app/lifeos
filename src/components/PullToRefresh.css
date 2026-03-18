@@ -1,0 +1,49 @@
+/* ── Pull to Refresh ── */
+.ptr-container {
+  position: relative;
+  -webkit-touch-callout: none;
+  touch-action: pan-y;
+}
+
+.ptr-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+  gap: 6px;
+  background: linear-gradient(180deg, rgba(0, 212, 255, 0.04) 0%, transparent 100%);
+  border-radius: 0 0 16px 16px;
+}
+
+.ptr-indicator.refreshing {
+  height: 56px !important;
+  background: linear-gradient(180deg, rgba(0, 212, 255, 0.08) 0%, transparent 100%);
+}
+
+.ptr-spinner {
+  transition: transform 0.05s linear;
+}
+
+.ptr-spin-path {
+  animation: ptr-rotate 0.8s linear infinite;
+  transform-origin: center;
+}
+
+.ptr-release-text {
+  font-size: 11px;
+  color: var(--cyan, #00D4FF);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+@keyframes ptr-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Make the whole SVG spin when refreshing */
+.ptr-indicator.refreshing .ptr-spinner {
+  animation: ptr-rotate 0.8s linear infinite;
+}

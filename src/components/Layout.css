@@ -1,0 +1,163 @@
+/* ── Layout ── */
+.layout {
+  display: flex;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
+}
+
+.layout-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.layout-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 28px 32px;
+  -webkit-overflow-scrolling: touch;
+  animation: page-fade-in 0.3s ease-out;
+  will-change: opacity, transform;
+}
+
+/* ── Non-mobile (≥769px) ── */
+@media (min-width: 769px) {
+  .sidebar-wrap {
+    position: fixed;
+    left: 0; top: 0;
+    width: var(--sidebar-w, 240px);
+    height: 100vh; height: 100dvh;
+    z-index: 50;
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .layout-main {
+    margin-left: var(--sidebar-w, 240px);
+    transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .layout-content {
+    padding: 24px 28px 80px;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .layout-content {
+    padding: 32px 40px 80px;
+  }
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Mobile Layout ── */
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .layout-main {
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* Account for bottom nav height + safe area */
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .layout-content {
+    overflow-y: visible;
+    overflow-x: hidden;
+    flex: none;
+    padding: 16px 12px 100px;
+    /* Prevent any horizontal overflow */
+    max-width: 100vw;
+  }
+
+  /* Hide desktop sidebar completely on mobile */
+  .sidebar-wrap {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100%;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar-wrap.mobile-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-wrap .sidebar {
+    width: 260px !important;
+    height: 100%;
+    transform: none !important;
+    position: relative !important;
+  }
+}
+
+/* ── Mobile Overlay ── */
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 45;
+}
+
+@media (max-width: 768px) {
+  .mobile-overlay {
+    display: block;
+    z-index: 90;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-overlay { display: none !important; }
+}
+
+/* ── Global Mobile Overrides ── */
+@media (max-width: 768px) {
+  /* Prevent horizontal scroll globally */
+  .layout, .layout-main, .layout-content {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* Ensure all inputs respect viewport width */
+  input, textarea, select {
+    max-width: 100%;
+    font-size: 16px; /* Prevent iOS zoom on focus */
+  }
+
+  /* Touch-friendly minimum sizes */
+  button, a, [role="button"] {
+    min-height: 44px;
+  }
+
+  /* Full-width cards on mobile */
+  .dash-card, .goal-card, .habit-card,
+  .fin-business-card, .glass-card {
+    border-radius: 12px;
+  }
+}
+
+/* ── Safe area padding for iOS notch ── */
+@supports (padding-top: env(safe-area-inset-top)) {
+  @media (max-width: 768px) {
+    .mobile-header {
+      padding-top: calc(12px + env(safe-area-inset-top, 0px));
+    }
+  }
+}

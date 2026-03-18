@@ -1,0 +1,4 @@
+/* Restore pointer-events on actual overlay content inside tier containers */
+#lifeos-overlay-root [data-overlay-tier] > * {
+  pointer-events: auto;
+}

@@ -1,0 +1,196 @@
+@import "tailwindcss";
+
+/* LifeOS — Global Styles (imports handled via theme.css in App.tsx) */
+
+:root {
+  font-family: var(--font-body, 'Poppins', sans-serif);
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: dark;
+  color: var(--text-primary, #F9FAFB);
+  background-color: var(--bg-primary, #0A0E1A);
+  --sidebar-w: 240px;
+  --header-h: 56px;
+  --nav-h: 64px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Cross-browser: touch/input hardening ── */
+html {
+  scroll-behavior: smooth;
+  /* iOS: prevent text size adjustment on orientation change */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Prevent Chrome pull-to-refresh in PWA standalone mode */
+  overscroll-behavior-y: contain;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  min-height: 100dvh; /* Safari mobile address bar fix */
+  background: var(--bg-primary, #0A0E1A);
+  /* iOS: prevent elastic overscroll on body */
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Cross-platform: Kill 300ms tap delay on ALL interactive elements ── */
+button, a, [role="button"], input, select, textarea, label,
+[tabindex], summary, .clickable {
+  touch-action: manipulation;
+}
+
+/* ── iOS: Prevent auto-zoom on inputs (font-size < 16px triggers zoom) ── */
+input, select, textarea {
+  font-size: 16px;
+}
+
+/* ── Cross-platform: Suppress long-press context menu on draggable/swipeable ── */
+[draggable="true"],
+.swipeable,
+.draggable,
+.no-callout {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ── Safe area insets for notch/Dynamic Island devices ── */
+@supports (padding-top: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+}
+
+/* Links */
+a {
+  font-weight: 500;
+  color: var(--accent-cyan, #00D4FF);
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+a:hover { opacity: 0.85; }
+
+/* Buttons global reset */
+button {
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: var(--font-body, inherit);
+  background-color: var(--bg-secondary, #111827);
+  color: var(--text-primary, #F9FAFB);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:hover {
+  border-color: rgba(0, 212, 255, 0.2);
+}
+
+/* Focus fallback for older browsers, then :focus-visible for modern */
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px rgba(0, 212, 255, 0.4);
+}
+button:focus:not(:focus-visible) {
+  box-shadow: none;
+}
+button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px rgba(0, 212, 255, 0.4);
+}
+
+/* Inputs global */
+input, textarea, select {
+  font-family: var(--font-body, 'Poppins', sans-serif);
+  color: var(--text-primary, #F9FAFB);
+}
+
+/* Selection */
+::selection {
+  background: rgba(0, 212, 255, 0.25);
+  color: #fff;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 212, 255, 0.15);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 212, 255, 0.3);
+}
+
+/* Focus ring — :focus fallback first, then :focus-visible override */
+*:focus {
+  outline: none;
+}
+*:focus-visible {
+  outline: 2px solid rgba(0, 212, 255, 0.7);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--bg-primary, #0A0E1A), 0 0 0 4px rgba(0, 212, 255, 0.4);
+}
+
+/* Skip-to-content link for keyboard users — hidden until focused */
+.skip-to-content {
+  display: none;
+}
+.skip-to-content:focus {
+  display: block;
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  padding: 8px 16px;
+  background: #0a0a14;
+  color: #00d4ff;
+  border: 1px solid #00d4ff;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 100000;
+}
+
+/* Screen reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Ensure focus visible on inputs/selects */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid rgba(0, 212, 255, 0.7);
+  outline-offset: 2px;
+}
+
+/* ── Reduced Motion: respect user preferences ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

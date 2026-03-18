@@ -1,0 +1,37 @@
+<svg width="512" height="768" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628"/>
+      <stop offset="100%" style="stop-color:#0d2137"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="768" fill="url(#bg2)"/>
+  <rect x="16" y="16" width="480" height="736" rx="12" fill="none" stroke="#D4AF37" stroke-width="1" opacity="0.3"/>
+  <rect x="24" y="24" width="464" height="720" rx="8" fill="none" stroke="#2E7D32" stroke-width="0.5" opacity="0.4"/>
+  
+  <!-- Complex arabesque pattern -->
+  <g transform="translate(256, 340)" fill="none" stroke-width="1.2">
+    <!-- Outer ring of 12-pointed star -->
+    <polygon points="0,-140 37,-37 140,0 37,37 0,140 -37,37 -140,0 -37,-37" stroke="#D4AF37" opacity="0.6"/>
+    <polygon points="0,-140 37,-37 140,0 37,37 0,140 -37,37 -140,0 -37,-37" stroke="#D4AF37" opacity="0.6" transform="rotate(45)"/>
+    <!-- Middle layer -->
+    <polygon points="0,-100 26,-26 100,0 26,26 0,100 -26,26 -100,0 -26,-26" stroke="#2E7D32" opacity="0.7"/>
+    <polygon points="0,-100 26,-26 100,0 26,26 0,100 -26,26 -100,0 -26,-26" stroke="#2E7D32" opacity="0.7" transform="rotate(30)"/>
+    <polygon points="0,-100 26,-26 100,0 26,26 0,100 -26,26 -100,0 -26,-26" stroke="#2E7D32" opacity="0.4" transform="rotate(60)"/>
+    <!-- Inner core -->
+    <polygon points="0,-60 16,-16 60,0 16,16 0,60 -16,16 -60,0 -16,-16" stroke="#D4AF37" opacity="0.8"/>
+    <polygon points="0,-60 16,-16 60,0 16,16 0,60 -16,16 -60,0 -16,-16" stroke="#D4AF37" opacity="0.8" transform="rotate(45)"/>
+    <circle cx="0" cy="0" r="30" stroke="#2E7D32" opacity="0.5"/>
+    <circle cx="0" cy="0" r="15" stroke="#D4AF37" opacity="0.6"/>
+    <!-- Arabesque curves -->
+    <path d="M-70,-70 Q0,-100 70,-70" stroke="#D4AF37" opacity="0.3"/>
+    <path d="M70,-70 Q100,0 70,70" stroke="#D4AF37" opacity="0.3"/>
+    <path d="M70,70 Q0,100 -70,70" stroke="#D4AF37" opacity="0.3"/>
+    <path d="M-70,70 Q-100,0 -70,-70" stroke="#D4AF37" opacity="0.3"/>
+  </g>
+  
+  <text x="256" y="560" text-anchor="middle" fill="#e8e0d0" font-size="22" font-family="Georgia, serif">Arabesque Star</text>
+  <text x="256" y="590" text-anchor="middle" fill="#2E7D32" font-size="14" font-family="Georgia, serif">Sacred Geometry · Tier 2</text>
+  <rect x="186" y="640" width="140" height="30" rx="15" fill="rgba(46,125,50,0.15)" stroke="#2E7D32" stroke-width="1"/>
+  <text x="256" y="660" text-anchor="middle" fill="#2E7D32" font-size="12" font-family="system-ui">☪️ TIER 2 · DEVOTEE</text>
+</svg>

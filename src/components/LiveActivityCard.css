@@ -1,0 +1,310 @@
+/* ═══════════════════════════════════════════════════════════
+   LiveActivityCard — Pulsing live session card
+   ═══════════════════════════════════════════════════════════ */
+
+.lac-container {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(0, 212, 255, 0.03));
+  border: 1px solid rgba(0, 212, 255, 0.25);
+  border-radius: 14px;
+  margin: 0 0 12px 0;
+  overflow: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: 40vh; /* Don't let it eat the whole drawer in split view */
+  flex-shrink: 0;
+  animation: lac-glow 3s ease-in-out infinite;
+}
+
+@keyframes lac-glow {
+  0%, 100% { box-shadow: 0 0 12px rgba(0, 212, 255, 0.1); }
+  50% { box-shadow: 0 0 24px rgba(0, 212, 255, 0.2); }
+}
+
+/* ─── Header ──────────────────────────────────────── */
+
+.lac-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lac-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.lac-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #EF4444;
+  flex-shrink: 0;
+  transition: opacity 0.3s;
+}
+
+.lac-live-dot--on {
+  opacity: 1;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+}
+
+.lac-live-dot:not(.lac-live-dot--on) {
+  opacity: 0.4;
+}
+
+.lac-live-badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #EF4444;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.lac-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #E2E8F0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lac-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748B;
+  flex-shrink: 0;
+}
+
+.lac-elapsed {
+  font-size: 13px;
+  font-weight: 600;
+  color: #00D4FF;
+  font-variant-numeric: tabular-nums;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+/* ─── Body ────────────────────────────────────────── */
+
+.lac-body {
+  padding: 0 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lac-time-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #8BA4BE;
+}
+
+/* ─── Chips ───────────────────────────────────────── */
+
+.lac-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.lac-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--chip-color, #64748B);
+  background: color-mix(in srgb, var(--chip-color, #64748B) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--chip-color, #64748B) 20%, transparent);
+}
+
+/* ─── Notes ───────────────────────────────────────── */
+
+.lac-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lac-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11px;
+  color: #8BA4BE;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  line-height: 1.4;
+}
+
+.lac-note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  opacity: 0.5;
+}
+
+/* ─── Action Buttons ──────────────────────────────── */
+
+.lac-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.lac-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #8BA4BE;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.lac-action-btn:hover,
+.lac-action-btn:active {
+  background: rgba(255, 255, 255, 0.08);
+  color: #E2E8F0;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ─── Quick Add Panel ─────────────────────────────── */
+
+.lac-quick-add {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lac-qa-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.lac-qa-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #8BA4BE;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.lac-qa-close {
+  background: none;
+  border: none;
+  color: #64748B;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+}
+
+.lac-qa-body {
+  display: flex;
+  gap: 6px;
+}
+
+.lac-qa-input {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+  color: #E2E8F0;
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+}
+
+.lac-qa-input:focus {
+  border-color: rgba(0, 212, 255, 0.4);
+}
+
+.lac-qa-input::placeholder {
+  color: #475569;
+}
+
+.lac-qa-submit {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #00D4FF;
+  color: #050E1A;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.lac-qa-submit:active {
+  transform: scale(0.96);
+}
+
+/* ─── STOP Button ─────────────────────────────────── */
+
+.lac-stop-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #EF4444, #DC2626);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  margin-top: 2px;
+}
+
+.lac-stop-btn:hover {
+  background: linear-gradient(135deg, #F87171, #EF4444);
+  transform: scale(1.01);
+}
+
+.lac-stop-btn:active {
+  transform: scale(0.98);
+}
+
+.lac-stop-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ─── Responsive ──────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .lac-container {
+    border-radius: 12px;
+  }
+
+  .lac-stop-btn {
+    padding: 14px;
+    font-size: 15px;
+  }
+}

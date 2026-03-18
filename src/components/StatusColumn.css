@@ -1,0 +1,90 @@
+/* ═══ StatusColumn — Monday.com-style status pill ═══ */
+
+.sc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  background: var(--sc-bg);
+  border: 1px solid color-mix(in srgb, var(--sc-color) 30%, transparent);
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sc-color);
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.15s ease;
+  -webkit-user-select: none;
+  user-select: none;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.sc-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--sc-color) 20%, transparent);
+  border-color: color-mix(in srgb, var(--sc-color) 50%, transparent);
+}
+
+.sc-pill:active {
+  transform: scale(0.96);
+}
+
+/* Dot indicator */
+.sc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sc-color);
+  flex-shrink: 0;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 0 6px color-mix(in srgb, var(--sc-color) 40%, transparent);
+}
+
+.sc-label {
+  transition: color 0.3s ease;
+}
+
+/* Pulse animation on click */
+.sc-pill.sc-pulse {
+  animation: scPulse 0.4s ease-out;
+}
+
+@keyframes scPulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--sc-color) 40%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--sc-color) 0%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+/* Ripple effect */
+.sc-pill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at center, var(--sc-color), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.sc-pill.sc-pulse::after {
+  animation: scRipple 0.4s ease-out;
+}
+
+@keyframes scRipple {
+  0% { opacity: 0.2; transform: scale(0.5); }
+  100% { opacity: 0; transform: scale(1.2); }
+}

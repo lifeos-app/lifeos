@@ -1,0 +1,643 @@
+/* ═══════════════════════════════════════════════════════════
+   WORKOUT GENERATOR — LifeOS
+   AI-powered workout generation with quick presets
+   ═══════════════════════════════════════════════════════════ */
+
+.wg-container {
+  background: linear-gradient(135deg, rgba(15, 45, 74, 0.6), rgba(10, 37, 64, 0.4));
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 16px;
+  padding: 0;
+  margin-top: 14px;
+  overflow: hidden;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.wg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(26, 58, 92, 0.6);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), transparent);
+}
+
+.wg-header-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wg-header h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.wg-sparkle { color: #A855F7; animation: float 3s ease-in-out infinite; }
+
+/* Tabs */
+.wg-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(26, 58, 92, 0.4);
+}
+
+.wg-tab {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+
+.wg-tab:hover { color: var(--text-secondary); }
+.wg-tab.active { color: #A855F7; border-bottom-color: #A855F7; background: rgba(168, 85, 247, 0.05); }
+
+/* Sections */
+.wg-prefs, .wg-preview, .wg-prebuilt, .wg-quick { padding: 16px 20px; }
+
+.wg-section { margin-bottom: 16px; }
+
+.wg-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.wg-row { display: flex; gap: 16px; }
+.wg-row .wg-section { flex: 1; }
+
+/* ── Quick Start Grid ─────────────────────────────────────── */
+
+.wg-quick-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.wg-quick-card {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-left: 3px solid var(--qc-color, #00D4FF);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: left;
+  color: inherit;
+}
+
+.wg-quick-card:hover {
+  border-color: color-mix(in srgb, var(--qc-color) 50%, rgba(255,255,255,0.08));
+  background: rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.wg-quick-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.wg-quick-icon { font-size: 24px; }
+
+.wg-quick-duration {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--qc-color);
+  background: color-mix(in srgb, var(--qc-color) 12%, transparent);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.wg-quick-card h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: var(--text-primary);
+}
+
+.wg-quick-card p {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin: 0 0 8px;
+  line-height: 1.4;
+}
+
+.wg-quick-muscles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.wg-quick-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Muscle Group Badges ──────────────────────────────────── */
+
+.wg-muscle-badge {
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  color: var(--mg-color, #64748B);
+  background: color-mix(in srgb, var(--mg-color, #64748B) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mg-color, #64748B) 20%, transparent);
+  text-transform: capitalize;
+  font-weight: 500;
+}
+
+/* ── Goal Grid ────────────────────────────────────────────── */
+
+.wg-goal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.wg-goal-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.wg-goal-btn:hover { border-color: rgba(255, 255, 255, 0.15); }
+.wg-goal-btn.active {
+  border-color: var(--goal-color);
+  background: color-mix(in srgb, var(--goal-color) 10%, transparent);
+  color: var(--goal-color);
+}
+
+/* ── Type / Freq / Equipment Pills ────────────────────────── */
+
+.wg-type-pills, .wg-freq-pills, .wg-equip-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.wg-type-pill, .wg-freq-pill, .wg-equip-pill {
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.wg-type-pill:hover, .wg-freq-pill:hover, .wg-equip-pill:hover {
+  border-color: rgba(0, 212, 255, 0.2);
+  color: var(--text-secondary);
+}
+
+.wg-type-pill.active, .wg-freq-pill.active, .wg-equip-pill.active {
+  border-color: var(--cyan);
+  background: rgba(0, 212, 255, 0.1);
+  color: var(--cyan);
+}
+
+/* ── Fitness Level Pills ──────────────────────────────────── */
+
+.wg-level-pills {
+  display: flex;
+  gap: 8px;
+}
+
+.wg-level-pill {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.wg-level-pill:hover { border-color: rgba(168, 85, 247, 0.3); }
+
+.wg-level-pill.active {
+  border-color: #A855F7;
+  background: rgba(168, 85, 247, 0.1);
+}
+
+.wg-level-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.wg-level-pill.active .wg-level-name { color: #A855F7; }
+
+.wg-level-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* ── Generate Button ──────────────────────────────────────── */
+
+.wg-generate-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #A855F7, #7C3AED);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  transition: all 0.3s;
+}
+
+.wg-generate-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.3);
+}
+
+.wg-ai-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 10px 0 0;
+  opacity: 0.7;
+}
+
+/* ── Generating State ─────────────────────────────────────── */
+
+.wg-generating {
+  padding: 40px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.wg-gen-spinner {
+  color: #A855F7;
+  margin-bottom: 6px;
+}
+
+.wg-generating h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.wg-generating p {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.wg-gen-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.wg-gen-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.wg-gen-step.done { color: #39FF14; }
+.wg-gen-step.active { color: #A855F7; }
+
+/* ── Workout Preview ──────────────────────────────────────── */
+
+.wg-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(249, 115, 22, 0.1);
+  border: 1px solid rgba(249, 115, 22, 0.2);
+  border-radius: 8px;
+  font-size: 12px;
+  color: #F97316;
+  margin-bottom: 12px;
+}
+
+.wg-workout-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.wg-workout-icon { font-size: 32px; }
+
+.wg-workout-title h4 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.wg-workout-title p {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 2px 0 0;
+}
+
+.wg-workout-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.wg-meta-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  color: var(--text-muted);
+}
+
+.wg-targeted-muscles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+
+/* Warmup / Cooldown notes */
+.wg-warmup-note, .wg-cooldown-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.wg-wn-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+}
+
+/* ── Exercise List ────────────────────────────────────────── */
+
+.wg-exercise-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.wg-exercise-card {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-left: 3px solid var(--ex-color, #64748B);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  overflow: hidden;
+}
+
+.wg-exercise-card:hover {
+  background: rgba(0, 0, 0, 0.28);
+  border-color: color-mix(in srgb, var(--ex-color) 30%, rgba(255,255,255,0.06));
+}
+
+.wg-ex-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+}
+
+.wg-ex-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ex-color) 15%, transparent);
+  color: var(--ex-color);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.wg-ex-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.wg-ex-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: block;
+}
+
+.wg-ex-muscle {
+  font-size: 10px;
+  color: var(--ex-color);
+  text-transform: capitalize;
+}
+
+.wg-ex-badges {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.wg-ex-badge {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.wg-ex-badge.sets {
+  background: rgba(57, 255, 20, 0.1);
+  color: #39FF14;
+}
+
+.wg-ex-badge.weight {
+  background: rgba(0, 212, 255, 0.1);
+  color: #00D4FF;
+}
+
+.wg-ex-badge.rest {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+}
+
+.wg-ex-chevron {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.wg-ex-details {
+  padding: 0 14px 12px 46px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.wg-ex-detail {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.wg-ex-note {
+  font-style: italic;
+  color: #FDCB6E;
+}
+
+/* ── Preview Actions ──────────────────────────────────────── */
+
+.wg-preview-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.wg-action-btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s;
+}
+
+.wg-action-btn.primary {
+  background: linear-gradient(135deg, #39FF14, #22c55e);
+  color: var(--dark-deep);
+}
+
+.wg-action-btn.primary:hover {
+  box-shadow: 0 0 16px rgba(57, 255, 20, 0.3);
+  transform: translateY(-1px);
+}
+
+.wg-action-btn.secondary {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+}
+
+.wg-action-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.wg-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ── Legacy compat (used by preview-info in other places) ── */
+
+.wg-preview-info {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.wg-preview-info strong { color: var(--cyan); }
+
+.wg-time-input {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--dark-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: white;
+  font-size: 14px;
+}
+
+.wg-time-input:focus { border-color: var(--cyan); outline: none; }
+
+/* ── Mobile ───────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .wg-goal-grid { grid-template-columns: 1fr 1fr; }
+  .wg-row { flex-direction: column; gap: 8px; }
+  .wg-quick-grid { grid-template-columns: 1fr 1fr; }
+  .wg-level-pills { flex-direction: column; }
+  .wg-ex-badges { flex-wrap: wrap; }
+  .wg-preview-actions { flex-direction: column; }
+  .wg-action-btn { justify-content: center; }
+}
+
+@media (max-width: 420px) {
+  .wg-quick-grid { grid-template-columns: 1fr; }
+}

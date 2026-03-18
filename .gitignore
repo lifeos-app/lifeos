@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+*.tsbuildinfo
+
+# Environment (secrets)
+.env
+.env.local
+.env.production
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Media
+*.mp4
+screenshots/
+
+# Tauri
+src-tauri/target/
+
+# Temporary
+CC-PROMPT.md

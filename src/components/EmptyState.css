@@ -1,0 +1,125 @@
+/* ── Empty State ── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  min-height: 240px;
+}
+
+.empty-state-visual {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-state-orb {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--orb-color, #00D4FF) 0%, transparent 70%);
+  opacity: 0.08;
+  animation: empty-pulse 3s ease-in-out infinite;
+}
+
+.empty-state-ring {
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  border: 2px dashed var(--ring-color, #00D4FF);
+  opacity: 0.15;
+  animation: empty-spin 20s linear infinite;
+}
+
+.empty-state-icon {
+  position: relative;
+  z-index: 1;
+  animation: empty-float 3s ease-in-out infinite;
+}
+
+.empty-state-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary, #F9FAFB);
+  margin-bottom: 8px;
+}
+
+.empty-state-desc {
+  font-size: 14px;
+  color: var(--text-secondary, #9CA3AF);
+  max-width: 320px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.empty-state-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 10px;
+  color: var(--cta-color, #00D4FF);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  transition: all 0.2s;
+}
+
+.empty-state-cta:hover {
+  background: rgba(0, 212, 255, 0.15);
+  border-color: rgba(0, 212, 255, 0.3);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+}
+
+.empty-state-cta:active {
+  transform: scale(0.96);
+}
+
+/* Entrance animation for the whole component */
+.empty-state {
+  animation: emptyFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes emptyFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes empty-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.08; }
+  50% { transform: scale(1.15); opacity: 0.12; }
+}
+
+@keyframes empty-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes empty-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* ── Desktop ── */
+@media (min-width: 1024px) {
+  .empty-state { padding: 64px 32px; min-height: 400px; max-width: 600px; margin-left: auto; margin-right: auto; }
+  .empty-state-visual { width: 140px; height: 140px; margin-bottom: 28px; }
+  .empty-state-title { font-size: 22px; }
+  .empty-state-desc { font-size: 15px; max-width: 400px; }
+}

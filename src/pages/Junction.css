@@ -1,0 +1,3034 @@
+/* ═══════════════════════════════════════════════════════════
+   Junction System — Mystical Dark Theme
+   FF8 Guardian Force-inspired equip screen
+   ═══════════════════════════════════════════════════════════ */
+
+@keyframes jnc-fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes jnc-glow { 0%, 100% { box-shadow: 0 0 20px rgba(168,85,247,0.15); } 50% { box-shadow: 0 0 40px rgba(168,85,247,0.3); } }
+@keyframes jnc-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes jnc-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes jnc-pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+@keyframes jnc-unlock { 0% { transform: scale(0.8); opacity: 0; } 50% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+@keyframes jnc-sparkle { 0% { opacity: 0; transform: scale(0) rotate(0deg); } 50% { opacity: 1; transform: scale(1) rotate(180deg); } 100% { opacity: 0; transform: scale(0) rotate(360deg); } }
+
+/* ── Page Container ── */
+
+.junction-page {
+  position: relative;
+}
+
+.junction-page::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(168,85,247,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(212,175,55,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.3) 0%, transparent 80%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.junction-page > * { position: relative; z-index: 1; }
+
+/* ── Header ── */
+.jnc-header {
+  text-align: center;
+  margin-bottom: 32px;
+  animation: jnc-fadeUp 0.5s ease;
+}
+
+.jnc-header .jnc-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* ═══ TRADITION SELECTOR (Not Equipped) ═══ */
+
+.jnc-selector {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* AI Match CTA */
+.jnc-ai-match-cta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(168,85,247,0.2);
+  background: linear-gradient(135deg, rgba(168,85,247,0.08), rgba(212,175,55,0.06));
+  cursor: pointer;
+  transition: all var(--transition-default);
+  margin-bottom: 20px;
+  text-align: left;
+  font-family: var(--font-body);
+  color: inherit;
+}
+
+.jnc-ai-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.jnc-ai-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.jnc-ai-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.jnc-ai-match-cta:hover {
+  background: linear-gradient(135deg, rgba(168,85,247,0.18), rgba(212,175,55,0.12));
+  border-color: rgba(168,85,247,0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(168,85,247,0.2);
+}
+
+.jnc-ai-text { flex: 1; }
+
+/* Category Tabs */
+
+.jnc-category-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+  margin-bottom: 16px;
+}
+
+.jnc-category-tabs::-webkit-scrollbar { height: 0; }
+
+.jnc-cat-tab {
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  border: var(--border-strong);
+  background: rgba(255,255,255,0.03);
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-default);
+  white-space: nowrap;
+  min-height: 36px;
+  flex-shrink: 0;
+}
+
+.jnc-cat-tab:hover {
+  border-color: rgba(168,85,247,0.3);
+  color: var(--text-secondary);
+}
+
+.jnc-cat-tab.active {
+  background: linear-gradient(135deg, #A855F7, #D4AF37);
+  border-color: transparent;
+  color: #0A0E1A;
+  font-weight: 600;
+}
+
+/* Search Bar */
+.jnc-search-bar {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.jnc-search-input {
+  width: 100%;
+  padding: 10px 14px 10px 36px;
+  border-radius: var(--radius-lg);
+  border: var(--border-default);
+  background: rgba(255,255,255,0.03);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  transition: all var(--transition-default);
+}
+
+.jnc-search-input:focus {
+  outline: none;
+  border-color: rgba(168,85,247,0.4);
+  background: rgba(168,85,247,0.06);
+}
+
+.jnc-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.jnc-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.jnc-search-clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-base);
+  transition: all var(--transition-default);
+  min-width: 32px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jnc-search-clear:hover {
+  background: rgba(255,255,255,0.06);
+  color: var(--text-secondary);
+}
+
+.jnc-selector-label {
+  font-family: var(--font-display);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #D4AF37;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.jnc-no-results {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.jnc-no-results svg {
+  opacity: 0.3;
+  margin-bottom: 12px;
+}
+
+/* ── Tradition Card ── */
+.jnc-trad-card {
+  position: relative;
+  border-radius: var(--radius-xl);
+  padding: 20px 18px;
+  border: var(--border-default);
+  background: rgba(255,255,255,0.02);
+  cursor: pointer;
+  transition: all var(--transition-default);
+  overflow: hidden;
+  animation: jnc-fadeUp 0.5s ease both;
+  min-height: 44px;
+}
+
+.jnc-trad-card.expanded {
+  padding-bottom: 24px;
+}
+
+.jnc-trad-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--trad-gradient);
+  opacity: 1;
+  transition: opacity var(--transition-default);
+}
+
+/* Colored left accent stripe for visual distinction */
+.jnc-trad-card::after {
+  content: '';
+  position: absolute;
+  top: 4px; left: 0; bottom: 0;
+  width: 3px;
+  background: var(--trad-gradient);
+  opacity: 0.5;
+  transition: opacity var(--transition-default);
+}
+
+.jnc-trad-card:hover::after { opacity: 0.9; }
+
+.jnc-trad-card:hover {
+  border-color: rgba(168,85,247,0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px rgba(168,85,247,0.1);
+}
+
+.jnc-trad-card:hover::before { opacity: 1; }
+
+.jnc-trad-card.available:hover {
+  animation: jnc-glow 2s ease infinite;
+}
+
+.jnc-trad-card.locked {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.jnc-trad-card.locked:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: rgba(255,255,255,0.06);
+}
+
+/* Custom tradition icon images */
+.jnc-trad-icon-img {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-base);
+  object-fit: cover;
+  filter: drop-shadow(0 0 6px rgba(168,85,247,0.3));
+  transition: filter var(--transition-default);
+}
+
+.jnc-trad-card:hover .jnc-trad-icon-img {
+  filter: drop-shadow(0 0 12px rgba(168,85,247,0.5));
+}
+
+.jnc-trad-icon-emoji {
+  filter: drop-shadow(0 0 8px rgba(255,255,255,0.3));
+}
+
+.jnc-trad-card.locked .jnc-trad-icon {
+  filter: grayscale(1) brightness(0.5);
+  animation: none;
+}
+
+.jnc-featured-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, #D4AF37, #FFD700);
+  color: #0A0E1A;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.jnc-trad-lock {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0,0,0,0.5);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  font-size: 10px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Expanded Card Info ── */
+.jnc-trad-expanded {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: var(--border-default);
+  animation: jnc-fadeUp 0.3s ease;
+}
+
+.jnc-trad-essence {
+  font-size: 11px;
+  color: #D4AF37;
+  font-style: italic;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.jnc-trad-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.jnc-trad-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.jnc-trad-stat svg {
+  color: #A855F7;
+}
+
+.jnc-trad-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: var(--radius-base);
+  background: rgba(168,85,247,0.08);
+  border: 1px solid rgba(168,85,247,0.15);
+  color: #A855F7;
+  font-size: 11px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all var(--transition-default);
+  margin-bottom: 10px;
+}
+
+.jnc-trad-link:hover {
+  background: rgba(168,85,247,0.14);
+  border-color: rgba(168,85,247,0.3);
+  transform: translateX(2px);
+}
+
+.jnc-trad-equip-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: linear-gradient(135deg, #A855F7, #D4AF37);
+  color: #0A0E1A;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all var(--transition-default);
+}
+
+.jnc-trad-equip-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(168,85,247,0.3);
+}
+
+/* ═══ EQUIP CONFIRMATION MODAL ═══ */
+
+.jnc-equip-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: jnc-fadeUp 0.2s ease;
+  /* Escape any stacking context from parent layout */
+  isolation: isolate;
+}
+
+.jnc-equip-modal {
+  position: relative;
+  max-width: 440px;
+  width: 100%;
+  border-radius: var(--radius-xl);
+  padding: 32px 28px;
+  border: var(--border-default);
+  background: rgba(15,21,32,0.98);
+  text-align: center;
+  overflow: hidden;
+}
+
+.jnc-equip-modal::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #D4AF37, #A855F7);
+}
+
+.jnc-equip-icon { font-size: 48px; margin-bottom: 12px; }
+
+.jnc-equip-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.jnc-equip-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+/* Path Selection */
+.jnc-path-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #D4AF37;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.jnc-paths {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.jnc-path-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.03);
+  border: var(--border-default);
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition-default);
+  text-align: left;
+}
+
+.jnc-path-btn:hover {
+  border-color: rgba(168,85,247,0.3);
+  background: rgba(168,85,247,0.06);
+}
+
+.jnc-path-btn.selected {
+  border-color: rgba(168,85,247,0.5);
+  background: rgba(168,85,247,0.1);
+  color: var(--text-primary);
+}
+
+.jnc-path-btn-icon { font-size: 18px; }
+.jnc-path-btn-info { flex: 1; }
+.jnc-path-btn-name { font-weight: 600; }
+.jnc-path-btn-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* Equip Actions */
+.jnc-equip-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.jnc-equip-cancel {
+  padding: 10px 24px;
+  border-radius: var(--radius-md);
+  border: var(--border-strong);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition-default);
+}
+
+.jnc-equip-cancel:hover { border-color: rgba(255,255,255,0.2); color: var(--text-secondary); }
+
+.jnc-equip-confirm {
+  padding: 10px 28px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: linear-gradient(135deg, #A855F7, #D4AF37);
+  color: #0A0E1A;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-default);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.jnc-equip-confirm:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 20px rgba(168,85,247,0.4);
+}
+
+.jnc-equip-confirm:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Tradition Grid ── */
+.jnc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+/* ── Dashboard Row (Calendar + Wisdom) ── */
+.jnc-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ── Figure Inner Layout ── */
+.jnc-figure-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.jnc-figure-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-lg);
+  background: rgba(168,85,247,0.08);
+  border: 2px solid rgba(212,175,55,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  flex-shrink: 0;
+}
+
+/* ── Tradition Name & Description ── */
+.jnc-trad-icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.jnc-trad-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.jnc-trad-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ═══ JUNCTION DASHBOARD (Equipped) ═══ */
+
+.jnc-dashboard {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Current Figure Card ── */
+.jnc-figure-card {
+  position: relative;
+  border-radius: var(--radius-xl);
+  padding: 28px;
+  border: 1px solid rgba(212,175,55,0.2);
+  background: linear-gradient(135deg, rgba(10,14,26,0.9), rgba(15,21,32,0.95));
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+  animation: jnc-fadeUp 0.5s ease;
+}
+
+.jnc-figure-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--trad-color, #A855F7), #D4AF37, var(--trad-color, #A855F7));
+  background-size: 200% 100%;
+  animation: jnc-shimmer 3s linear infinite;
+}
+
+.jnc-figure-info { flex: 1; min-width: 0; }
+
+.jnc-figure-name {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.jnc-figure-title {
+  font-size: 12px;
+  color: #D4AF37;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.jnc-figure-bio {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.jnc-tier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-xl);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.jnc-tier-badge.tier-0 { background: rgba(139,166,190,0.15); color: #8BA6BE; }
+.jnc-tier-badge.tier-1 { background: rgba(0,212,255,0.15); color: #00D4FF; }
+.jnc-tier-badge.tier-2 { background: rgba(168,85,247,0.15); color: #A855F7; }
+.jnc-tier-badge.tier-3 { background: rgba(212,175,55,0.15); color: #D4AF37; }
+.jnc-tier-badge.tier-4 { background: rgba(244,63,94,0.15); color: #F43F5E; }
+.jnc-tier-badge.tier-5 { background: linear-gradient(135deg, rgba(212,175,55,0.2), rgba(244,63,94,0.2)); color: #FFD700; text-shadow: 0 0 8px rgba(255,215,0,0.5); }
+.jnc-tier-badge.tier-6 { background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,140,0,0.2)); color: #FFA500; text-shadow: 0 0 10px rgba(255,165,0,0.6); }
+.jnc-tier-badge.tier-7 { background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(212,175,55,0.2)); color: #FFFFFF; text-shadow: 0 0 12px rgba(255,255,255,0.8); }
+
+/* ── XP Bar ── */
+.jnc-xp-section {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  animation: jnc-fadeUp 0.6s ease both;
+}
+
+.jnc-xp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.jnc-xp-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.jnc-xp-numbers {
+  font-family: var(--font-display);
+  font-size: 12px;
+  color: #D4AF37;
+}
+
+.jnc-xp-bar {
+  height: 8px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.jnc-xp-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #A855F7, #D4AF37);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.jnc-xp-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 20px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+  animation: jnc-pulse 2s ease-in-out infinite;
+}
+
+.jnc-xp-next {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  text-align: right;
+}
+
+/* ── Progression Timeline ── */
+.jnc-progression {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  animation: jnc-fadeUp 0.7s ease both;
+}
+
+.jnc-prog-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.jnc-prog-timeline {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+  align-items: flex-start;
+}
+
+.jnc-prog-timeline::-webkit-scrollbar { height: 3px; }
+.jnc-prog-timeline::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius: 10px; }
+.jnc-prog-timeline::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.3); border-radius: 10px; }
+
+/* ── Progression Node — Base Styles ── */
+.jnc-prog-node {
+  position: relative;
+  min-width: 80px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 6px 8px;
+}
+
+.jnc-prog-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  border: 2px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s;
+}
+
+/* Connector line between nodes */
+.jnc-prog-node:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 26px;
+  left: 60%;
+  width: calc(100% - 20%);
+  height: 2px;
+  background: rgba(255,255,255,0.08);
+  z-index: 0;
+}
+
+.jnc-prog-node.unlocked:not(:last-child)::after {
+  background: linear-gradient(90deg, #A855F7, rgba(168,85,247,0.3));
+}
+
+.jnc-prog-node.unlocked .jnc-prog-avatar {
+  border-color: rgba(168,85,247,0.4);
+  background: rgba(168,85,247,0.08);
+}
+
+.jnc-prog-node.current .jnc-prog-avatar {
+  border-color: #D4AF37;
+  background: rgba(212,175,55,0.1);
+  box-shadow: 0 0 16px rgba(212,175,55,0.3);
+  animation: jnc-glow 3s ease infinite;
+}
+
+.jnc-prog-node.locked .jnc-prog-avatar {
+  filter: grayscale(1) brightness(0.4);
+}
+
+.jnc-prog-name {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  text-align: center;
+  max-width: 80px;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.3;
+  hyphens: auto;
+}
+
+.jnc-prog-node.current .jnc-prog-name {
+  color: #D4AF37;
+  font-weight: 600;
+}
+
+.jnc-prog-node.locked .jnc-prog-name {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.jnc-prog-xp {
+  font-size: 9px;
+  color: var(--text-muted);
+  opacity: 0.6;
+  font-family: var(--font-display);
+  margin-top: 2px;
+}
+
+/* ── Practices Section ── */
+.jnc-practices {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  animation: jnc-fadeUp 0.8s ease both;
+}
+
+.jnc-practices-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.jnc-practice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jnc-practice-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+
+.jnc-practice-item:hover {
+  border-color: rgba(168,85,247,0.2);
+  background: rgba(168,85,247,0.04);
+}
+
+.jnc-practice-icon { font-size: 20px; flex-shrink: 0; }
+.jnc-practice-icon .jnc-icon-image { width: 32px; height: 32px; object-fit: contain; }
+
+.jnc-practice-info { flex: 1; min-width: 0; }
+.jnc-practice-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+.jnc-practice-desc { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+.jnc-practice-log-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(168,85,247,0.3);
+  background: rgba(168,85,247,0.08);
+  color: #A855F7;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.jnc-practice-log-btn:hover {
+  background: rgba(168,85,247,0.15);
+  border-color: rgba(168,85,247,0.5);
+}
+
+.jnc-practice-log-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.jnc-practice-xp {
+  font-size: 10px;
+  color: #D4AF37;
+  font-family: var(--font-display);
+}
+
+/* ── Calendar & Wisdom ── */
+
+.jnc-calendar, .jnc-wisdom {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  animation: jnc-fadeUp 0.9s ease both;
+}
+
+.jnc-section-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.jnc-cal-entry {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0;
+}
+
+.jnc-cal-entry + .jnc-cal-entry { border-top: 1px solid rgba(255,255,255,0.04); }
+
+.jnc-cal-icon { font-size: 18px; }
+.jnc-cal-icon .jnc-icon-image { width: 28px; height: 28px; object-fit: contain; }
+.jnc-cal-name { font-size: 12px; font-weight: 500; color: var(--text-primary); }
+.jnc-cal-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.jnc-cal-type {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 4px;
+  display: inline-block;
+}
+.jnc-cal-type.fast { background: rgba(244,63,94,0.1); color: #F43F5E; }
+.jnc-cal-type.feast { background: rgba(212,175,55,0.1); color: #D4AF37; }
+.jnc-cal-type.holy_day { background: rgba(168,85,247,0.1); color: #A855F7; }
+.jnc-cal-type.observance { background: rgba(0,212,255,0.1); color: #00D4FF; }
+
+.jnc-cal-ethdate {
+  font-size: 11px;
+  color: #D4AF37;
+  opacity: 0.8;
+  margin-bottom: 6px;
+  letter-spacing: 0.3px;
+}
+
+.jnc-cal-empty, .jnc-wisdom-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+  opacity: 0.5;
+  text-align: center;
+  padding: 12px;
+}
+
+.jnc-wisdom-text {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.7;
+  font-style: italic;
+  position: relative;
+  padding-left: 14px;
+}
+
+.jnc-wisdom-text::before {
+  content: '"';
+  position: absolute;
+  left: 0;
+  top: -2px;
+  font-size: 24px;
+  color: #D4AF37;
+  font-style: normal;
+  font-family: Georgia, serif;
+}
+
+.jnc-wisdom-source {
+  font-size: 11px;
+  color: #D4AF37;
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+/* ═══ QUICK SWITCH BAR (top of dashboard) ═══ */
+.jnc-quick-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-lg);
+  animation: jnc-fadeUp 0.4s ease both;
+}
+
+.jnc-quick-switch-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.jnc-quick-switch-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.jnc-quick-switch-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(168,85,247,0.3);
+  background: rgba(168,85,247,0.08);
+  color: #A855F7;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.jnc-quick-switch-btn:hover {
+  background: rgba(168,85,247,0.15);
+  border-color: rgba(168,85,247,0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 12px rgba(168,85,247,0.2);
+}
+
+/* ═══ SWITCH / REMOVE JUNCTION SECTION ═══ */
+.jnc-switch-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding-bottom: 40px;
+  animation: jnc-fadeUp 1s ease both;
+}
+
+.jnc-switch-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(168,85,247,0.3);
+  background: rgba(168,85,247,0.08);
+  color: #A855F7;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.jnc-switch-btn:hover {
+  background: rgba(168,85,247,0.15);
+  border-color: rgba(168,85,247,0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(168,85,247,0.2);
+}
+
+.jnc-remove-btn {
+  padding: 6px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(244,63,94,0.1);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0.6;
+}
+
+.jnc-remove-btn:hover {
+  border-color: rgba(244,63,94,0.3);
+  color: #F43F5E;
+  opacity: 1;
+}
+
+.jnc-remove-confirm {
+  display: flex; gap: 8px; align-items: center;
+  font-size: 12px; color: var(--text-muted);
+}
+
+.jnc-remove-yes {
+  padding: 8px 16px; border-radius: 8px;
+  border: 1px solid rgba(244,63,94,0.4);
+  background: rgba(244,63,94,0.08);
+  color: #F43F5E; font-family: var(--font-body); font-size: 12px;
+  cursor: pointer; transition: all 0.2s;
+  min-height: 36px;
+}
+
+.jnc-remove-no {
+  padding: 8px 16px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: transparent;
+  color: var(--text-muted); font-family: var(--font-body); font-size: 12px;
+  cursor: pointer; transition: all 0.2s;
+  min-height: 36px;
+}
+
+/* ═══ SWITCH JUNCTION MODAL ═══ */
+.jnc-switch-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.75);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: jnc-fadeUp 0.2s ease;
+}
+
+.jnc-switch-modal {
+  position: relative;
+  max-width: 520px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-radius: var(--radius-xl);
+  padding: 28px 24px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(15,21,32,0.98);
+}
+
+.jnc-switch-modal::-webkit-scrollbar { width: 4px; }
+.jnc-switch-modal::-webkit-scrollbar-track { background: transparent; }
+.jnc-switch-modal::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.3); border-radius: 4px; }
+
+.jnc-switch-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 32px; height: 32px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255,255,255,0.1);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+
+.jnc-switch-close:hover { border-color: rgba(255,255,255,0.3); color: var(--text-primary); }
+
+.jnc-switch-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px; color: #A855F7;
+}
+
+.jnc-switch-title {
+  font-family: var(--font-display);
+  font-size: 18px; font-weight: 700;
+  background: linear-gradient(135deg, #A855F7, #D4AF37);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+/* Cooldown Warning */
+.jnc-cooldown-warning {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 16px;
+  background: rgba(244,63,94,0.08);
+  border: 1px solid rgba(244,63,94,0.2);
+  border-radius: var(--radius-lg);
+  margin-bottom: 20px;
+  color: #F43F5E;
+}
+
+.jnc-cooldown-title {
+  font-family: var(--font-display);
+  font-size: 13px; font-weight: 700; margin-bottom: 4px;
+}
+
+.jnc-cooldown-text {
+  font-size: 12px; color: var(--text-muted); line-height: 1.5;
+}
+
+.jnc-cooldown-text strong { color: #F43F5E; }
+
+/* Current Junction Display */
+.jnc-switch-current { margin-bottom: 20px; }
+
+.jnc-switch-current-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text-muted); margin-bottom: 8px;
+}
+
+.jnc-switch-current-card {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(212,175,55,0.2);
+  border-radius: var(--radius-lg);
+}
+
+.jnc-switch-current-card > *:not(.jnc-trad-hero-bg) { position: relative; z-index: 1; }
+
+.jnc-switch-current-icon { font-size: 28px; }
+.jnc-switch-current-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.jnc-switch-current-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* Category Tabs in Switch Modal */
+.jnc-switch-tabs {
+  display: flex; gap: 6px; margin-bottom: 12px;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+
+.jnc-switch-search { margin-bottom: 12px; }
+
+/* Tradition Options List */
+.jnc-switch-list {
+  display: flex; flex-direction: column; gap: 8px;
+  max-height: 240px; overflow-y: auto;
+  margin-bottom: 16px;
+  padding-right: 4px;
+}
+
+.jnc-switch-list::-webkit-scrollbar { width: 3px; }
+.jnc-switch-list::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.3); border-radius: 3px; }
+
+.jnc-switch-option {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.jnc-switch-option > *:not(.jnc-trad-hero-bg) { position: relative; z-index: 1; }
+
+.jnc-switch-option:hover {
+  border-color: color-mix(in srgb, var(--trad-color, #A855F7) 40%, transparent);
+  background: color-mix(in srgb, var(--trad-color, #A855F7) 6%, transparent);
+}
+
+.jnc-switch-option.selected {
+  border-color: rgba(168,85,247,0.5);
+  background: rgba(168,85,247,0.08);
+}
+
+.jnc-switch-option-icon { font-size: 24px; flex-shrink: 0; }
+.jnc-switch-option-info { flex: 1; min-width: 0; }
+.jnc-switch-option-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.jnc-switch-option-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.jnc-switch-check { color: #A855F7; flex-shrink: 0; }
+.jnc-switch-empty { text-align: center; padding: 20px; color: var(--text-muted); font-size: 12px; }
+
+/* Switch Confirmation */
+.jnc-switch-confirm {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(168,85,247,0.15);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  animation: jnc-fadeUp 0.3s ease;
+}
+
+.jnc-switch-confirm-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 12px 0;
+}
+
+.jnc-switch-from, .jnc-switch-to {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 500; color: var(--text-primary);
+}
+
+.jnc-switch-arrow { color: #A855F7; animation: jnc-pulse 1.5s ease infinite; }
+
+.jnc-switch-warnings {
+  display: flex; flex-direction: column; gap: 8px;
+  margin: 12px 0 16px;
+}
+
+.jnc-switch-warn-item {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: #F59E0B;
+}
+
+.jnc-switch-warn-item strong { color: #F59E0B; }
+
+.jnc-switch-warn-item.safe {
+  color: #22C55E;
+}
+
+.jnc-switch-confirm-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #A855F7, #D4AF37);
+  color: #0A0E1A;
+  font-family: var(--font-display);
+  font-size: 13px; font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.jnc-switch-confirm-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 20px rgba(168,85,247,0.4);
+}
+
+.jnc-switch-confirm-btn:disabled {
+  opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none;
+}
+
+/* ── Loading State ── */
+.jnc-loading {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--text-muted);
+}
+
+.jnc-loading-icon {
+  font-size: 40px;
+  margin-bottom: 16px;
+  animation: jnc-float 2s ease-in-out infinite;
+}
+
+/* ── Practice Log Success ── */
+.jnc-log-success {
+  animation: jnc-unlock 0.5s ease;
+  color: #39FF14;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Empty States ── */
+.jnc-no-practices {
+  text-align: center;
+  padding: 16px;
+  color: var(--text-muted);
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+/* ═══ TRADITION HERO BACKGROUND IMAGE ═══ */
+.jnc-trad-hero-bg {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.jnc-trad-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.12;
+  filter: saturate(0.6) brightness(0.8);
+  transition: opacity 0.4s, filter 0.4s;
+}
+
+.jnc-trad-card:hover .jnc-trad-hero-img,
+.jnc-explore-banner:hover .jnc-trad-hero-img,
+.jnc-network-card:hover .jnc-trad-hero-img {
+  opacity: 0.22;
+  filter: saturate(0.8) brightness(0.9);
+}
+
+/* Ensure card content stays above hero bg */
+.jnc-trad-card > *:not(.jnc-trad-hero-bg),
+.jnc-network-card > *:not(.jnc-trad-hero-bg),
+.jnc-explore-banner > *:not(.jnc-trad-hero-bg) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ═══ EXPLORE TRADITION BANNER (Equipped Dashboard) ═══ */
+.jnc-explore-banner {
+  position: relative;
+  display: block;
+  border-radius: var(--radius-xl);
+  padding: 20px 24px;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: jnc-fadeUp 0.55s ease both;
+}
+
+.jnc-explore-banner:hover {
+  border-color: var(--banner-color, rgba(168,85,247,0.4));
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 24px color-mix(in srgb, var(--banner-color, #A855F7) 20%, transparent);
+}
+
+.jnc-explore-bg {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--banner-gradient);
+  opacity: 0.5;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.jnc-explore-banner:hover .jnc-explore-bg {
+  opacity: 0.8;
+}
+
+.jnc-explore-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+
+.jnc-explore-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.jnc-explore-tagline {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.jnc-explore-banner:hover .jnc-explore-cta {
+  transform: scale(1.03);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+.jnc-explore-site {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* ═══ FAITH PATHS NETWORK ═══ */
+.jnc-network {
+  max-width: 800px;
+  margin: 40px auto 0;
+  padding-top: 32px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  animation: jnc-fadeUp 1.1s ease both;
+}
+
+.jnc-network-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.jnc-network-globe {
+  color: #D4AF37;
+  flex-shrink: 0;
+}
+
+.jnc-network-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: linear-gradient(135deg, #D4AF37, #A855F7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.jnc-network-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.jnc-network-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.jnc-network-card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  padding: 18px 16px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  overflow: hidden;
+  transition: all 0.3s;
+  cursor: default;
+}
+
+.jnc-network-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.jnc-network-name {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.jnc-network-tagline {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.jnc-network-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--net-color, #A855F7);
+  opacity: 0.4;
+  transition: opacity 0.3s;
+}
+
+.jnc-network-card:hover {
+  border-color: color-mix(in srgb, var(--net-color, #A855F7) 40%, transparent);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3), 0 0 16px color-mix(in srgb, var(--net-color, #A855F7) 15%, transparent);
+}
+
+.jnc-network-card:hover::before { opacity: 1; }
+
+.jnc-network-card.equipped {
+  border-color: color-mix(in srgb, var(--net-color, #A855F7) 30%, transparent);
+  background: color-mix(in srgb, var(--net-color, #A855F7) 6%, transparent);
+}
+
+.jnc-network-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.jnc-network-equipped {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(168,85,247,0.15);
+  color: #A855F7;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.jnc-network-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 10px;
+  color: var(--net-color, #A855F7);
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.jnc-network-card:hover .jnc-network-link {
+  transform: translateX(2px);
+}
+
+/* ═══ AI MATCHING MODAL ═══ */
+.jnc-ai-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.85);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: jnc-fadeUp 0.3s ease;
+  isolation: isolate;
+}
+
+.jnc-ai-modal {
+  position: relative;
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: var(--radius-xl);
+  padding: 32px 28px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(15,21,32,0.98);
+}
+
+.jnc-ai-modal::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #D4AF37, #A855F7, #D4AF37);
+  background-size: 200% 100%;
+  animation: jnc-shimmer 3s linear infinite;
+}
+
+.jnc-ai-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 6px;
+  border: none;
+  background: rgba(255,255,255,0.05);
+  color: var(--text-muted);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 1;
+}
+
+.jnc-ai-close:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--text-secondary);
+}
+
+.jnc-ai-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.jnc-ai-header-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.jnc-ai-header-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.jnc-ai-header-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.jnc-ai-progress {
+  height: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+
+.jnc-ai-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #A855F7, #D4AF37);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.jnc-ai-question {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  line-height: 1.5;
+  margin-bottom: 24px;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jnc-ai-answers {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.jnc-ai-ans-btn {
+  flex: 1;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.03);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.jnc-ai-ans-btn.yes {
+  border-color: rgba(34,197,94,0.3);
+}
+
+.jnc-ai-ans-btn.yes:hover {
+  border-color: rgba(34,197,94,0.5);
+  background: rgba(34,197,94,0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(34,197,94,0.2);
+}
+
+.jnc-ai-ans-btn.no {
+  border-color: rgba(239,68,68,0.3);
+}
+
+.jnc-ai-ans-btn.no:hover {
+  border-color: rgba(239,68,68,0.5);
+  background: rgba(239,68,68,0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(239,68,68,0.2);
+}
+
+.jnc-ai-dots {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.jnc-ai-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: rgba(255,255,255,0.1);
+  transition: all 0.3s;
+}
+
+.jnc-ai-dot.active {
+  background: #A855F7;
+  transform: scale(1.3);
+}
+
+.jnc-ai-dot.done {
+  background: #D4AF37;
+}
+
+/* Results Screen */
+.jnc-ai-results-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.jnc-ai-results-icon {
+  color: #D4AF37;
+  margin-bottom: 12px;
+}
+
+.jnc-ai-results-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.jnc-ai-results-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.jnc-ai-results {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.jnc-ai-result-card {
+  position: relative;
+  padding: 20px;
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+  transition: all 0.3s;
+}
+
+.jnc-ai-result-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--trad-color, #A855F7);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+.jnc-ai-result-card:hover {
+  border-color: color-mix(in srgb, var(--trad-color, #A855F7) 30%, transparent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.jnc-ai-result-rank {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: var(--trad-color, #A855F7);
+  color: #0A0E1A;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jnc-ai-result-icon {
+  font-size: 36px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.jnc-ai-result-name {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.jnc-ai-result-match {
+  font-size: 14px;
+  color: var(--trad-color, #A855F7);
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.jnc-ai-result-why {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.jnc-ai-result-equip {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, var(--trad-color, #A855F7), color-mix(in srgb, var(--trad-color, #A855F7) 70%, #D4AF37));
+  color: #0A0E1A;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.jnc-ai-result-equip:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+.jnc-ai-restart {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.jnc-ai-restart:hover {
+  border-color: rgba(255,255,255,0.2);
+  color: var(--text-secondary);
+  background: rgba(255,255,255,0.02);
+}
+
+/* ═══ ALPHA INTRO (Full-Screen Cinematic) ═══ */
+.jnc-alpha-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #000;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: jnc-fadeUp 0.6s ease;
+  isolation: isolate;
+}
+
+.jnc-alpha-video,
+.jnc-alpha-img {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.4;
+  filter: brightness(0.6);
+}
+
+.jnc-alpha-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 40px;
+  max-width: 700px;
+}
+
+.jnc-alpha-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 40px rgba(212,175,55,0.5);
+}
+
+/* ═══ MINI JUNCTION (for EventDrawer/GamificationModal) ═══ */
+.jnc-mini {
+  padding: 12px;
+}
+
+.jnc-mini-figure {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.jnc-mini-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(168,85,247,0.1);
+  border: 1px solid rgba(212,175,55,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.jnc-mini-info { flex: 1; }
+.jnc-mini-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.jnc-mini-title { font-size: 10px; color: #D4AF37; }
+
+.jnc-mini-xp {
+  height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.jnc-mini-xp-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #A855F7, #D4AF37);
+  transition: width 0.5s;
+}
+
+.jnc-mini-wisdom {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.5;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+
+.jnc-mini-cal {
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 6px;
+}
+
+.jnc-mini-equip-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: rgba(168,85,247,0.08);
+  border: 1px solid rgba(168,85,247,0.15);
+  border-radius: 10px;
+  color: #A855F7;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  font-family: var(--font-body);
+}
+
+.jnc-mini-equip-link:hover {
+  background: rgba(168,85,247,0.14);
+}
+
+/* GamificationModal junction section */
+.gam-junction-section {
+  background: rgba(168,85,247,0.04);
+  border: 1px solid rgba(168,85,247,0.1);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  margin-top: 16px;
+}
+
+.gam-junction-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #A855F7;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.gam-junction-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gam-junction-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(168,85,247,0.1);
+  border: 1px solid rgba(212,175,55,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.gam-junction-info { flex: 1; }
+.gam-junction-name { font-size: 12px; font-weight: 500; color: var(--text-primary); }
+.gam-junction-figure { font-size: 10px; color: #D4AF37; }
+
+.gam-junction-xp {
+  height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.gam-junction-xp-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #A855F7, #D4AF37);
+}
+
+/* ═══ Figure Card Art ═══ */
+.jnc-figure-avatar-img {
+  border-radius: var(--radius-lg);
+  object-fit: cover;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 20px rgba(212,175,55,0.15);
+}
+.jnc-figure-avatar-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Avatar sizes — sm/md/lg */
+.jnc-avatar-sm {
+  width: 36px;
+  height: 36px;
+}
+.jnc-avatar-md {
+  width: 56px;
+  height: 56px;
+}
+.jnc-avatar-lg {
+  width: 80px;
+  height: 80px;
+}
+/* Figure card art: portrait ratio */
+.jnc-figure-avatar-img.jnc-avatar-sm {
+  width: 36px;
+  height: 48px;
+  border-radius: 8px;
+}
+.jnc-figure-avatar-img.jnc-avatar-md {
+  width: 56px;
+  height: 75px;
+  border-radius: 10px;
+}
+.jnc-figure-avatar-img.jnc-avatar-lg {
+  width: 80px;
+  height: 107px;
+  border-radius: var(--radius-lg);
+}
+
+/* Adjust figure card layout for card art */
+.jnc-figure-avatar:has(.jnc-figure-avatar-img) {
+  width: auto;
+  height: auto;
+  background: none;
+  border: none;
+}
+
+/* ═══ MINI SWITCH BUTTON (EventDrawer widget) ═══ */
+.jnc-mini-switch-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(168,85,247,0.2);
+  background: rgba(168,85,247,0.06);
+  color: #A855F7;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.jnc-mini-switch-btn:hover {
+  background: rgba(168,85,247,0.12);
+  border-color: rgba(168,85,247,0.4);
+}
+
+@media (max-width: 768px) {
+  .jnc-switch-modal { padding: 20px; max-height: 90vh; }
+  .jnc-switch-confirm-visual { gap: 12px; }
+  .jnc-switch-from span:first-child, .jnc-switch-to span:first-child { font-size: 24px; }
+  .junction-page { padding: 16px; }
+  .jnc-header h1 { font-size: 20px; }
+  .jnc-trad-card { padding: 16px 14px; }
+  .jnc-trad-icon { font-size: 28px; }
+  .jnc-trad-name { font-size: 12px; }
+  .jnc-trad-desc { font-size: 11px; }
+  .jnc-figure-inner { flex-direction: column; text-align: center; }
+  .jnc-figure-avatar { margin: 0 auto; }
+  .jnc-row {
+    grid-template-columns: 1fr;
+  }
+  .jnc-equip-modal { padding: 24px 20px; }
+  .jnc-prog-node { min-width: 66px; padding: 2px 4px 6px; }
+  .jnc-prog-avatar { width: 36px; height: 36px; font-size: 16px; }
+  .jnc-prog-name { font-size: 9px; max-width: 64px; }
+  .jnc-network-card { padding: 14px 12px; }
+  .jnc-network-icon { font-size: 24px; }
+  .jnc-network-name { font-size: 12px; }
+  .jnc-network-tagline { font-size: 10px; }
+  .jnc-explore-content { flex-direction: column; align-items: flex-start; }
+  .jnc-explore-cta { align-self: stretch; justify-content: center; }
+  .jnc-explore-icon { font-size: 28px; }
+  .jnc-ai-match-cta {
+    padding: 14px 16px;
+  }
+  .jnc-ai-icon {
+    font-size: 28px;
+  }
+  .jnc-ai-title {
+    font-size: 14px;
+  }
+  .jnc-ai-subtitle {
+    font-size: 11px;
+  }
+  .jnc-category-tabs {
+    gap: 6px;
+  }
+  .jnc-cat-tab {
+    padding: 7px 12px;
+    font-size: 11px;
+  }
+  .jnc-ai-modal {
+    padding: 28px 20px;
+  }
+  .jnc-ai-question {
+    font-size: 16px;
+    min-height: 50px;
+  }
+  .jnc-ai-answers {
+    flex-direction: column;
+  }
+  .jnc-alpha-message {
+    font-size: 18px;
+  }
+  .jnc-alpha-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 400px) {
+  .jnc-grid {
+    grid-template-columns: 1fr;
+  }
+  .jnc-network-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   Junction Tutorial — Onboarding Flow
+   Cinematic, mobile-first, dark theme with gold accents
+   ═══════════════════════════════════════════════════════════ */
+
+@keyframes jnc-tut-fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes jnc-tut-fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-20px); }
+}
+
+@keyframes jnc-tut-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+@keyframes jnc-tut-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(212,175,55,0.2); }
+  50% { box-shadow: 0 0 40px rgba(212,175,55,0.4); }
+}
+
+@keyframes jnc-tut-text-appear {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Container ── */
+.jnc-tut-container {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* ── Cancel Button — prominent but not in the way ── */
+.jnc-tut-cancel {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 100;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: rgba(239, 68, 68, 0.7);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  letter-spacing: 0.02em;
+}
+
+.jnc-tut-cancel:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #EF4444;
+}
+
+/* ── Step Indicator Dots ── */
+.jnc-tut-dots {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 100;
+}
+
+.jnc-tut-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: rgba(255,255,255,0.15);
+  transition: all 0.4s ease;
+}
+
+.jnc-tut-dot.active {
+  background: #D4AF37;
+  width: 24px;
+  border-radius: 4px;
+  box-shadow: 0 0 12px rgba(212,175,55,0.4);
+}
+
+.jnc-tut-dot.done {
+  background: rgba(212,175,55,0.5);
+}
+
+/* ── Step Transitions ── */
+.jnc-tut-step {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow-y: auto;
+}
+
+.jnc-tut-step-enter {
+  animation: jnc-tut-fadeIn 0.5s ease forwards;
+}
+
+.jnc-tut-step-exit {
+  animation: jnc-tut-fadeOut 0.4s ease forwards;
+}
+
+/* ── Step Content Wrapper ── */
+.jnc-tut-step-content {
+  padding: 60px 24px 80px;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.jnc-tut-step-content.jnc-tut-scrollable {
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-top: 48px;
+  padding-bottom: 100px;
+}
+
+/* ── Traditions Vertical Grid (replaces horizontal scroll) ── */
+.jnc-tut-traditions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 0 0 8px;
+  max-height: 55vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212,175,55,0.3) transparent;
+}
+
+.jnc-tut-traditions-grid::-webkit-scrollbar {
+  width: 4px;
+}
+.jnc-tut-traditions-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+.jnc-tut-traditions-grid::-webkit-scrollbar-thumb {
+  background: rgba(212,175,55,0.3);
+  border-radius: 2px;
+}
+
+/* ── Common Step Titles ── */
+.jnc-tut-step-title {
+  font-family: var(--font-display, 'Inter', sans-serif);
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 8px;
+  letter-spacing: -0.5px;
+}
+
+.jnc-tut-step-subtitle {
+  font-size: 14px;
+  color: rgba(232,232,240,0.6);
+  margin: 0 0 32px;
+  line-height: 1.5;
+}
+
+/* ── Primary Button ── */
+.jnc-tut-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 40px;
+  border-radius: var(--radius-lg);
+  border: none;
+  background: linear-gradient(135deg, #D4AF37, #FFD700);
+  color: #0a0a14;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.3px;
+  min-width: 180px;
+  margin-top: 24px;
+}
+
+.jnc-tut-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(212,175,55,0.35);
+}
+
+.jnc-tut-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* ── Skip Step Link ── */
+.jnc-tut-btn-skip-step {
+  display: block;
+  margin: 16px auto 0;
+  background: none;
+  border: none;
+  color: rgba(232,232,240,0.4);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px 16px;
+  transition: color 0.3s;
+}
+
+.jnc-tut-btn-skip-step:hover {
+  color: rgba(232,232,240,0.7);
+}
+
+
+/* ═══ STEP 0 — Alpha Video ═══ */
+
+.jnc-tut-alpha {
+  justify-content: flex-end;
+  padding: 0;
+}
+
+.jnc-tut-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.jnc-tut-video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to top,
+    rgba(10,10,20,0.95) 0%,
+    rgba(10,10,20,0.7) 30%,
+    rgba(10,10,20,0.3) 60%,
+    rgba(10,10,20,0.1) 100%
+  );
+  z-index: 1;
+}
+
+.jnc-tut-alpha-content {
+  position: relative;
+  z-index: 2;
+  padding: 0 24px 80px;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.jnc-tut-title {
+  font-family: var(--font-display, 'Inter', sans-serif);
+  font-size: 42px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 20px;
+  letter-spacing: -1px;
+  animation: jnc-tut-text-appear 0.8s ease 0.3s both;
+}
+
+.jnc-tut-body {
+  font-size: 16px;
+  color: #e8e8f0;
+  line-height: 1.7;
+  margin: 0 0 16px;
+  animation: jnc-tut-text-appear 0.8s ease 0.6s both;
+}
+
+.jnc-tut-body-2 {
+  color: rgba(232,232,240,0.75);
+  animation-delay: 0.9s;
+  margin-bottom: 32px;
+}
+
+.jnc-tut-alpha-content .jnc-tut-btn-primary {
+  animation: jnc-tut-text-appear 0.8s ease 1.2s both;
+}
+
+
+/* ═══ STEP 1 — Vibe Cards ═══ */
+
+.jnc-tut-vibes {
+  background: radial-gradient(ellipse at 50% 30%, rgba(212,175,55,0.06) 0%, transparent 60%),
+              #0a0a14;
+}
+
+.jnc-tut-vibe-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.jnc-tut-vibe-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px;
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  cursor: pointer;
+  transition: all 0.4s ease;
+  text-align: center;
+}
+
+.jnc-tut-vibe-card:hover {
+  border-color: rgba(212,175,55,0.3);
+  background: rgba(212,175,55,0.06);
+  transform: translateY(-2px);
+}
+
+.jnc-tut-vibe-card.selected {
+  border-color: #D4AF37;
+  background: rgba(212,175,55,0.12);
+  animation: jnc-tut-glow 1.5s ease infinite;
+}
+
+.jnc-tut-vibe-icon {
+  font-size: 32px;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 0 8px rgba(255,255,255,0.2));
+}
+
+.jnc-tut-vibe-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.jnc-tut-vibe-desc {
+  font-size: 11px;
+  color: rgba(232,232,240,0.5);
+  line-height: 1.4;
+}
+
+
+/* ═══ STEP 2 — Tradition Swipe Cards ═══ */
+
+.jnc-tut-traditions {
+  background: #0a0a14;
+}
+
+.jnc-tut-scroll-wrapper {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 0 24px;
+  margin: 0 -24px;
+  padding-left: 24px;
+  padding-right: 24px;
+  scrollbar-width: none;
+}
+
+.jnc-tut-scroll-wrapper::-webkit-scrollbar { display: none; }
+
+.jnc-tut-trad-card {
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(255,255,255,0.08);
+  background: linear-gradient(160deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+  padding: 18px 14px;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.jnc-tut-trad-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--trad-color, #D4AF37);
+  opacity: 0.7;
+}
+
+.jnc-tut-trad-icon {
+  margin-bottom: 12px;
+}
+
+.jnc-tut-trad-icon-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+  filter: drop-shadow(0 0 8px rgba(212,175,55,0.3));
+}
+
+.jnc-tut-trad-emoji {
+  font-size: 32px;
+  filter: drop-shadow(0 0 8px rgba(255,255,255,0.3));
+}
+
+.jnc-tut-trad-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.jnc-tut-trad-oneliner {
+  font-size: 12px;
+  color: rgba(232,232,240,0.6);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.jnc-tut-trad-feel {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: var(--radius-xl);
+  background: rgba(212,175,55,0.1);
+  border: 1px solid rgba(212,175,55,0.25);
+  color: #D4AF37;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+
+/* ═══ STEP 3 — Try Something ═══ */
+
+.jnc-tut-try {
+  background: radial-gradient(ellipse at 50% 60%, rgba(168,85,247,0.06) 0%, transparent 50%),
+              #0a0a14;
+}
+
+.jnc-tut-try-label {
+  font-size: 13px;
+  color: rgba(212,175,55,0.8);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.jnc-tut-try-tradition {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: var(--radius-xl);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #e8e8f0;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 20px;
+}
+
+.jnc-tut-try-tradition .jnc-tut-trad-icon-img {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+}
+
+.jnc-tut-try-tradition .jnc-tut-trad-emoji {
+  font-size: 16px;
+}
+
+.jnc-tut-try-instruction {
+  font-size: 15px;
+  color: #e8e8f0;
+  line-height: 1.7;
+  margin: 0 0 32px;
+  max-width: 380px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Timer Circle */
+.jnc-tut-timer-container {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jnc-tut-timer-svg {
+  width: 110px;
+  height: 110px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.jnc-tut-timer-track {
+  stroke: rgba(255,255,255,0.06);
+}
+
+.jnc-tut-timer-progress {
+  stroke: #D4AF37;
+  transition: stroke-dashoffset 1s linear;
+}
+
+.jnc-tut-timer-inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jnc-tut-timer-inner.pulsing {
+  animation: jnc-tut-pulse 2s ease infinite;
+}
+
+.jnc-tut-timer-start {
+  background: none;
+  border: 1px solid rgba(212,175,55,0.4);
+  color: #D4AF37;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.jnc-tut-timer-start:hover {
+  background: rgba(212,175,55,0.1);
+  border-color: #D4AF37;
+}
+
+.jnc-tut-timer-count {
+  font-size: 28px;
+  font-weight: 700;
+  color: #D4AF37;
+  font-variant-numeric: tabular-nums;
+}
+
+.jnc-tut-timer-done {
+  font-size: 32px;
+  color: #D4AF37;
+  animation: jnc-tut-fadeIn 0.3s ease;
+}
+
+
+/* ═══ STEP 4 — Choose Your Junction ═══ */
+
+.jnc-tut-choose {
+  background: radial-gradient(ellipse at 50% 40%, rgba(212,175,55,0.08) 0%, transparent 50%),
+              #0a0a14;
+}
+
+.jnc-tut-choose-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.jnc-tut-btn-choose {
+  padding: 16px 48px;
+  font-size: 17px;
+  border-radius: var(--radius-xl);
+  animation: jnc-tut-glow 2s ease infinite;
+}
+
+.jnc-tut-ai-hint {
+  font-size: 13px;
+  color: rgba(168,85,247,0.7);
+  margin-top: 20px;
+  font-style: italic;
+}
+
+/* Intro text above TraditionSelector (after tutorial) */
+.jnc-tut-selector-intro {
+  text-align: center;
+  max-width: 500px;
+  margin: -16px auto 24px;
+  animation: jnc-tut-fadeIn 0.6s ease;
+}
+
+.jnc-tut-selector-intro p {
+  font-size: 15px;
+  color: rgba(232,232,240,0.65);
+  line-height: 1.5;
+  margin: 0;
+  font-style: italic;
+}
+
+
+/* ═══ Tutorial Responsive ═══ */
+
+@media (max-width: 480px) {
+  .jnc-tut-title {
+    font-size: 30px;
+  }
+  .jnc-tut-body {
+    font-size: 14px;
+  }
+  .jnc-tut-step-title {
+    font-size: 22px;
+  }
+  .jnc-tut-vibe-grid {
+    gap: 10px;
+  }
+  .jnc-tut-vibe-card {
+    padding: 18px 10px;
+  }
+  .jnc-tut-trad-card {
+    padding: 14px 10px;
+  }
+  .jnc-tut-trad-name {
+    font-size: 14px;
+  }
+  .jnc-tut-trad-oneliner {
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+  .jnc-tut-btn-primary {
+    padding: 12px 28px;
+    font-size: 14px;
+  }
+  /* Video: ensure it doesn't push content off-screen */
+  .jnc-tut-alpha {
+    justify-content: flex-end;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  .jnc-tut-alpha-content {
+    padding: 0 20px 60px;
+  }
+  .jnc-tut-video {
+    max-height: 100vh;
+    max-height: 100dvh;
+  }
+  /* Traditions grid: slightly smaller on mobile */
+  .jnc-tut-traditions-grid {
+    max-height: 50vh;
+    gap: 8px;
+  }
+  .jnc-tut-trad-icon-img {
+    width: 36px;
+    height: 36px;
+  }
+  .jnc-tut-trad-emoji {
+    font-size: 30px;
+  }
+  /* Timer: smaller on mobile */
+  .jnc-tut-timer-container {
+    width: 100px;
+    height: 100px;
+  }
+  .jnc-tut-timer-svg {
+    width: 100px;
+    height: 100px;
+  }
+  .jnc-tut-timer-count {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 360px) {
+  .jnc-tut-title {
+    font-size: 26px;
+  }
+  .jnc-tut-vibe-grid {
+    grid-template-columns: 1fr;
+  }
+  .jnc-tut-alpha-content {
+    padding: 0 16px 50px;
+  }
+  .jnc-tut-step-content {
+    padding: 40px 16px 80px;
+  }
+  .jnc-tut-traditions-grid {
+    grid-template-columns: 1fr;
+    max-height: 55vh;
+  }
+}

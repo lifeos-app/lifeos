@@ -1,0 +1,63 @@
+/* LifeOS Web App — Theme */
+/* Fonts self-hosted via @fontsource (imported in App.tsx) */
+@import './design-system.css';
+@import './mobile.css';
+
+:root {
+  --dark-deep: #0A0E1A;
+  --dark: #0A2540;
+  --dark-surface: #111827;
+  --dark-card: #1F2937;
+  --dark-border: #1A3A5C;
+  --cyan: #00D4FF;
+  --cyan-light: #00FFFF;
+  --neon: #39FF14;
+  --orange: #F97316;
+  --purple: #A855F7;
+  --rose: #F43F5E;
+  --text-primary: #F9FAFB;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
+  --font-display: 'Orbitron', monospace;
+  --font-body: 'Poppins', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+}
+
+html, body, #root {
+  height: 100%;
+  font-family: var(--font-body);
+  background: var(--dark-deep);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+a { color: var(--cyan); text-decoration: none; }
+a:hover { text-decoration: none; opacity: 0.9; }
+
+/* Smooth transitions on all interactive elements */
+button, a, input, select, textarea {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Mobile Global ── */
+@media (max-width: 768px) {
+  .dash-name { font-size: 22px; }
+  .dash-header { flex-direction: column; gap: 8px; }
+  .dash-cmd { display: none; }
+  .week-strip { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .dash-grid { grid-template-columns: 1fr !important; }
+  .stats-row { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+  .insights-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+  
+  .layout-content { overflow-x: hidden; }
+  input, textarea, select { max-width: 100%; }
+  .goals-title, .habits-title, .sched-title { font-size: 18px !important; }
+}

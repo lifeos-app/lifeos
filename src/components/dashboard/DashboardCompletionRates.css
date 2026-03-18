@@ -1,0 +1,425 @@
+/* Dashboard Completion Rates Widget */
+
+.dcr-widget {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.dcr-loading {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* Header */
+.dcr-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dcr-header-left {
+  flex: 1;
+}
+
+.dcr-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+
+.dcr-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.dcr-time-toggle {
+  display: flex;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 3px;
+  border-radius: 8px;
+}
+
+.dcr-time-btn {
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dcr-time-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.dcr-time-btn.active {
+  background: #00D4FF;
+  color: white;
+}
+
+/* Main Grid */
+.dcr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+/* Completion Ring Card */
+.dcr-ring-card {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.dcr-ring-container {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+
+.dcr-ring-svg {
+  width: 100%;
+  height: 100%;
+  transform: scaleY(-1); /* Fix SVG coordinate system */
+}
+
+.dcr-ring-bg {
+  stroke: rgba(255, 255, 255, 0.1);
+}
+
+.dcr-ring-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.dcr-ring-pct {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.dcr-ring-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.dcr-ring-stats {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  justify-content: center;
+}
+
+.dcr-ring-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.dcr-ring-stat-label {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.dcr-ring-stat-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Trend Card */
+.dcr-trend-card {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.dcr-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+}
+
+.dcr-mini-chart {
+  width: 100%;
+  height: 80px;
+  margin-bottom: 8px;
+}
+
+.dcr-chart-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.dcr-trend-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.dcr-trend-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* Extremes Card */
+.dcr-extremes-card {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dcr-extreme {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+}
+
+.dcr-extreme.best {
+  border-left: 3px solid #39FF14;
+}
+
+.dcr-extreme.worst {
+  border-left: 3px solid #F43F5E;
+}
+
+.dcr-extreme-content {
+  flex: 1;
+}
+
+.dcr-extreme-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.dcr-extreme-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.dcr-extreme-date {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Category Breakdown */
+.dcr-categories {
+  margin-top: 20px;
+}
+
+.dcr-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 12px;
+}
+
+.dcr-category-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dcr-category-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dcr-category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dcr-category-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.dcr-category-stats {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dcr-category-bar-bg {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.dcr-category-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+/* Goal Velocity */
+.dcr-velocity {
+  margin-top: 20px;
+}
+
+.dcr-velocity-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.dcr-velocity-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.dcr-velocity-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateX(2px);
+}
+
+.dcr-velocity-icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 8px;
+  background: rgba(0, 212, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dcr-velocity-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.dcr-velocity-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dcr-velocity-stats {
+  display: flex;
+  gap: 12px;
+}
+
+.dcr-velocity-rate {
+  font-size: 11px;
+  color: #00D4FF;
+  font-weight: 500;
+}
+
+.dcr-velocity-pct {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dcr-velocity-rank {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #00D4FF, #00A8CC);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .dcr-widget {
+    padding: 16px;
+  }
+
+  .dcr-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dcr-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dcr-time-toggle {
+    justify-content: stretch;
+  }
+
+  .dcr-time-btn {
+    flex: 1;
+  }
+
+  .dcr-ring-container {
+    width: 120px;
+    height: 120px;
+  }
+
+  .dcr-ring-pct {
+    font-size: 28px;
+  }
+}

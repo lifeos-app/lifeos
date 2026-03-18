@@ -1,0 +1,306 @@
+/* ═══════════════════════════════════════════════════════════
+   FinanceAI — Holistic Finance Domain AI Card
+   Glass card, orange → amber gradient, collapsible
+   ═══════════════════════════════════════════════════════════ */
+
+.finance-ai-holo-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(249, 115, 22, 0.12);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(12px);
+  animation: finAiFadeUp 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.finance-ai-holo-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #F97316, #FBBF24);
+  opacity: 0.6;
+}
+
+/* ── Header ── */
+
+.fai-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  gap: 8px;
+}
+
+.fai-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fai-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.fai-icon-dollar {
+  color: #F97316;
+  filter: drop-shadow(0 0 4px rgba(249, 115, 22, 0.4));
+}
+
+.fai-icon-brain {
+  color: #FBBF24;
+  filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.4));
+  margin-left: -4px;
+}
+
+.fai-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.fai-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fai-refresh-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+}
+
+.fai-refresh-btn:hover {
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.fai-chevron {
+  color: rgba(255, 255, 255, 0.3);
+  transition: transform 0.2s;
+}
+
+/* ── Body ── */
+
+.fai-body {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Loading ── */
+
+.fai-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px 0;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+}
+
+.fai-loading .fai-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #F97316;
+  animation: faiPulse 1.2s ease-in-out infinite;
+}
+
+.fai-loading .fai-pulse-dot:nth-child(2) { animation-delay: 0.2s; }
+.fai-loading .fai-pulse-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes faiPulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* ── Summary ── */
+
+.fai-summary {
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.75);
+  padding: 10px 12px;
+  background: rgba(249, 115, 22, 0.05);
+  border: 1px solid rgba(249, 115, 22, 0.08);
+  border-radius: 10px;
+  white-space: pre-line;
+}
+
+/* ── Suggestions ── */
+
+.fai-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fai-suggestion {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.35;
+  padding: 6px 10px;
+  background: rgba(251, 191, 36, 0.05);
+  border-radius: 8px;
+}
+
+.fai-suggestion svg {
+  color: #FBBF24;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── Quick Actions ── */
+
+.fai-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.fai-quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.fai-quick-btn:hover {
+  background: rgba(249, 115, 22, 0.1);
+  border-color: rgba(249, 115, 22, 0.2);
+  color: #F97316;
+}
+
+.fai-quick-btn svg {
+  flex-shrink: 0;
+}
+
+/* ── Ask AI Input ── */
+
+.fai-ask-row {
+  display: flex;
+  gap: 6px;
+}
+
+.fai-ask-input {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.fai-ask-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.fai-ask-input:focus {
+  border-color: rgba(249, 115, 22, 0.3);
+}
+
+.fai-ask-send {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(249, 115, 22, 0.2);
+  background: rgba(249, 115, 22, 0.08);
+  color: #F97316;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.fai-ask-send:hover {
+  background: rgba(249, 115, 22, 0.15);
+}
+
+.fai-ask-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── AI Answer ── */
+
+.fai-answer {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 10px 12px;
+  background: rgba(251, 191, 36, 0.05);
+  border: 1px solid rgba(251, 191, 36, 0.08);
+  border-radius: 10px;
+  white-space: pre-line;
+}
+
+.fai-answer-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #FBBF24;
+  margin-bottom: 6px;
+}
+
+/* ── Animations ── */
+
+@keyframes finAiFadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 600px) {
+  .finance-ai-holo-card {
+    padding: 12px;
+  }
+
+  .fai-quick-actions {
+    gap: 4px;
+  }
+
+  .fai-quick-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}

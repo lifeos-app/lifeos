@@ -1,0 +1,149 @@
+/* ══════════════════════════════════════════════════
+   QuickStartActivity — Autocomplete & category pills
+   ══════════════════════════════════════════════════ */
+
+.qsa-field {
+  position: relative;
+}
+
+/* ── Autocomplete suggestions dropdown ── */
+.qsa-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin-top: 4px;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.qsa-suggestion {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary, #94a3b8);
+  font-family: var(--font-body);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.qsa-suggestion:last-child {
+  border-bottom: none;
+}
+
+.qsa-suggestion:hover {
+  background: rgba(0, 212, 255, 0.08);
+  color: #fff;
+}
+
+/* ── AI-powered suggestion enhancements ── */
+.qsa-ai-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #7C5CFC;
+}
+
+.qsa-suggestion-ai {
+  border-left: 2px solid rgba(124, 92, 252, 0.4);
+}
+
+.qsa-suggestion-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.qsa-suggestion-icon {
+  flex-shrink: 0;
+}
+
+.qsa-suggestion-reason {
+  display: block;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  margin-top: 2px;
+  font-weight: 400;
+}
+
+/* ── Category pill buttons ── */
+.qsa-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.qsa-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  color: var(--text-secondary, #94a3b8);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.qsa-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.qsa-pill.qsa-pill-active {
+  font-weight: 600;
+}
+
+/* ── Live indicator in QA button ── */
+.qa-live-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  line-height: 1.2;
+}
+
+.qa-live-time {
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
+}
+
+.qa-btn-live {
+  background: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #EF4444 !important;
+  animation: qa-pulse-live 2s ease-in-out infinite;
+}
+
+.qa-btn-live:hover {
+  background: rgba(239, 68, 68, 0.18) !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.2) !important;
+}
+
+@keyframes qa-pulse-live {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  50% { box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12); }
+}

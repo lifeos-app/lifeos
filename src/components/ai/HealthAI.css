@@ -1,0 +1,341 @@
+/* ═══════════════════════════════════════════════════════════
+   HealthAI — Holistic Health Domain AI Card
+   Glass card, green → cyan gradient, collapsible
+   ═══════════════════════════════════════════════════════════ */
+
+.health-ai-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(57, 255, 20, 0.12);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(12px);
+  animation: healthAiFadeUp 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.health-ai-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #39FF14, #00D4FF);
+  opacity: 0.6;
+}
+
+/* ── Header ── */
+
+.hai-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  gap: 8px;
+}
+
+.hai-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hai-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.hai-icon-brain {
+  color: #39FF14;
+  filter: drop-shadow(0 0 4px rgba(57, 255, 20, 0.4));
+}
+
+.hai-icon-heart {
+  color: #00D4FF;
+  filter: drop-shadow(0 0 4px rgba(0, 212, 255, 0.4));
+  margin-left: -4px;
+}
+
+.hai-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.hai-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hai-refresh-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+}
+
+.hai-refresh-btn:hover {
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.hai-chevron {
+  color: rgba(255, 255, 255, 0.3);
+  transition: transform 0.2s;
+}
+
+/* ── Body ── */
+
+.hai-body {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Loading ── */
+
+.hai-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px 0;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+}
+
+.hai-loading .hai-pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #39FF14;
+  animation: haiPulse 1.2s ease-in-out infinite;
+}
+
+.hai-loading .hai-pulse-dot:nth-child(2) { animation-delay: 0.2s; }
+.hai-loading .hai-pulse-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes haiPulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* ── Summary ── */
+
+.hai-summary {
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.75);
+  padding: 10px 12px;
+  background: rgba(57, 255, 20, 0.05);
+  border: 1px solid rgba(57, 255, 20, 0.08);
+  border-radius: 10px;
+  white-space: pre-line;
+}
+
+/* ── Quick Actions ── */
+
+.hai-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.hai-quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.hai-quick-btn:hover {
+  background: rgba(57, 255, 20, 0.1);
+  border-color: rgba(57, 255, 20, 0.2);
+  color: #39FF14;
+}
+
+.hai-quick-btn svg {
+  flex-shrink: 0;
+}
+
+/* ── Ask AI Input ── */
+
+.hai-ask-row {
+  display: flex;
+  gap: 6px;
+}
+
+.hai-ask-input {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.hai-ask-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.hai-ask-input:focus {
+  border-color: rgba(57, 255, 20, 0.3);
+}
+
+.hai-ask-send {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(57, 255, 20, 0.2);
+  background: rgba(57, 255, 20, 0.08);
+  color: #39FF14;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.hai-ask-send:hover {
+  background: rgba(57, 255, 20, 0.15);
+}
+
+.hai-ask-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── AI Answer ── */
+
+.hai-answer {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 10px 12px;
+  background: rgba(0, 212, 255, 0.05);
+  border: 1px solid rgba(0, 212, 255, 0.08);
+  border-radius: 10px;
+  white-space: pre-line;
+}
+
+.hai-answer-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #00D4FF;
+  margin-bottom: 6px;
+}
+
+/* ── Empty State ── */
+
+.hai-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 16px 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.hai-empty svg {
+  color: #39FF14;
+}
+
+/* ── Animations ── */
+
+@keyframes healthAiFadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.spin {
+  animation: haiSpin 1s linear infinite;
+}
+
+@keyframes haiSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ── Collapsed State ── */
+
+.health-ai-card.hai-collapsed {
+  padding: 10px 14px;
+  border-color: rgba(57, 255, 20, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.health-ai-card.hai-collapsed::before {
+  opacity: 0.3;
+}
+
+.hai-collapsed-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
+  position: relative;
+  overflow: hidden;
+}
+
+.hai-collapsed-text::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(57, 255, 20, 0.08), transparent);
+  animation: haiShimmer 3s ease-in-out infinite;
+}
+
+@keyframes haiShimmer {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 600px) {
+  .health-ai-card {
+    padding: 12px;
+  }
+
+  .hai-quick-actions {
+    gap: 4px;
+  }
+
+  .hai-quick-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}
