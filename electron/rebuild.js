@@ -9,6 +9,21 @@
  */
 
 import { rebuild } from '@electron/rebuild';
+import { createRequire } from 'module';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
+
+function getElectronVersion() {
+  try {
+    const pkg = require(join(__dirname, '..', 'node_modules', 'electron', 'package.json'));
+    return pkg.version;
+  } catch {
+    return '41.1.0'; // fallback
+  }
+}
 
 /**
  * @param {object} context - electron-builder afterPack context
@@ -23,20 +38,32 @@ export default async function afterPack(context) {
   const archMap = { 0: 'ia32', 1: 'x64', 2: 'armv7l', 3: 'arm64', 4: 'universal' };
   const archName = archMap[arch] || 'x64';
 
-  console.log(`[rebuild] Rebuilding native modules for ${electronPlatformName}-${archName}...`);
+  const electronVersion = context.packager?.electronVersion
+    || context.electronVersion
+    || getElectronVersion();
+
+  console.log(`[rebuild] Rebuilding native modules for ${electronPlatformName}-${archName} (electron ${electronVersion})...`);
 
   try {
-    await rebuild({
-      buildPath: appOutDir,
-      electronVersion: context.packager?.electronVersion || process.env.npm_package_devDependencies_electron?.replace('^', ''),
-      arch: archName,
-      // Only rebuild modules that have native bindings
-      onlyModules: ['better-sqlite3'],
-    });
-    console.log('[rebuild] Native modules rebuilt successfully');
+    // electron-builder already runs @electron/rebuild for native modules.
+    // This afterPack hook verifies the native binary exists in the output.
+    const fs = await import('fs');
+    const betterSqlitePath = join(appOutDir, 'resources', 'app.asar.unpacked', 'node_modules', 'better-sqlite3', 'build', 'Release', 'better_sqlite3.node');
+    if (fs.existsSync(betterSqlitePath)) {
+      console.log('[rebuild] Native module verified: better_sqlite3.node exists in asar.unpacked');
+    } else {
+      // Try rebuilding if the binary is missing
+      console.log('[rebuild] Native module missing, attempting rebuild...');
+      await rebuild({
+        buildPath: join(appOutDir, 'resources', 'app'),
+        electronVersion,
+        arch: archName,
+        onlyModules: ['better-sqlite3'],
+      });
+      console.log('[rebuild] Native modules rebuilt successfully');
+    }
   } catch (err) {
-    console.error('[rebuild] Failed to rebuild native modules:', err.message);
-    // Don't throw — allow the build to continue. The native module may
-    // still work if it was pre-built for the target platform.
+    console.error('[rebuild] Native module check/rebuild failed:', err.message);
+    // Non-fatal — electron-builder's built-in rebuild should have handled it
   }
 }

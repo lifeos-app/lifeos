@@ -25,6 +25,9 @@ screenshots/
 # Tauri
 src-tauri/target/
 
+# Electron build output
+release/
+
 # Python
 __pycache__/
 *.pyc
