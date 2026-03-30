@@ -1,0 +1,113 @@
+/* PianoAcademy — scoped styles (all under .piano-academy) */
+
+.piano-academy {
+  font-family: 'Poppins', Georgia, serif;
+  background: linear-gradient(165deg, #1A0F0A 0%, #2D1B0E 40%, #1A0F0A 100%);
+  color: #E8D5C0;
+  padding: 0 0 40px 0;
+}
+
+.piano-academy::-webkit-scrollbar { width: 6px; }
+.piano-academy::-webkit-scrollbar-thumb { background: #5C3D2E; border-radius: 3px; }
+
+/* Animations — namespaced */
+@keyframes pa-fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pa-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes pa-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(255,215,0,0.3); }
+  50% { box-shadow: 0 0 20px rgba(255,215,0,0.6); }
+}
+
+/* Tab buttons */
+.piano-academy .pa-tab-btn {
+  background: none;
+  border: none;
+  color: #8B7355;
+  font-family: inherit;
+  font-size: 14px;
+  padding: 10px 16px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.piano-academy .pa-tab-btn:hover { color: #D4A574; }
+.piano-academy .pa-tab-btn.active { color: #FFD700; border-bottom-color: #FFD700; }
+
+/* Card */
+.piano-academy .pa-card {
+  background: rgba(60, 35, 20, 0.5);
+  border: 1px solid rgba(139, 115, 85, 0.2);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 16px;
+  animation: pa-fadeUp 0.4s ease;
+}
+
+/* Buttons */
+.piano-academy .pa-btn {
+  background: linear-gradient(135deg, #5C3D2E, #8B5A3C);
+  border: 1px solid #A0784C;
+  color: #FAF0E6;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.piano-academy .pa-btn:hover {
+  background: linear-gradient(135deg, #8B5A3C, #A0784C);
+  transform: translateY(-1px);
+}
+.piano-academy .pa-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+.piano-academy .pa-btn-gold {
+  background: linear-gradient(135deg, #B8860B, #DAA520);
+  border-color: #FFD700;
+}
+.piano-academy .pa-btn-gold:hover {
+  background: linear-gradient(135deg, #DAA520, #FFD700);
+}
+
+/* Progress dots */
+.piano-academy .pa-progress-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid #8B7355;
+  transition: all 0.2s;
+}
+.piano-academy .pa-progress-dot.done { background: #FFD700; border-color: #FFD700; }
+.piano-academy .pa-progress-dot.current { border-color: #FFD700; animation: pa-pulse 1s infinite; }
+
+/* Song notes */
+.piano-academy .pa-song-note {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 3px;
+  transition: all 0.2s;
+}
+
+/* Key hint */
+.piano-academy .pa-key-hint {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  background: rgba(139,115,85,0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
