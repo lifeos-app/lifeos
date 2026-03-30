@@ -1,8 +1,13 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
 import { BrowserRouter, HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-const isTauri = '__TAURI__' in window || import.meta.env.TAURI_BUILD === '1';
-const Router = isTauri ? HashRouter : BrowserRouter;
+declare const __IS_TAURI__: boolean;
+declare const __IS_ELECTRON__: boolean;
+const isDesktop = (typeof __IS_TAURI__ !== 'undefined' && __IS_TAURI__) ||
+  (typeof __IS_ELECTRON__ !== 'undefined' && __IS_ELECTRON__) ||
+  '__TAURI_INTERNALS__' in window || '__TAURI__' in window ||
+  !!(window as any).electronAPI;
+const Router = isDesktop ? HashRouter : BrowserRouter;
 import { Mail } from 'lucide-react';
 import { useUserStore } from './stores/useUserStore';
 import { useScheduleStore } from './stores/useScheduleStore';
@@ -72,6 +77,8 @@ const ReflectHub = lazyRetry(() => import('./pages/ReflectHub').then(m => ({ def
 const Story = lazyRetry(() => import('./pages/Story').then(m => ({ default: m.Story })));
 const AssetDetail = lazyRetry(() => import('./pages/AssetDetail').then(m => ({ default: m.AssetDetail })));
 const Academy = lazyRetry(() => import('./pages/Academy'));
+const TeddysLessons = lazyRetry(() => import('./pages/TeddysLessons'));
+const Replicator = lazyRetry(() => import('./pages/Replicator'));
 const LazyFeedbackButton = lazyRetry(() => import('./components/FeedbackButton').then(m => ({ default: m.FeedbackButton })));
 const LazyFlipperCheckin = lazyRetry(() => import('./components/FlipperCheckin').then(m => ({ default: m.FlipperCheckin })));
 const LazyLifePulseModal = lazyRetry(() => import('./components/LifePulseModal').then(m => ({ default: m.LifePulseModal })));
@@ -236,7 +243,8 @@ function AppRoutes() {
 
   // 2b. User exists but email not confirmed (synced mode only) → show confirmation notice
   //     Skip for OAuth users (Google etc.) — their email is verified by the provider
-  if (user) {
+  //     Skip for desktop mode (local user has no email to confirm)
+  if (user && !isDesktop && mode === 'synced') {
     const isOAuth = user.app_metadata?.provider && user.app_metadata.provider !== 'email';
     if (!user.email_confirmed_at && !isOAuth) {
       return (
@@ -348,6 +356,8 @@ function AppRoutes() {
             <Route path="/realm" element={<Navigate to="/character?tab=realm" replace />} />
 
             <Route path="/academy" element={<PageErrorBoundary pageName="Academy"><Suspense fallback={<PageSkeleton />}><Academy /></Suspense></PageErrorBoundary>} />
+            <Route path="/lessons" element={<PageErrorBoundary pageName="TeddysLessons"><Suspense fallback={<PageSkeleton />}><TeddysLessons /></Suspense></PageErrorBoundary>} />
+            <Route path="/replicator" element={<PageErrorBoundary pageName="Replicator"><Suspense fallback={<PageSkeleton />}><Replicator /></Suspense></PageErrorBoundary>} />
             <Route path="/settings" element={<PageErrorBoundary pageName="Settings"><Settings /></PageErrorBoundary>} />
             <Route path="/work" element={<PageErrorBoundary pageName="Work"><Suspense fallback={<WorkSkeleton />}><WorkPage /></Suspense></PageErrorBoundary>} />
             <Route path="/work/*" element={<PageErrorBoundary pageName="Work"><Suspense fallback={<WorkSkeleton />}><WorkPage /></Suspense></PageErrorBoundary>} />
@@ -374,8 +384,8 @@ function App() {
   if (!oauthReady) return <GlobalLoadingSpinner />;
 
   return (
-    <Router {...(isTauri ? {} : { basename: "/app" })}>
-      {!isTauri && <UpdateBanner />}
+    <Router {...(isDesktop ? {} : { basename: "/app" })}>
+      {!isDesktop && <UpdateBanner />}
       <ConnectionBanner />
       <WhatsNew />
       <ErrorBoundary>

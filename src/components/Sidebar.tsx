@@ -20,7 +20,7 @@ import {
   LayoutDashboard, Calendar, Target, Flame, Wallet, Heart,
   BookOpen, ChevronLeft, ChevronRight,
   LogOut, Zap, Settings, BarChart3, MessageSquarePlus, Crown, Users,
-  CreditCard, Loader2, Sparkles, Swords, Inbox, GraduationCap,
+  CreditCard, Loader2, Sparkles, Swords, Inbox, GraduationCap, Music, Package,
   type LucideIcon,
 } from 'lucide-react';
 import { getUnreadCount } from '../lib/social/messaging';
@@ -30,7 +30,7 @@ import './Sidebar.css';
 /** Map icon name strings from the feature registry to Lucide components. */
 const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard, Calendar, Target, Flame, Wallet, Heart,
-  BookOpen, Users, Swords, Settings, BarChart3, GraduationCap,
+  BookOpen, Users, Swords, Settings, BarChart3, GraduationCap, Music, Package,
 };
 
 const NAV_ITEMS = getNavFeatures('sidebar').map(f => ({

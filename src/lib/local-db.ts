@@ -17,7 +17,7 @@ import { genId } from '../utils/date';
 import { logger } from '../utils/logger';
 
 const DB_NAME = 'lifeos-local';
-const DB_VERSION = 5;
+const DB_VERSION = 7;
 
 // All object stores (tables)
 const STORES = {
@@ -62,11 +62,17 @@ const STORES = {
   inventory_items: 'id',
   pet_profiles: 'id',
 
+  // Parts Inventory (Digital Replicator)
+  parts_inventory: 'id',
+
   // Assets
   assets: 'id',
   asset_maintenance: 'id',
   asset_bills: 'id',
   asset_documents: 'id',
+
+  // Lessons
+  lesson_progress: 'id',
 
   // Meta (sync state)
   sync_meta: 'table_name',

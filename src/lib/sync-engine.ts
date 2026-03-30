@@ -14,7 +14,7 @@
  * - Manually (user clicks "Sync Now" button)
  */
 
-import { db as supabase } from './data-access';
+import { db as supabase, getEnvironment } from './data-access';
 import { useUserStore } from '../stores/useUserStore';
 import { logger } from '../utils/logger';
 import {
@@ -46,6 +46,8 @@ import {
 // Do NOT also list 'schedule_events' — that would cause double-sync.
 const SYNC_TABLES: TableName[] = [
   // Tier 0: No FK dependencies (safe to sync first)
+  'lesson_progress',
+  'parts_inventory',
   'user_xp',
   'businesses',
   'clients',
@@ -122,6 +124,7 @@ const STATIC_COLUMNS: Record<string, Set<string>> = {
   achievements: new Set(['id','user_id','achievement_id','progress','unlocked_at','created_at','updated_at']),
   inventory_items: new Set(['id','user_id','name','description','category','subcategory','list_type','slot','brand','color','size','image_url','purchase_date','purchase_price','condition','is_equipped','is_favorite','tags','metadata','created_at','updated_at','is_deleted']),
   pet_profiles: new Set(['id','user_id','inventory_item_id','name','species','breed','birthday','weight','vet_name','vet_phone','next_vet_date','feeding_schedule','medications','avatar_url','metadata','created_at','is_deleted','updated_at']),
+  parts_inventory: new Set(['id','user_id','name','description','category','quantity','unit_price','location','supplier','sku','condition','notes','tags','custom_fields','image_url','created_at','updated_at','is_deleted','sync_status']),
   categories: new Set(['id','user_id','name','color','icon','parent_id','domain','sort_order','created_at','updated_at','is_deleted','sync_status']),
   projects: new Set(['id','user_id','title','description','status','color','icon','goal_id','start_date','target_date','created_at','updated_at','is_deleted','sync_status']),
   notes: new Set(['id','user_id','title','content','category_id','is_pinned','created_at','updated_at','is_deleted','sync_status']),
@@ -137,6 +140,12 @@ const SCHEMA_CACHE_TTL = 60 * 60 * 1000; // 1 hour
 async function fetchRuntimeColumns(): Promise<Record<string, Set<string>> | null> {
   if (_runtimeColumns && (Date.now() - _runtimeColumnsTs) < SCHEMA_CACHE_TTL) {
     return _runtimeColumns;
+  }
+
+  // Skip schema introspection in Tauri/Electron mode — uses local SQLite directly
+  const syncEnv = getEnvironment();
+  if (syncEnv === 'tauri' || syncEnv === 'electron') {
+    return null;
   }
 
   try {
@@ -657,6 +666,7 @@ async function pullFromSupabase(userId: string): Promise<number> {
     'user_xp', 'businesses', 'clients', 'expense_categories', 'categories',
     'budgets', 'journal_entries', 'health_metrics', 'workouts', 'workout_exercises',
     'income', 'expenses', 'bills', 'xp_events', 'achievements', 'inventory_items', 'pet_profiles',
+    'parts_inventory',
   ];
   // Tier 1: depend on tier 0
   const tier1: TableName[] = ['goals', 'habits', 'projects', 'notes'];
