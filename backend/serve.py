@@ -122,13 +122,19 @@ def main():
     if not args.no_open:
         threading.Thread(target=open_browser, args=(args.port,), daemon=True).start()
     
-    print(f"  🌐 http://localhost:{args.port}")
-    print(f"  📡 http://192.168.0.63:{args.port}")
-    print(f"  📦 Database: ~/.lifeos/data.db")
-    print("═" * 40)
+    print(f"  URL: http://localhost:{args.port}")
+    print(f"  Database: ~/.lifeos/data.db")
+    print("=" * 40)
     print("  Press Ctrl+C to stop")
     print()
-    
+
+    # Graceful shutdown on SIGINT/SIGTERM
+    def handle_signal(sig, frame):
+        print("\nShutting down...")
+        sys.exit(0)
+    signal.signal(signal.SIGINT, handle_signal)
+    signal.signal(signal.SIGTERM, handle_signal)
+
     # Run Flask (no debug in production mode)
     app.run(host='0.0.0.0', port=args.port, debug=False)
 

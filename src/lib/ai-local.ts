@@ -26,7 +26,19 @@ const DEFAULT_MODEL = (typeof import.meta !== 'undefined' && import.meta.env?.VI
   ? import.meta.env.VITE_AI_MODEL
   : 'llama3.2:3b';
 
-const isTauri = typeof window !== 'undefined' && '__TAURI__' in window;
+declare const __IS_TAURI__: boolean;
+let _isTauriCached: boolean | null = null;
+function isTauriCheck(): boolean {
+  if (_isTauriCached !== null) return _isTauriCached;
+  if (typeof __IS_TAURI__ !== 'undefined' && __IS_TAURI__) {
+    _isTauriCached = true;
+    return true;
+  }
+  _isTauriCached = typeof window !== 'undefined' && (
+    '__TAURI_INTERNALS__' in window || '__TAURI__' in window
+  );
+  return _isTauriCached;
+}
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -102,7 +114,7 @@ let _invoke: ((cmd: string, args?: Record<string, unknown>) => Promise<unknown>)
 
 async function getTauriInvoke() {
   if (_invoke) return _invoke;
-  if (!isTauri) return null;
+  if (!isTauriCheck()) return null;
   try {
     const { invoke } = await import('@tauri-apps/api/core');
     _invoke = invoke;
@@ -138,7 +150,7 @@ export async function chatCompletion(options: ChatCompletionOptions): Promise<Ch
   };
 
   // Try Tauri invoke first (Rust handles the HTTP call — avoids CORS)
-  if (isTauri) {
+  if (isTauriCheck()) {
     try {
       const invoke = await getTauriInvoke();
       if (invoke) {
@@ -185,7 +197,7 @@ export async function chatCompletionStream(
   // In Tauri mode, we could route through Rust for CORS-free streaming,
   // but SSE parsing is simpler in JS. Tauri's webview allows localhost fetch.
   // If a Rust streaming command exists, use it; otherwise direct fetch.
-  if (isTauri) {
+  if (isTauriCheck()) {
     try {
       const invoke = await getTauriInvoke();
       if (invoke) {
@@ -294,7 +306,7 @@ export async function createEmbedding(
     input: Array.isArray(input) ? input : [input],
   };
 
-  if (isTauri) {
+  if (isTauriCheck()) {
     try {
       const invoke = await getTauriInvoke();
       if (invoke) {
@@ -339,8 +351,8 @@ export async function checkBridgeHealth(): Promise<{
 export const aiConfig = {
   bridgeUrl: BRIDGE_BASE,
   defaultModel: DEFAULT_MODEL,
-  isTauri,
-  backend: isTauri ? 'tauri-rust' : 'browser-fetch',
+  get isTauri() { return isTauriCheck(); },
+  get backend() { return isTauriCheck() ? 'tauri-rust' as const : 'browser-fetch' as const; },
 };
 
 export default {

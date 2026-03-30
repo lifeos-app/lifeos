@@ -5,7 +5,11 @@ import { Zap, WifiOff } from 'lucide-react';
 import './Login.css';
 import { getErrorMessage } from '../utils/error';
 
-const isTauri = typeof window !== 'undefined' && ('__TAURI__' in window || '__TAURI_INTERNALS__' in window);
+declare const __IS_TAURI__: boolean;
+declare const __IS_ELECTRON__: boolean;
+const isTauri = (typeof __IS_TAURI__ !== 'undefined' && __IS_TAURI__) ||
+  (typeof __IS_ELECTRON__ !== 'undefined' && __IS_ELECTRON__) ||
+  (typeof window !== 'undefined' && ('__TAURI_INTERNALS__' in window || '__TAURI__' in window || !!(window as any).electronAPI));
 
 export function Login() {
   const signIn = useUserStore(s => s.signIn);

@@ -29,12 +29,14 @@ CORS(app, origins=[
     "http://localhost:5173",
     "http://localhost:5174",
     "http://localhost:3000",
+    "http://localhost:8080",
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
     "http://127.0.0.1:3000",
+    "http://127.0.0.1:8080",
 ])
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lifeos.db')
+DB_PATH = os.path.join(os.path.expanduser('~'), '.lifeos', 'data.db')
 DEFAULT_USER_ID = 'local-user-001'
 AI_BRIDGE_URL = os.environ.get('AI_BRIDGE_URL', 'http://localhost:11435')
 
@@ -64,7 +66,8 @@ def row_to_dict(row):
     d = dict(row)
     # Parse known JSON columns
     for key in ('tags', 'metadata', 'preferences', 'stats', 'equipment',
-                'position', 'sprite_data', 'exercises', 'attachments'):
+                'position', 'sprite_data', 'exercises', 'attachments',
+                'steps_completed', 'custom_fields'):
         if key in d and isinstance(d[key], str):
             try:
                 d[key] = json.loads(d[key])
@@ -744,7 +747,54 @@ CREATE TABLE IF NOT EXISTS sync_meta (
     record_count INTEGER DEFAULT 0
 );
 
+-- Lesson Progress
+CREATE TABLE IF NOT EXISTS lesson_progress (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    lesson_id TEXT NOT NULL,
+    module_id TEXT DEFAULT 'teddys-lessons',
+    status TEXT DEFAULT 'not_started',
+    current_step TEXT,
+    steps_completed TEXT DEFAULT '[]',
+    score INTEGER DEFAULT 0,
+    streak_current INTEGER DEFAULT 0,
+    streak_best INTEGER DEFAULT 0,
+    total_practice_time INTEGER DEFAULT 0,
+    last_practiced_at TEXT,
+    completed_at TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now')),
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'synced'
+);
+
 -- Indexes
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_user ON lesson_progress(user_id);
+
+CREATE TABLE IF NOT EXISTS parts_inventory (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT,
+    category TEXT,
+    quantity INTEGER DEFAULT 0,
+    unit_price REAL DEFAULT 0,
+    location TEXT,
+    supplier TEXT,
+    sku TEXT,
+    condition TEXT DEFAULT 'new',
+    notes TEXT,
+    tags TEXT DEFAULT '[]',
+    custom_fields TEXT DEFAULT '{}',
+    image_url TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now')),
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'synced'
+);
+CREATE INDEX IF NOT EXISTS idx_parts_inventory_user ON parts_inventory(user_id);
+CREATE INDEX IF NOT EXISTS idx_parts_inventory_category ON parts_inventory(category);
+
 CREATE INDEX IF NOT EXISTS idx_goals_user ON goals(user_id);
 CREATE INDEX IF NOT EXISTS idx_goals_status ON goals(status);
 CREATE INDEX IF NOT EXISTS idx_goals_parent ON goals(parent_goal_id);
@@ -769,6 +819,7 @@ CREATE INDEX IF NOT EXISTS idx_bills_user ON bills(user_id);
 
 def init_db():
     """Create all tables and seed default user."""
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     db = sqlite3.connect(DB_PATH)
     db.executescript(SCHEMA_SQL)
     # Ensure default user exists
@@ -790,193 +841,349 @@ def init_db():
 
 
 # ═══════════════════════════════════════════════════════════════
-# Generic CRUD Factory
+# Unified PostgREST-Compatible CRUD Handler
 # ═══════════════════════════════════════════════════════════════
+# Replaces per-table blueprint registrations with a single handler
+# that properly parses PostgREST-style filter params from the frontend.
+# The frontend's local-api.ts sends: db.from('table_name')...
+# which maps to: /api/<table_name>?column=operator.value
 
-def generic_crud(table_name, blueprint_name, soft_delete=True, order_by='created_at DESC'):
-    """
-    Create a Flask Blueprint with full CRUD for a table.
-    GET /           → list all (with optional filters)
-    GET /<id>       → get one
-    POST /          → create
-    PUT /<id>       → update
-    PATCH /<id>     → partial update
-    DELETE /<id>    → delete (soft or hard)
-    """
-    from flask import Blueprint
-    bp = Blueprint(blueprint_name, __name__)
+ALLOWED_TABLES = {
+    'users', 'user_profiles', 'goals', 'tasks', 'habits', 'habit_logs',
+    'schedule_events', 'health_metrics', 'workouts', 'workout_exercises',
+    'expense_categories', 'businesses', 'transactions', 'budgets',
+    'income', 'expenses', 'bills', 'clients', 'journal_entries',
+    'rpg_characters', 'rpg_quest_log', 'user_xp', 'xp_events',
+    'achievements', 'inventory_items', 'pet_profiles', 'categories',
+    'projects', 'notes', 'assets', 'asset_maintenance', 'asset_bills',
+    'asset_documents', 'ai_insights', 'chat_messages', 'unified_events',
+    'sync_meta', 'lesson_progress', 'parts_inventory',
+}
 
-    @bp.route('', methods=['GET'])
-    @bp.route('/', methods=['GET'])
-    def list_all():
-        db = get_db()
-        conditions = ["user_id = ?"]
-        params = [DEFAULT_USER_ID]
+SOFT_DELETE_TABLES = {
+    'goals', 'tasks', 'habits', 'income', 'expenses', 'bills',
+    'clients', 'journal_entries', 'businesses', 'categories', 'projects',
+    'notes', 'assets', 'asset_maintenance', 'asset_bills', 'asset_documents',
+    'inventory_items', 'pet_profiles', 'lesson_progress', 'parts_inventory',
+}
 
-        if soft_delete:
-            conditions.append("(is_deleted = 0 OR is_deleted IS NULL)")
+# Tables that use a non-'id' primary key
+TABLE_PK = {
+    'user_profiles': 'user_id',
+    'user_xp': 'user_id',
+    'sync_meta': 'table_name',
+}
 
-        # Support query params as filters
-        for key, val in request.args.items():
-            if key in ('limit', 'offset', 'order', 'select'):
-                continue
-            conditions.append(f"{key} = ?")
-            params.append(val)
+# Tables that don't have a user_id column
+NO_USER_ID_TABLES = {'sync_meta'}
 
-        where = " AND ".join(conditions)
-        order = request.args.get('order', order_by)
-        limit = request.args.get('limit', '')
-        offset = request.args.get('offset', '0')
-
-        sql = f"SELECT * FROM {table_name} WHERE {where} ORDER BY {order}"
-        if limit:
-            sql += f" LIMIT {int(limit)} OFFSET {int(offset)}"
-
-        rows = db.execute(sql, params).fetchall()
-        data = rows_to_list(rows)
-        return supabase_response(data=data, count=len(data))
-
-    @bp.route('/<item_id>', methods=['GET'])
-    def get_one(item_id):
-        db = get_db()
-        row = db.execute(f"SELECT * FROM {table_name} WHERE id = ?", (item_id,)).fetchone()
-        if not row:
-            return supabase_response(data=None, error=f"{table_name} not found"), 404
-        return supabase_response(data=row_to_dict(row))
-
-    @bp.route('', methods=['POST'])
-    @bp.route('/', methods=['POST'])
-    def create():
-        db = get_db()
-        body = request.get_json(force=True, silent=True) or {}
-
-        # Handle batch insert (array of objects)
-        if isinstance(body, list):
-            results = []
-            for item in body:
-                result = _insert_one(db, table_name, item)
-                results.append(result)
-            db.commit()
-            return supabase_response(data=results), 201
-
-        result = _insert_one(db, table_name, body)
-        db.commit()
-        return supabase_response(data=result), 201
-
-    @bp.route('/<item_id>', methods=['PUT', 'PATCH'])
-    def update(item_id):
-        db = get_db()
-        body = request.get_json(force=True, silent=True) or {}
-
-        # Remove read-only fields
-        body.pop('id', None)
-        body.pop('created_at', None)
-        body.setdefault('updated_at', now_iso())
-
-        # Serialize JSON fields
-        for key in ('tags', 'metadata', 'preferences', 'stats', 'equipment',
-                     'position', 'sprite_data', 'exercises', 'attachments'):
-            if key in body and not isinstance(body[key], str):
-                body[key] = json.dumps(body[key])
-
-        if not body:
-            return supabase_response(error="No fields to update"), 400
-
-        sets = ", ".join(f"{k} = ?" for k in body.keys())
-        vals = list(body.values()) + [item_id]
-        db.execute(f"UPDATE {table_name} SET {sets} WHERE id = ?", vals)
-        db.commit()
-
-        row = db.execute(f"SELECT * FROM {table_name} WHERE id = ?", (item_id,)).fetchone()
-        return supabase_response(data=row_to_dict(row))
-
-    @bp.route('/<item_id>', methods=['DELETE'])
-    def delete(item_id):
-        db = get_db()
-        if soft_delete:
-            db.execute(
-                f"UPDATE {table_name} SET is_deleted = 1, updated_at = ? WHERE id = ?",
-                (now_iso(), item_id)
-            )
-        else:
-            db.execute(f"DELETE FROM {table_name} WHERE id = ?", (item_id,))
-        db.commit()
-        return supabase_response(data={"id": item_id, "deleted": True})
-
-    return bp
+RESERVED_PARAMS = {'select', 'order', 'limit', 'offset', 'single', 'count',
+                    'on_conflict', 'return', 'or'}
 
 
-def _insert_one(db, table_name, body):
-    """Insert a single record, return the inserted row as dict."""
-    body.setdefault('id', new_id())
-    body.setdefault('user_id', DEFAULT_USER_ID)
-    body.setdefault('created_at', now_iso())
+def _parse_postgrest_filter(key, raw_value):
+    """Parse a PostgREST-style filter: column=operator.value
+    Returns (sql_clause, params_list)."""
+    OP_MAP = {
+        'eq': '=', 'neq': '!=', 'gt': '>', 'gte': '>=',
+        'lt': '<', 'lte': '<=', 'like': 'LIKE', 'ilike': 'LIKE',
+    }
+    for op_name, sql_op in OP_MAP.items():
+        prefix = f'{op_name}.'
+        if raw_value.startswith(prefix):
+            val = raw_value[len(prefix):]
+            return f'"{key}" {sql_op} ?', [val]
 
-    # Serialize JSON fields
+    if raw_value.startswith('is.'):
+        val = raw_value[3:].lower()
+        if val == 'null':
+            return f'"{key}" IS NULL', []
+        elif val == 'true':
+            return f'"{key}" = ?', [1]
+        elif val == 'false':
+            return f'"{key}" = ?', [0]
+        return f'"{key}" IS ?', [val]
+
+    if raw_value.startswith('in.(') and raw_value.endswith(')'):
+        items = [x.strip() for x in raw_value[4:-1].split(',') if x.strip()]
+        if not items:
+            return '0', []  # empty IN → match nothing
+        placeholders = ','.join('?' for _ in items)
+        return f'"{key}" IN ({placeholders})', items
+
+    # Default: plain equality (backwards compatibility with simple params)
+    return f'"{key}" = ?', [raw_value]
+
+
+def _parse_or_filter(or_string):
+    """Parse PostgREST or filter: 'status.eq.active,status.eq.pending'"""
+    parts = []
+    params = []
+    for item in or_string.split(','):
+        item = item.strip()
+        if not item:
+            continue
+        dot_idx = item.index('.')
+        col = item[:dot_idx]
+        rest = item[dot_idx + 1:]
+        clause, p = _parse_postgrest_filter(col, rest)
+        parts.append(clause)
+        params.extend(p)
+    if not parts:
+        return '1=1', []
+    return f'({" OR ".join(parts)})', params
+
+
+def _serialize_json_fields(body):
+    """Serialize JSON fields to strings for SQLite storage."""
     for key in ('tags', 'metadata', 'preferences', 'stats', 'equipment',
-                 'position', 'sprite_data', 'exercises', 'attachments'):
+                'position', 'sprite_data', 'exercises', 'attachments',
+                'context', 'key_results', 'resources', 'steps_completed', 'custom_fields'):
         if key in body and not isinstance(body[key], str):
             body[key] = json.dumps(body[key])
 
-    cols = ", ".join(body.keys())
-    placeholders = ", ".join("?" for _ in body)
-    vals = list(body.values())
 
-    db.execute(f"INSERT INTO {table_name} ({cols}) VALUES ({placeholders})", vals)
-    row = db.execute(f"SELECT * FROM {table_name} WHERE id = ?", (body['id'],)).fetchone()
+def _do_insert(db, table_name, body):
+    """Insert a single record, return the inserted row as dict."""
+    pk = TABLE_PK.get(table_name, 'id')
+    body.setdefault(pk, new_id())
+    if table_name not in NO_USER_ID_TABLES:
+        body.setdefault('user_id', DEFAULT_USER_ID)
+    body.setdefault('created_at', now_iso())
+    _serialize_json_fields(body)
+
+    cols = ", ".join(f'"{k}"' for k in body.keys())
+    placeholders = ", ".join("?" for _ in body)
+    db.execute(f'INSERT INTO {table_name} ({cols}) VALUES ({placeholders})', list(body.values()))
+    row = db.execute(f'SELECT * FROM {table_name} WHERE "{pk}" = ?', (body[pk],)).fetchone()
     return row_to_dict(row)
 
 
+def _do_upsert(db, table_name, body, on_conflict='id'):
+    """Upsert a record (insert or update on conflict)."""
+    pk = TABLE_PK.get(table_name, 'id')
+    body.setdefault(pk, new_id())
+    if table_name not in NO_USER_ID_TABLES:
+        body.setdefault('user_id', DEFAULT_USER_ID)
+    body.setdefault('created_at', now_iso())
+    _serialize_json_fields(body)
+
+    cols = ", ".join(f'"{k}"' for k in body.keys())
+    placeholders = ", ".join("?" for _ in body)
+    updates = ", ".join(f'"{k}" = excluded."{k}"' for k in body.keys() if k != on_conflict)
+    if not updates:
+        updates = f'"{pk}" = excluded."{pk}"'  # no-op update
+
+    db.execute(
+        f'INSERT INTO {table_name} ({cols}) VALUES ({placeholders}) ON CONFLICT("{on_conflict}") DO UPDATE SET {updates}',
+        list(body.values())
+    )
+    row = db.execute(f'SELECT * FROM {table_name} WHERE "{pk}" = ?', (body.get(pk),)).fetchone()
+    return row_to_dict(row)
+
+
+@app.route('/api/<table_name>', methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
+@app.route('/api/<table_name>/<item_id>', methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+def unified_crud(table_name, item_id=None):
+    """Unified PostgREST-compatible CRUD for all tables."""
+    if table_name not in ALLOWED_TABLES:
+        return supabase_response(error={"message": f"Unknown table: {table_name}"}), 404
+
+    db = get_db()
+    method = request.method
+    pk = TABLE_PK.get(table_name, 'id')
+
+    # ── GET: Select ──────────────────────────────────────────
+    if method == 'GET':
+        if item_id:
+            row = db.execute(f'SELECT * FROM {table_name} WHERE "{pk}" = ?', (item_id,)).fetchone()
+            if not row:
+                return supabase_response(data=None, error={"message": "Not found"}), 404
+            return supabase_response(data=row_to_dict(row))
+
+        conditions = []
+        params = []
+
+        # Auto-filter by user_id
+        if table_name not in NO_USER_ID_TABLES:
+            conditions.append('"user_id" = ?')
+            params.append(DEFAULT_USER_ID)
+
+        # Soft delete filter
+        if table_name in SOFT_DELETE_TABLES:
+            conditions.append('("is_deleted" = 0 OR "is_deleted" IS NULL)')
+
+        # Parse query params
+        order_clause = 'rowid DESC'
+        limit_val = None
+        offset_val = 0
+        single = False
+
+        for key, val in request.args.items():
+            if key == 'order':
+                parts = val.split('.')
+                col = parts[0]
+                direction = parts[1].upper() if len(parts) > 1 else 'DESC'
+                if direction not in ('ASC', 'DESC'):
+                    direction = 'DESC'
+                order_clause = f'"{col}" {direction}'
+            elif key == 'limit':
+                limit_val = int(val)
+            elif key == 'offset':
+                offset_val = int(val)
+            elif key == 'single':
+                single = val.lower() == 'true'
+            elif key == 'or':
+                clause, p = _parse_or_filter(val)
+                conditions.append(clause)
+                params.extend(p)
+            elif key in RESERVED_PARAMS:
+                continue
+            else:
+                clause, p = _parse_postgrest_filter(key, val)
+                conditions.append(clause)
+                params.extend(p)
+
+        where = " AND ".join(conditions) if conditions else "1=1"
+        sql = f'SELECT * FROM {table_name} WHERE {where} ORDER BY {order_clause}'
+        if limit_val is not None:
+            sql += f' LIMIT {limit_val} OFFSET {offset_val}'
+
+        try:
+            rows = db.execute(sql, params).fetchall()
+        except sqlite3.OperationalError:
+            # Fallback: retry without ORDER BY (column might not exist)
+            sql = f'SELECT * FROM {table_name} WHERE {where}'
+            if limit_val is not None:
+                sql += f' LIMIT {limit_val} OFFSET {offset_val}'
+            rows = db.execute(sql, params).fetchall()
+
+        data = rows_to_list(rows)
+        if single:
+            return supabase_response(data=data[0] if data else None, count=len(data))
+        return supabase_response(data=data, count=len(data))
+
+    # ── POST: Insert ─────────────────────────────────────────
+    elif method == 'POST':
+        body = request.get_json(force=True, silent=True) or {}
+        if isinstance(body, list):
+            results = [_do_insert(db, table_name, item) for item in body]
+            db.commit()
+            return supabase_response(data=results), 201
+        result = _do_insert(db, table_name, body)
+        db.commit()
+        return supabase_response(data=result), 201
+
+    # ── PUT: Upsert or Update by ID ─────────────────────────
+    elif method == 'PUT':
+        body = request.get_json(force=True, silent=True) or {}
+        on_conflict = request.args.get('on_conflict', pk)
+        if item_id:
+            # PUT /api/table/id → update
+            body.pop(pk, None)
+            body.pop('created_at', None)
+            body.setdefault('updated_at', now_iso())
+            _serialize_json_fields(body)
+            if body:
+                sets = ", ".join(f'"{k}" = ?' for k in body.keys())
+                vals = list(body.values()) + [item_id]
+                db.execute(f'UPDATE {table_name} SET {sets} WHERE "{pk}" = ?', vals)
+                db.commit()
+            row = db.execute(f'SELECT * FROM {table_name} WHERE "{pk}" = ?', (item_id,)).fetchone()
+            return supabase_response(data=row_to_dict(row))
+        # Upsert (no item_id)
+        if isinstance(body, list):
+            results = [_do_upsert(db, table_name, item, on_conflict) for item in body]
+            db.commit()
+            return supabase_response(data=results)
+        result = _do_upsert(db, table_name, body, on_conflict)
+        db.commit()
+        return supabase_response(data=result)
+
+    # ── PATCH: Update ────────────────────────────────────────
+    elif method == 'PATCH':
+        body = request.get_json(force=True, silent=True) or {}
+        body.pop('created_at', None)
+        body.setdefault('updated_at', now_iso())
+        _serialize_json_fields(body)
+        if item_id:
+            body.pop(pk, None)
+            if body:
+                sets = ", ".join(f'"{k}" = ?' for k in body.keys())
+                vals = list(body.values()) + [item_id]
+                db.execute(f'UPDATE {table_name} SET {sets} WHERE "{pk}" = ?', vals)
+                db.commit()
+            row = db.execute(f'SELECT * FROM {table_name} WHERE "{pk}" = ?', (item_id,)).fetchone()
+            return supabase_response(data=row_to_dict(row))
+        # PATCH without item_id: update matching filters
+        conditions = []
+        params = []
+        for key, val in request.args.items():
+            if key in RESERVED_PARAMS:
+                continue
+            clause, p = _parse_postgrest_filter(key, val)
+            conditions.append(clause)
+            params.extend(p)
+        if not conditions:
+            return supabase_response(error={"message": "No filter for PATCH"}), 400
+        body.pop(pk, None)
+        if not body:
+            return supabase_response(error={"message": "No fields to update"}), 400
+        sets = ", ".join(f'"{k}" = ?' for k in body.keys())
+        where = " AND ".join(conditions)
+        db.execute(f'UPDATE {table_name} SET {sets} WHERE {where}', list(body.values()) + params)
+        db.commit()
+        return supabase_response(data=body)
+
+    # ── DELETE ────────────────────────────────────────────────
+    elif method == 'DELETE':
+        if item_id:
+            if table_name in SOFT_DELETE_TABLES:
+                db.execute(f'UPDATE {table_name} SET is_deleted = 1, updated_at = ? WHERE "{pk}" = ?', (now_iso(), item_id))
+            else:
+                db.execute(f'DELETE FROM {table_name} WHERE "{pk}" = ?', (item_id,))
+            db.commit()
+            return supabase_response(data={pk: item_id, "deleted": True})
+        # DELETE matching filters
+        conditions = []
+        params = []
+        for key, val in request.args.items():
+            if key in RESERVED_PARAMS:
+                continue
+            clause, p = _parse_postgrest_filter(key, val)
+            conditions.append(clause)
+            params.extend(p)
+        if not conditions:
+            return supabase_response(error={"message": "No filter for DELETE"}), 400
+        where = " AND ".join(conditions)
+        if table_name in SOFT_DELETE_TABLES:
+            db.execute(f'UPDATE {table_name} SET is_deleted = 1, updated_at = ? WHERE {where}', [now_iso()] + params)
+        else:
+            db.execute(f'DELETE FROM {table_name} WHERE {where}', params)
+        db.commit()
+        return supabase_response(data={"deleted": True})
+
+    return supabase_response(error={"message": "Method not allowed"}), 405
+
+
 # ═══════════════════════════════════════════════════════════════
-# Register CRUD Blueprints
+# RPC Endpoint — for supabase.rpc() calls
 # ═══════════════════════════════════════════════════════════════
 
-# Core
-app.register_blueprint(generic_crud('goals', 'goals_bp'), url_prefix='/api/goals')
-app.register_blueprint(generic_crud('tasks', 'tasks_bp'), url_prefix='/api/tasks')
-app.register_blueprint(generic_crud('habits', 'habits_bp'), url_prefix='/api/habits')
-app.register_blueprint(generic_crud('schedule_events', 'schedule_bp'), url_prefix='/api/schedule')
-app.register_blueprint(generic_crud('schedule_events', 'events_bp'), url_prefix='/api/events')
+@app.route('/api/rpc/<fn_name>', methods=['POST'])
+def rpc_handler(fn_name):
+    """Handle RPC calls from the frontend (e.g. get_table_columns)."""
+    body = request.get_json(force=True, silent=True) or {}
 
-# Health
-app.register_blueprint(generic_crud('health_metrics', 'health_bp', soft_delete=False), url_prefix='/api/health')
-app.register_blueprint(generic_crud('workouts', 'workouts_bp', soft_delete=False), url_prefix='/api/workouts')
-app.register_blueprint(generic_crud('workout_exercises', 'workout_exercises_bp', soft_delete=False), url_prefix='/api/workout-exercises')
+    if fn_name == 'get_table_columns':
+        table = body.get('table_name', '')
+        if table not in ALLOWED_TABLES:
+            return supabase_response(data=[])
+        db = get_db()
+        cols = db.execute(f"PRAGMA table_info({table})").fetchall()
+        return supabase_response(data=[{'column_name': c[1], 'data_type': c[2]} for c in cols])
 
-# Finance
-app.register_blueprint(generic_crud('transactions', 'transactions_bp', soft_delete=False), url_prefix='/api/transactions')
-app.register_blueprint(generic_crud('budgets', 'budgets_bp', soft_delete=False), url_prefix='/api/budgets')
-app.register_blueprint(generic_crud('income', 'income_bp'), url_prefix='/api/income')
-app.register_blueprint(generic_crud('expenses', 'expenses_bp'), url_prefix='/api/expenses')
-app.register_blueprint(generic_crud('bills', 'bills_bp'), url_prefix='/api/bills')
-app.register_blueprint(generic_crud('expense_categories', 'expense_categories_bp', soft_delete=False), url_prefix='/api/expense-categories')
-app.register_blueprint(generic_crud('businesses', 'businesses_bp'), url_prefix='/api/businesses')
-app.register_blueprint(generic_crud('clients', 'clients_bp'), url_prefix='/api/clients')
-
-# Journal
-app.register_blueprint(generic_crud('journal_entries', 'journal_bp'), url_prefix='/api/journal')
-
-# RPG / Gamification
-app.register_blueprint(generic_crud('rpg_characters', 'rpg_characters_bp', soft_delete=False), url_prefix='/api/character')
-app.register_blueprint(generic_crud('rpg_quest_log', 'rpg_quests_bp', soft_delete=False), url_prefix='/api/quests')
-app.register_blueprint(generic_crud('inventory_items', 'inventory_bp'), url_prefix='/api/inventory')
-app.register_blueprint(generic_crud('pet_profiles', 'pets_bp'), url_prefix='/api/pets')
-app.register_blueprint(generic_crud('achievements', 'achievements_bp', soft_delete=False), url_prefix='/api/achievements')
-
-# Organization
-app.register_blueprint(generic_crud('categories', 'categories_bp'), url_prefix='/api/categories')
-app.register_blueprint(generic_crud('projects', 'projects_bp'), url_prefix='/api/projects')
-app.register_blueprint(generic_crud('notes', 'notes_bp'), url_prefix='/api/notes')
-
-# Assets
-app.register_blueprint(generic_crud('assets', 'assets_bp'), url_prefix='/api/assets')
-app.register_blueprint(generic_crud('asset_maintenance', 'asset_maintenance_bp'), url_prefix='/api/asset-maintenance')
-app.register_blueprint(generic_crud('asset_bills', 'asset_bills_bp'), url_prefix='/api/asset-bills')
-app.register_blueprint(generic_crud('asset_documents', 'asset_documents_bp'), url_prefix='/api/asset-documents')
-
-# AI
-app.register_blueprint(generic_crud('ai_insights', 'ai_insights_bp', soft_delete=False), url_prefix='/api/ai-insights')
-app.register_blueprint(generic_crud('chat_messages', 'chat_messages_bp', soft_delete=False, order_by='created_at ASC'), url_prefix='/api/chat-messages')
+    return supabase_response(data=None, error={"message": f"Unknown RPC: {fn_name}"}), 404
 
 
 # ═══════════════════════════════════════════════════════════════

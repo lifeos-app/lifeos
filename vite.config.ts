@@ -84,10 +84,12 @@ function academyServePlugin() {
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const isDesktop = mode === 'desktop' || !!process.env.TAURI_ENV_PLATFORM;
+  const isDesktop = mode === 'desktop' || !!process.env.TAURI_ENV_PLATFORM || !!process.env.ELECTRON_ENV;
   return {
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
+    __IS_TAURI__: JSON.stringify(!!process.env.TAURI_ENV_PLATFORM),
+    __IS_ELECTRON__: JSON.stringify(!!process.env.ELECTRON_ENV),
   },
   plugins: [
     tailwindcss(),

@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "LifeOS — Command Center",
+        "title": "LifeOS \u2014 Command Center",
         "width": 1280,
         "height": 800,
         "resizable": true,
@@ -23,7 +23,8 @@
     ],
     "security": {
       "csp": null
-    }
+    },
+    "withGlobalTauri": true
   },
   "bundle": {
     "active": true,

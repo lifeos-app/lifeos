@@ -4,7 +4,7 @@
  * Auto-detects environment and routes to the correct adapter:
  * - Supabase Cloud: VITE_SUPABASE_URL is set and no VITE_USE_LOCAL_API
  * - Local API: VITE_USE_LOCAL_API=true or VITE_API_BASE_URL is set
- * - Tauri: window.__TAURI__ is available (future)
+ * - Tauri: window.__TAURI_INTERNALS__ or window.__TAURI__ is available
  * 
  * All adapters expose a Supabase-compatible client interface, so consumers
  * use the same .from().select().eq() chain regardless of backend.
@@ -17,15 +17,39 @@
 
 // ─── Environment Detection ──────────────────────────────────────────
 
-export type DataEnvironment = 'supabase' | 'local-api' | 'tauri';
+export type DataEnvironment = 'supabase' | 'local-api' | 'tauri' | 'electron';
+
+declare const __IS_TAURI__: boolean;
+declare const __IS_ELECTRON__: boolean;
 
 let _detectedEnv: DataEnvironment | null = null;
 
 export function getEnvironment(): DataEnvironment {
   if (_detectedEnv) return _detectedEnv;
 
-  // Tauri detection (future-proofing)
-  if (typeof window !== 'undefined' && (window as unknown as Record<string, unknown>).__TAURI__) {
+  // Build-time Electron detection (set by ELECTRON_ENV via Vite define)
+  if (typeof __IS_ELECTRON__ !== 'undefined' && __IS_ELECTRON__) {
+    _detectedEnv = 'electron';
+    return 'electron';
+  }
+
+  // Runtime Electron detection (window.electronAPI from preload.js)
+  if (typeof window !== 'undefined' && (window as any).electronAPI) {
+    _detectedEnv = 'electron';
+    return 'electron';
+  }
+
+  // Build-time Tauri detection (set by cargo tauri dev/build via Vite define)
+  if (typeof __IS_TAURI__ !== 'undefined' && __IS_TAURI__) {
+    _detectedEnv = 'tauri';
+    return 'tauri';
+  }
+
+  // Runtime Tauri detection (fallback for edge cases)
+  if (typeof window !== 'undefined' && (
+    (window as any).__TAURI_INTERNALS__ ||
+    (window as any).__TAURI__
+  )) {
     _detectedEnv = 'tauri';
     return 'tauri';
   }
@@ -49,28 +73,52 @@ export function getEnvironment(): DataEnvironment {
 
 // ─── Unified Client Export ──────────────────────────────────────────
 
-// Vite tree-shakes based on static analysis of import.meta.env
-const env = getEnvironment();
+// Lazy evaluation to avoid module-load-time race with Tauri injection
+let _env: DataEnvironment | null = null;
+function env(): DataEnvironment {
+  if (!_env) _env = getEnvironment();
+  return _env;
+}
 
-// All three adapters are statically imported. Only the active one is used at runtime.
+// All four adapters are statically imported. Only the active one is used at runtime.
 import { supabase as supabaseCloud, dedup as dedupCloud } from './supabase';
 import { supabase as supabaseLocal, dedup as dedupLocal } from './local-api';
 import { supabase as supabaseTauri, dedup as dedupTauri } from './tauri-api';
+import { supabase as supabaseElectron, dedup as dedupElectron } from './electron-api';
+
+/**
+ * Get the correct db adapter based on detected environment.
+ */
+function getDb() {
+  const e = env();
+  return e === 'electron' ? supabaseElectron
+       : e === 'tauri' ? supabaseTauri
+       : e === 'local-api' ? supabaseLocal
+       : supabaseCloud;
+}
 
 /**
  * The unified database client. Drop-in replacement for `supabase`.
  * Routes to Tauri IPC, Local API, or Supabase Cloud based on environment.
+ * Uses a Proxy to defer adapter selection until first use.
  */
-export const db = env === 'tauri' ? supabaseTauri
-               : env === 'local-api' ? supabaseLocal
-               : supabaseCloud;
+export const db: typeof supabaseTauri = new Proxy({} as any, {
+  get(_target, prop) {
+    return (getDb() as any)[prop];
+  }
+});
 
 /**
  * Deduplicated query helper — prevents identical queries from firing simultaneously.
  */
-export const dedup = env === 'tauri' ? dedupTauri
-                   : env === 'local-api' ? dedupLocal
-                   : dedupCloud;
+export const dedup = (...args: any[]) => {
+  const e = env();
+  const d = e === 'electron' ? dedupElectron
+          : e === 'tauri' ? dedupTauri
+          : e === 'local-api' ? dedupLocal
+          : dedupCloud;
+  return (d as any)(...args);
+};
 
 // ─── Convenience API (higher-level operations) ──────────────────────
 

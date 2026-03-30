@@ -11,7 +11,7 @@ import {
   Volume2, VolumeX, ChevronUp, ChevronDown, Music,
 } from 'lucide-react';
 import { useAcademyStore } from '../../stores/useAcademyStore';
-import { getMusicUrl } from '../../lib/academy-data';
+import { loadTrackUrl } from '../../lib/academy-data';
 import {
   MUSIC_CATEGORIES, CATEGORY_COLORS, CATEGORY_EMOJIS,
   type Track, type MusicCategory,
@@ -31,57 +31,80 @@ export function MusicPlayer() {
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
 
-  // Create/update audio element
+  // Create/update audio element — wrapped in try/catch for WebKitGTK on ARM64
   useEffect(() => {
     if (!audioRef.current) {
-      audioRef.current = new Audio();
-      audioRef.current.addEventListener('ended', () => {
-        nextTrack();
-      });
-      audioRef.current.addEventListener('timeupdate', () => {
-        const audio = audioRef.current;
-        if (audio && audio.duration) {
-          setCurrentTime(audio.currentTime);
-          setTrackProgress(audio.currentTime / audio.duration);
-        }
-      });
-      audioRef.current.addEventListener('loadedmetadata', () => {
-        if (audioRef.current) setDuration(audioRef.current.duration);
-      });
+      try {
+        audioRef.current = new Audio();
+        audioRef.current.addEventListener('ended', () => {
+          nextTrack();
+        });
+        audioRef.current.addEventListener('timeupdate', () => {
+          const audio = audioRef.current;
+          if (audio && audio.duration) {
+            setCurrentTime(audio.currentTime);
+            setTrackProgress(audio.currentTime / audio.duration);
+          }
+        });
+        audioRef.current.addEventListener('loadedmetadata', () => {
+          if (audioRef.current) setDuration(audioRef.current.duration);
+        });
+        audioRef.current.addEventListener('error', () => {
+          // Silently handle audio load errors — file might not exist yet
+        });
+      } catch {
+        // Audio API not available — player will be visual-only
+        console.warn('[MusicPlayer] Audio API unavailable');
+      }
     }
     return () => {
       if (audioRef.current) {
-        audioRef.current.pause();
+        try { audioRef.current.pause(); } catch { /* ignore */ }
         audioRef.current = null;
       }
     };
   }, []);
 
-  // Handle track changes
+  // Handle track changes — load audio via async blob URL (Tauri) or HTTP URL (browser)
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
-    
-    const url = getMusicUrl(currentTrack.path);
-    if (audio.src !== url) {
+
+    let cancelled = false;
+
+    loadTrackUrl(currentTrack.path).then(url => {
+      if (cancelled) return;
+      // Revoke previous blob URL to free memory
+      if (audio.src && audio.src.startsWith('blob:')) {
+        URL.revokeObjectURL(audio.src);
+      }
       audio.src = url;
       audio.load();
-    }
-    
-    if (isPlaying) {
-      audio.play().catch(() => { /* autoplay blocked */ });
-    }
+      if (isPlaying) {
+        audio.play().catch(() => { /* autoplay blocked */ });
+      }
+    }).catch(() => {
+      if (!cancelled) {
+        console.warn('[MusicPlayer] Failed to load track:', currentTrack.path);
+      }
+    });
+
+    return () => { cancelled = true; };
   }, [currentTrack?.path]);
 
   // Handle play/pause
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
-    
-    if (isPlaying) {
-      audio.play().catch(() => { /* blocked */ });
-    } else {
-      audio.pause();
+
+    try {
+      if (isPlaying) {
+        audio.play().catch(() => { /* blocked */ });
+      } else {
+        audio.pause();
+      }
+    } catch {
+      // Ignore audio play/pause errors
     }
   }, [isPlaying]);
 

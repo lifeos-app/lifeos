@@ -6,7 +6,7 @@
  */
 
 import { create } from 'zustand';
-import { db as supabase } from '../lib/data-access';
+import { db as supabase, getEnvironment } from '../lib/data-access';
 import { getLocalUserId, migrateLocalUserToSupabase, localGet, localInsert } from '../lib/local-db';
 import { triggerSync, setInitialSyncPromise } from '../lib/sync-engine';
 import type { User, Session } from '@supabase/supabase-js';
@@ -229,6 +229,46 @@ export const useUserStore = create<UserState>((set, get) => ({
   },
 
   initAuth: () => {
+    // ── Tauri / Electron mode: skip network auth, use local user immediately ──
+    const detectedEnv = getEnvironment();
+    if (detectedEnv === 'tauri' || detectedEnv === 'electron') {
+      set({
+        user: { id: 'local-user-001', email: 'local@lifeos.app', email_confirmed_at: new Date().toISOString(), user_metadata: { full_name: 'LifeOS User' } } as any,
+        mode: 'local',
+        authLoading: false,
+        connectionError: false,
+        profileLoading: true,
+      });
+      // Fetch profile from SQLite via IPC (NOT IndexedDB local-db.ts)
+      // Use SELECT * — local schema has full_name instead of display_name, no occupation/primary_focus
+      supabase.from('user_profiles')
+        .select('*')
+        .eq('user_id', 'local-user-001')
+        .maybeSingle()
+        .then(({ data }: any) => {
+          if (data) {
+            // Map full_name → display_name for consistency with cloud schema
+            const profile = { ...data, display_name: data.display_name || data.full_name || null };
+            set({ profile, profileLoading: false, firstName: profile.display_name || 'Commander' });
+          } else {
+            // Profile row should exist (seeded by database.js), but create if missing
+            supabase.from('user_profiles').upsert({
+              user_id: 'local-user-001',
+              full_name: 'LifeOS User',
+              onboarding_complete: false,
+              preferences: {},
+            }, { onConflict: 'user_id' }).select().single().then(({ data: created }: any) => {
+              set({ profile: created || { user_id: 'local-user-001', onboarding_complete: false, preferences: {} }, profileLoading: false, firstName: 'Commander' });
+            });
+          }
+        })
+        .catch(() => {
+          // Fallback: unblock the app even if profile fetch fails
+          set({ profile: { user_id: 'local-user-001', onboarding_complete: true, preferences: {} } as any, profileLoading: false, firstName: 'Commander' });
+        });
+      return () => {}; // no cleanup needed
+    }
+
     // ── Step 1: Synchronous restore ──
     // Read the Supabase session from localStorage immediately.
     // This lets the app render the authenticated UI without any network round-trip.
@@ -548,18 +588,110 @@ export const useUserStore = create<UserState>((set, get) => ({
   },
 
   signInWithGoogle: async () => {
-    // Don't request sensitive scopes (calendar, gmail) at sign-in —
-    // they trigger Google's "app not verified" warning.
-    // Calendar/Gmail scopes are requested later via useGoogleIntegration
-    // when the user explicitly opts in from Settings.
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin + '/app/',
-      },
-    });
-    if (error) throw error;
-    // Auth state change listener will trigger migration + sync
+    const isElectron = !!(window as any).electronAPI?.isElectron;
+
+    if (isElectron) {
+      // Electron: open system browser, redirect back via lifeos:// deep link.
+      // Use the CLOUD Supabase client (not the db proxy, which routes to SQLite).
+      const { supabase: cloudSupabase } = await import('../lib/supabase');
+
+      const { data, error } = await cloudSupabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: 'lifeos://auth/callback',
+          skipBrowserRedirect: true,
+        },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        (window as any).electronAPI.openExternal(data.url);
+      }
+
+      // Wait for deep link callback with tokens (120s timeout)
+      return new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Auth timeout — try again')), 120000);
+        window.addEventListener('electron-auth-callback', async (e: any) => {
+          clearTimeout(timeout);
+          try {
+            const { access_token, refresh_token } = e.detail;
+            const { error: sessionError } = await cloudSupabase.auth.setSession({
+              access_token,
+              refresh_token,
+            });
+            if (sessionError) {
+              reject(sessionError);
+              return;
+            }
+
+            // Get the authenticated user from the session
+            const { data: sessionData } = await cloudSupabase.auth.getSession();
+            const user = sessionData?.session?.user ?? null;
+            if (user) {
+              set({
+                user,
+                session: sessionData.session,
+                mode: 'synced',
+                authLoading: false,
+                connectionError: false,
+              });
+              localStorage.setItem('lifeos_user_mode', 'synced');
+              localStorage.setItem('lifeos_current_user_id', user.id);
+
+              // Fetch profile from cloud Supabase (not local SQLite)
+              try {
+                const { data: profileData } = await cloudSupabase
+                  .from('user_profiles')
+                  .select('user_id,display_name,occupation,primary_focus,onboarding_complete,preferences')
+                  .eq('user_id', user.id)
+                  .maybeSingle();
+
+                if (profileData) {
+                  const profile = profileData as UserProfile;
+                  const firstName = profile.display_name
+                    || user.user_metadata?.full_name?.split(' ')[0]
+                    || 'Commander';
+                  set({ profile, profileLoading: false, firstName });
+                } else {
+                  // New user — create profile
+                  await cloudSupabase.from('user_profiles').upsert({
+                    user_id: user.id,
+                    display_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+                    onboarding_complete: false,
+                    preferences: {},
+                  }, { onConflict: 'user_id' });
+                  set({
+                    profile: {
+                      user_id: user.id,
+                      display_name: user.user_metadata?.full_name || null,
+                      occupation: null,
+                      primary_focus: null,
+                      onboarding_complete: false,
+                      preferences: {},
+                    },
+                    profileLoading: false,
+                    firstName: user.user_metadata?.full_name?.split(' ')[0] || 'Commander',
+                  });
+                }
+              } catch {
+                set({ profileLoading: false });
+              }
+            }
+            resolve();
+          } catch (err) {
+            reject(err);
+          }
+        }, { once: true });
+      });
+    } else {
+      // Web: normal OAuth redirect
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/app/',
+        },
+      });
+      if (error) throw error;
+    }
   },
 
   signOut: async () => {

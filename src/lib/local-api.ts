@@ -74,30 +74,36 @@ async function apiRequest<T = any>(
     const body = await res.json().catch(() => null);
 
     if (!res.ok) {
+      const errMsg = body?.error?.message || body?.message ||
+        (typeof body?.error === 'string' ? body.error : res.statusText);
       return {
         data: null,
         error: {
-          message: body?.message || body?.error || res.statusText,
-          details: body?.details || '',
-          hint: body?.hint || '',
-          code: String(res.status),
+          message: errMsg,
+          details: body?.error?.details || body?.details || '',
+          hint: body?.error?.hint || body?.hint || '',
+          code: body?.error?.code || String(res.status),
         },
         status: res.status,
         statusText: res.statusText,
       };
     }
 
+    // Unwrap Supabase-compatible {data, error, count} response format
+    const hasDataKey = body && typeof body === 'object' && 'data' in body;
     return {
-      data: body as T,
-      error: null,
+      data: (hasDataKey ? body.data : body) as T,
+      error: hasDataKey ? (body.error || null) : null,
+      count: hasDataKey ? body.count : undefined,
       status: res.status,
       statusText: res.statusText,
     };
   } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
     return {
       data: null,
       error: {
-        message: err.message || 'Network error',
+        message: msg || 'Network error',
         details: '',
         hint: 'Is the local API server running?',
         code: 'NETWORK_ERROR',

@@ -17,16 +17,46 @@
 
 import { ACADEMY_ROOT } from '../data/academy-manifest';
 
-// ─── Tauri Detection ────────────────────────────────────────
+// ─── Desktop Detection (Tauri or Electron) ─────────────────
 
-const isTauri = typeof window !== 'undefined' && '__TAURI__' in window;
+declare const __IS_TAURI__: boolean;
+declare const __IS_ELECTRON__: boolean;
+
+let _isTauriCached: boolean | null = null;
+function isTauriCheck(): boolean {
+  if (_isTauriCached !== null) return _isTauriCached;
+  if (typeof __IS_TAURI__ !== 'undefined' && __IS_TAURI__) {
+    _isTauriCached = true;
+    return true;
+  }
+  _isTauriCached = typeof window !== 'undefined' && (
+    '__TAURI_INTERNALS__' in window || '__TAURI__' in window
+  );
+  return _isTauriCached;
+}
+
+let _isElectronCached: boolean | null = null;
+function isElectronCheck(): boolean {
+  if (_isElectronCached !== null) return _isElectronCached;
+  if (typeof __IS_ELECTRON__ !== 'undefined' && __IS_ELECTRON__) {
+    _isElectronCached = true;
+    return true;
+  }
+  _isElectronCached = typeof window !== 'undefined' && !!(window as any).electronAPI;
+  return _isElectronCached;
+}
+
+/** True if running in any native desktop shell (Tauri or Electron). */
+function isDesktopApp(): boolean {
+  return isTauriCheck() || isElectronCheck();
+}
 
 let _invoke: ((cmd: string, args?: Record<string, unknown>) => Promise<unknown>) | null = null;
 let _convertFileSrc: ((path: string, protocol?: string) => string) | null = null;
 
 async function getTauriInvoke() {
   if (_invoke) return _invoke;
-  if (!isTauri) return null;
+  if (!isTauriCheck()) return null;
   try {
     const { invoke } = await import('@tauri-apps/api/core');
     _invoke = invoke;
@@ -38,7 +68,7 @@ async function getTauriInvoke() {
 
 async function getConvertFileSrc() {
   if (_convertFileSrc) return _convertFileSrc;
-  if (!isTauri) return null;
+  if (!isTauriCheck()) return null;
   try {
     const { convertFileSrc } = await import('@tauri-apps/api/core');
     _convertFileSrc = convertFileSrc;
@@ -138,17 +168,36 @@ async function academyFetch<T>(endpoint: string): Promise<T | null> {
 
 /** Get full academy overview (one request for everything). */
 export async function getAcademyOverview(): Promise<AcademyOverview | null> {
-  if (isTauri) {
+  // Electron path: use IPC
+  if (isElectronCheck()) {
+    try {
+      const api = (window as any).electronAPI;
+      if (api?.getAcademyOverview) {
+        const stats = await api.getAcademyOverview();
+        return {
+          curriculum: [], music: [], references: [], backgrounds: [], nature: [],
+          stats: {
+            phases: stats.phases ?? 0,
+            musicTracks: stats.studyMusicTracks ?? 0,
+            references: 0,
+            backgrounds: stats.backgrounds ?? 0,
+            natureDatasets: stats.natureDatasets ?? 0,
+          },
+        };
+      }
+    } catch (err) {
+      console.warn('[academy] Electron overview failed:', err);
+    }
+  }
+
+  // Tauri path: use invoke
+  if (isTauriCheck()) {
     try {
       const invoke = await getTauriInvoke();
       if (invoke) {
         const stats = await invoke('get_academy_overview') as Record<string, number>;
         return {
-          curriculum: [],
-          music: [],
-          references: [],
-          backgrounds: [],
-          nature: [],
+          curriculum: [], music: [], references: [], backgrounds: [], nature: [],
           stats: {
             phases: stats.phases ?? 0,
             musicTracks: stats.studyMusicTracks ?? 0,
@@ -192,12 +241,27 @@ export async function getNatureData(): Promise<NatureDataset[]> {
 
 /** Read a lesson file's markdown content. */
 export async function readAcademyFile(filePath: string): Promise<string> {
+  // In Electron mode: read file via IPC
+  if (isElectronCheck()) {
+    try {
+      const api = (window as any).electronAPI;
+      if (api?.readFile) {
+        const fullPath = `${ACADEMY_ROOT}/${filePath}`;
+        const result = await api.readFile(fullPath);
+        if (result.data) return result.data;
+        console.warn('[academy] Electron read_file error:', result.error);
+      }
+    } catch (err) {
+      console.warn('[academy] Electron read_file failed:', err);
+      return `# Unable to load content\n\nCould not read: \`${filePath}\``;
+    }
+  }
+
   // In Tauri mode: read file directly via Rust command
-  if (isTauri) {
+  if (isTauriCheck()) {
     try {
       const invoke = await getTauriInvoke();
       if (invoke) {
-        // filePath is relative to academy root (e.g. "01-foundations/python/00-why-python.md")
         const fullPath = `${ACADEMY_ROOT}/${filePath}`;
         const content = await invoke('read_file', { path: fullPath }) as string;
         return content;
@@ -228,7 +292,13 @@ export async function readAcademyFile(filePath: string): Promise<string> {
 export function getMusicUrl(trackOrPath: MusicTrack | string): string {
   const path = typeof trackOrPath === 'string' ? trackOrPath : trackOrPath.path;
 
-  if (isTauri) {
+  // Electron: use custom protocol
+  if (isElectronCheck()) {
+    const fullPath = resolveMediaPath(path);
+    return `lifeos-media://${fullPath}`;
+  }
+
+  if (isTauriCheck()) {
     // Build absolute path from the relative track path
     const fullPath = resolveMediaPath(path);
     // Use convertFileSrc if available (loaded async), otherwise fall back to asset:// directly
@@ -258,6 +328,53 @@ export function getMusicUrl(trackOrPath: MusicTrack | string): string {
 }
 
 /**
+ * Load a music track URL asynchronously.
+ * In Tauri mode: loads raw bytes via IPC and creates a blob URL (efficient binary transfer).
+ * In browser mode: returns an HTTP URL synchronously.
+ */
+export async function loadTrackUrl(trackPath: string): Promise<string> {
+  // Electron path: load via IPC binary transfer
+  if (isElectronCheck()) {
+    try {
+      const api = (window as any).electronAPI;
+      if (api?.readMedia) {
+        const fullPath = resolveMediaPath(trackPath);
+        const result = await api.readMedia(fullPath);
+        if (result.data) {
+          const mime = trackPath.endsWith('.ogg') ? 'audio/ogg'
+                     : trackPath.endsWith('.wav') ? 'audio/wav'
+                     : 'audio/mpeg';
+          const blob = new Blob([result.data], { type: mime });
+          return URL.createObjectURL(blob);
+        }
+      }
+    } catch (err) {
+      console.warn('[academy-data] Electron media load failed:', err);
+    }
+  }
+
+  // Tauri path: load via Rust IPC
+  if (isTauriCheck()) {
+    try {
+      const invoke = await getTauriInvoke();
+      if (invoke) {
+        const fullPath = resolveMediaPath(trackPath);
+        const bytes = await invoke('get_media_bytes', { path: fullPath }) as ArrayBuffer;
+        const mime = trackPath.endsWith('.ogg') ? 'audio/ogg'
+                   : trackPath.endsWith('.wav') ? 'audio/wav'
+                   : 'audio/mpeg';
+        const blob = new Blob([bytes], { type: mime });
+        return URL.createObjectURL(blob);
+      }
+    } catch (err) {
+      console.warn('[academy-data] Tauri media load failed:', err);
+    }
+  }
+  // Fallback to sync URL (HTTP mode)
+  return getMusicUrl(trackPath);
+}
+
+/**
  * Resolve a relative track path to an absolute filesystem path.
  */
 function resolveMediaPath(trackPath: string): string {
@@ -281,7 +398,12 @@ function resolveMediaPath(trackPath: string): string {
  * Get a background image URL.
  */
 export function getBackgroundUrl(bg: Background): string {
-  if (isTauri) {
+  if (isElectronCheck()) {
+    const fullPath = `/mnt/data/prodigy/creative-engine/LifeOS/Backgrounds/${bg.file}`;
+    return `lifeos-media://${fullPath}`;
+  }
+
+  if (isTauriCheck()) {
     const fullPath = `/mnt/data/prodigy/creative-engine/LifeOS/Backgrounds/${bg.file}`;
     if (_convertFileSrc) {
       return _convertFileSrc(fullPath);
@@ -302,6 +424,6 @@ export function estimateReadingTime(content: string): number {
 }
 
 // ─── Eager-load convertFileSrc in Tauri mode ────────────────
-if (isTauri) {
+if (isTauriCheck()) {
   getConvertFileSrc().catch(() => {});
 }

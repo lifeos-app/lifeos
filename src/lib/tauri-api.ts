@@ -20,15 +20,34 @@
  */
 
 // ─── Tauri Detection ─────────────────────────────────────────────────
-// We lazy-load the Tauri invoke to avoid import errors in browser mode.
+// Lazy detection — never evaluated at module load time to avoid race conditions
+// with Tauri's injection of __TAURI_INTERNALS__ into the webview.
 
-const isTauri = typeof window !== 'undefined' && '__TAURI__' in window;
+declare const __IS_TAURI__: boolean;
+
+let _isTauriCached: boolean | null = null;
+function isTauriCheck(): boolean {
+  if (_isTauriCached !== null) return _isTauriCached;
+
+  // Build-time detection (most reliable)
+  if (typeof __IS_TAURI__ !== 'undefined' && __IS_TAURI__) {
+    _isTauriCached = true;
+    return true;
+  }
+
+  // Runtime detection (fallback)
+  _isTauriCached = typeof window !== 'undefined' && (
+    '__TAURI_INTERNALS__' in window ||
+    '__TAURI__' in window
+  );
+  return _isTauriCached;
+}
 
 let _invoke: ((cmd: string, args?: Record<string, unknown>) => Promise<unknown>) | null = null;
 
 async function getTauriInvoke() {
   if (_invoke) return _invoke;
-  if (!isTauri) return null;
+  if (!isTauriCheck()) return null;
   try {
     const { invoke } = await import('@tauri-apps/api/core');
     _invoke = invoke;
@@ -118,10 +137,11 @@ async function tauriQuery<T = any>(params: QueryParams): Promise<PostgrestRespon
     const result = await invoke('db_query', { params }) as PostgrestResponse<T>;
     return result;
   } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
     return {
       data: null,
       error: {
-        message: err.message || 'Tauri invoke error',
+        message: msg || 'Tauri invoke error',
         details: String(err),
         hint: 'Check Rust backend db_query command',
         code: 'TAURI_ERROR',
@@ -153,30 +173,36 @@ async function httpQuery<T = any>(
     const body = await res.json().catch(() => null);
 
     if (!res.ok) {
+      const errMsg = body?.error?.message || body?.message ||
+        (typeof body?.error === 'string' ? body.error : res.statusText);
       return {
         data: null,
         error: {
-          message: body?.message || body?.error || res.statusText,
-          details: body?.details || '',
-          hint: body?.hint || '',
-          code: String(res.status),
+          message: errMsg,
+          details: body?.error?.details || body?.details || '',
+          hint: body?.error?.hint || body?.hint || '',
+          code: body?.error?.code || String(res.status),
         },
         status: res.status,
         statusText: res.statusText,
       };
     }
 
+    // Unwrap Supabase-compatible {data, error, count} response format
+    const hasDataKey = body && typeof body === 'object' && 'data' in body;
     return {
-      data: body as T,
-      error: null,
+      data: (hasDataKey ? body.data : body) as T,
+      error: hasDataKey ? (body.error || null) : null,
+      count: hasDataKey ? body.count : undefined,
       status: res.status,
       statusText: res.statusText,
     };
   } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
     return {
       data: null,
       error: {
-        message: err.message || 'Network error',
+        message: msg || 'Network error',
         details: '',
         hint: 'Is the local API server running at ' + API_BASE + '?',
         code: 'NETWORK_ERROR',
@@ -427,7 +453,7 @@ class QueryBuilder<T = any> implements PromiseLike<PostgrestResponse<T>> {
   private async _execute(): Promise<PostgrestResponse<T>> {
     let result: PostgrestResponse<T>;
 
-    if (isTauri) {
+    if (isTauriCheck()) {
       // ── Tauri path: invoke Rust command directly ──
       result = await tauriQuery<T>(this._buildQueryParams());
     } else {
@@ -502,7 +528,7 @@ function _setStoredSession(session: AuthSession | null) {
 
 // In Tauri mode, we auto-create a local session (single-user, no login needed)
 const LOCAL_USER: AuthUser = {
-  id: 'local-user',
+  id: 'local-user-001',
   email: 'local@lifeos.app',
   user_metadata: { full_name: 'Local User' },
   app_metadata: { provider: 'local' },
@@ -518,7 +544,7 @@ const LOCAL_SESSION: AuthSession = {
 };
 
 async function _authRequest<T = any>(endpoint: string, options?: RequestInit): Promise<PostgrestResponse<T>> {
-  if (isTauri) {
+  if (isTauriCheck()) {
     try {
       const invoke = await getTauriInvoke();
       if (invoke) {
@@ -537,7 +563,7 @@ async function _authRequest<T = any>(endpoint: string, options?: RequestInit): P
 
 const localAuth = {
   async getUser(): Promise<{ data: { user: AuthUser | null }; error: any }> {
-    if (isTauri) {
+    if (isTauriCheck()) {
       // In Tauri mode, always return the local user (single-user app)
       return { data: { user: LOCAL_USER }, error: null };
     }
@@ -552,7 +578,7 @@ const localAuth = {
   },
 
   async getSession(): Promise<{ data: { session: AuthSession | null }; error: any }> {
-    if (isTauri) {
+    if (isTauriCheck()) {
       // In Tauri mode, always have a valid session
       return { data: { session: LOCAL_SESSION }, error: null };
     }
@@ -561,7 +587,7 @@ const localAuth = {
   },
 
   async signUp({ email, password, options }: { email: string; password: string; options?: any }): Promise<{ data: any; error: any }> {
-    if (isTauri) {
+    if (isTauriCheck()) {
       // Single-user Tauri app — auto-succeed
       _setStoredSession(LOCAL_SESSION);
       _notifyAuthChange('SIGNED_IN', LOCAL_SESSION);
@@ -579,7 +605,7 @@ const localAuth = {
   },
 
   async signInWithPassword({ email, password }: { email: string; password: string }): Promise<{ data: any; error: any }> {
-    if (isTauri) {
+    if (isTauriCheck()) {
       _setStoredSession(LOCAL_SESSION);
       _notifyAuthChange('SIGNED_IN', LOCAL_SESSION);
       return { data: { session: LOCAL_SESSION, user: LOCAL_USER }, error: null };
@@ -608,7 +634,7 @@ const localAuth = {
   },
 
   async signOut(): Promise<{ error: any }> {
-    if (!isTauri) {
+    if (!isTauriCheck()) {
       await httpQuery(`${API_BASE}/auth/logout`, { method: 'POST' }).catch(() => {});
     }
     _setStoredSession(null);
@@ -617,7 +643,7 @@ const localAuth = {
   },
 
   async refreshSession(): Promise<{ data: { session: AuthSession | null }; error: any }> {
-    if (isTauri) {
+    if (isTauriCheck()) {
       return { data: { session: LOCAL_SESSION }, error: null };
     }
     const session = _getStoredSession();
@@ -636,7 +662,7 @@ const localAuth = {
   },
 
   async resetPasswordForEmail(email: string, options?: any): Promise<{ data: any; error: any }> {
-    if (isTauri) {
+    if (isTauriCheck()) {
       return { data: null, error: { message: 'Password reset not needed in local mode', details: '', hint: '', code: 'LOCAL_NO_RESET' } };
     }
     const res = await httpQuery(`${API_BASE}/auth/reset-password`, {
@@ -650,7 +676,7 @@ const localAuth = {
     _authListeners.add(callback);
 
     // Fire initial session event
-    if (isTauri) {
+    if (isTauriCheck()) {
       setTimeout(() => callback('INITIAL_SESSION', LOCAL_SESSION), 0);
     } else {
       const session = _getStoredSession();
@@ -676,7 +702,7 @@ export const supabase = {
 
   /** RPC call — maps to Tauri invoke or POST /api/rpc/{fn} */
   async rpc(fn: string, params?: Record<string, any>): Promise<PostgrestResponse> {
-    if (isTauri) {
+    if (isTauriCheck()) {
       try {
         const invoke = await getTauriInvoke();
         if (invoke) {
@@ -692,6 +718,17 @@ export const supabase = {
       body: params ? JSON.stringify(params) : undefined,
     });
   },
+
+  // Real-time stubs — no WebSocket subscriptions in desktop mode
+  channel(_name: string, _opts?: any) {
+    const noopChannel = {
+      on: () => noopChannel,
+      subscribe: () => noopChannel,
+      unsubscribe: () => {},
+    };
+    return noopChannel;
+  },
+  removeChannel(_channel: any) {},
 
   auth: localAuth,
 };
@@ -718,9 +755,9 @@ export function dedup<T>(key: string, queryFn: () => Promise<T>): Promise<T> {
 // ─── Runtime info ────────────────────────────────────────────────────
 
 export const runtime = {
-  isTauri,
-  backend: isTauri ? 'tauri' as const : 'http' as const,
-  apiBase: isTauri ? null : API_BASE,
+  get isTauri() { return isTauriCheck(); },
+  get backend() { return isTauriCheck() ? 'tauri' as const : 'http' as const; },
+  get apiBase() { return isTauriCheck() ? null : API_BASE; },
 };
 
 export default supabase;

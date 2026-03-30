@@ -936,6 +936,600 @@ fn row_to_json(row: &rusqlite::Row, col_names: &[String]) -> rusqlite::Result<Va
 }
 
 // ═══════════════════════════════════════════════════════════════
+// Unified db_query — handles all CRUD from the frontend
+// ═══════════════════════════════════════════════════════════════
+
+#[derive(Debug, Deserialize)]
+struct QueryFilter {
+    column: String,
+    operator: String,
+    value: Value,
+}
+
+#[derive(Debug, Deserialize)]
+#[allow(dead_code)]
+struct QueryParams {
+    table: String,
+    method: String, // select | insert | update | upsert | delete
+    columns: Option<String>,
+    filters: Option<Vec<QueryFilter>>,
+    order_col: Option<String>,
+    order_asc: Option<bool>,
+    limit: Option<u32>,
+    offset: Option<u32>,
+    single: Option<bool>,       // handled client-side (array→object unwrap)
+    body: Option<Value>,
+    upsert_conflict: Option<String>,
+    return_select: Option<bool>,
+    count: Option<String>,
+    or_filter: Option<String>,  // Supabase-style OR filter string
+}
+
+/// Build WHERE clause from filters. Returns (sql_fragment, param_values).
+fn build_where_clause(filters: &[QueryFilter]) -> Result<(String, Vec<String>), LifeOsError> {
+    if filters.is_empty() {
+        return Ok((String::new(), Vec::new()));
+    }
+
+    let mut conditions: Vec<String> = Vec::new();
+    let mut param_values: Vec<String> = Vec::new();
+
+    for f in filters {
+        validate_column(&f.column)?;
+
+        match f.operator.as_str() {
+            "eq" => {
+                conditions.push(format!("\"{}\" = ?", f.column));
+                param_values.push(value_to_sql_string(&f.value));
+            }
+            "neq" => {
+                conditions.push(format!("\"{}\" != ?", f.column));
+                param_values.push(value_to_sql_string(&f.value));
+            }
+            "gt" => {
+                conditions.push(format!("\"{}\" > ?", f.column));
+                param_values.push(value_to_sql_string(&f.value));
+            }
+            "gte" => {
+                conditions.push(format!("\"{}\" >= ?", f.column));
+                param_values.push(value_to_sql_string(&f.value));
+            }
+            "lt" => {
+                conditions.push(format!("\"{}\" < ?", f.column));
+                param_values.push(value_to_sql_string(&f.value));
+            }
+            "lte" => {
+                conditions.push(format!("\"{}\" <= ?", f.column));
+                param_values.push(value_to_sql_string(&f.value));
+            }
+            "like" => {
+                conditions.push(format!("\"{}\" LIKE ?", f.column));
+                param_values.push(value_to_sql_string(&f.value));
+            }
+            "ilike" => {
+                conditions.push(format!("\"{}\" LIKE ? COLLATE NOCASE", f.column));
+                param_values.push(value_to_sql_string(&f.value));
+            }
+            "is" => {
+                // IS NULL / IS NOT NULL
+                let v = value_to_sql_string(&f.value);
+                if v == "null" || v.is_empty() {
+                    conditions.push(format!("\"{}\" IS NULL", f.column));
+                } else if v == "true" {
+                    conditions.push(format!("\"{}\" IS TRUE", f.column));
+                } else if v == "false" {
+                    conditions.push(format!("\"{}\" IS FALSE", f.column));
+                } else {
+                    conditions.push(format!("\"{}\" IS NULL", f.column));
+                }
+            }
+            "in" => {
+                // value should be an array
+                if let Value::Array(arr) = &f.value {
+                    if arr.is_empty() {
+                        // IN () is invalid SQL; use always-false condition
+                        conditions.push("0 = 1".to_string());
+                    } else {
+                        let placeholders: Vec<&str> = arr.iter().map(|_| "?").collect();
+                        conditions.push(format!(
+                            "\"{}\" IN ({})",
+                            f.column,
+                            placeholders.join(", ")
+                        ));
+                        for item in arr {
+                            param_values.push(value_to_sql_string(item));
+                        }
+                    }
+                } else {
+                    // Single value fallback
+                    conditions.push(format!("\"{}\" = ?", f.column));
+                    param_values.push(value_to_sql_string(&f.value));
+                }
+            }
+            "contains" => {
+                // JSON array contains — use LIKE as approximation for SQLite
+                conditions.push(format!("\"{}\" LIKE ?", f.column));
+                let v = value_to_sql_string(&f.value);
+                param_values.push(format!("%{}%", v));
+            }
+            _ => {
+                // Unknown operator — treat as eq
+                conditions.push(format!("\"{}\" = ?", f.column));
+                param_values.push(value_to_sql_string(&f.value));
+            }
+        }
+    }
+
+    let clause = format!(" WHERE {}", conditions.join(" AND "));
+    Ok((clause, param_values))
+}
+
+/// Convert a serde_json::Value to a string suitable for SQL parameter binding.
+fn value_to_sql_string(v: &Value) -> String {
+    match v {
+        Value::String(s) => s.clone(),
+        Value::Number(n) => n.to_string(),
+        Value::Bool(b) => if *b { "1".to_string() } else { "0".to_string() },
+        Value::Null => String::new(),
+        other => other.to_string(), // arrays/objects get JSON string
+    }
+}
+
+/// Execute a SELECT query and return results.
+fn exec_select(
+    conn: &Connection,
+    params: &QueryParams,
+) -> Result<Value, LifeOsError> {
+    let columns_sql = if let Some(ref cols) = params.columns {
+        // Parse column list: "id,title,status" → "\"id\", \"title\", \"status\""
+        // Also handle "*"
+        if cols.trim() == "*" {
+            "*".to_string()
+        } else {
+            let parts: Vec<&str> = cols.split(',').map(|c| c.trim()).collect();
+            for p in &parts {
+                // Skip aggregate expressions or *
+                if *p == "*" || p.contains('(') { continue; }
+                validate_column(p)?;
+            }
+            parts
+                .iter()
+                .map(|c| {
+                    if *c == "*" || c.contains('(') {
+                        c.to_string()
+                    } else {
+                        format!("\"{}\"", c)
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join(", ")
+        }
+    } else {
+        "*".to_string()
+    };
+
+    let (where_clause, where_params) = if let Some(ref filters) = params.filters {
+        build_where_clause(filters)?
+    } else {
+        (String::new(), Vec::new())
+    };
+
+    let order_clause = if let Some(ref col) = params.order_col {
+        validate_column(col)?;
+        let dir = if params.order_asc.unwrap_or(true) { "ASC" } else { "DESC" };
+        format!(" ORDER BY \"{}\" {}", col, dir)
+    } else {
+        " ORDER BY created_at DESC".to_string()
+    };
+
+    let limit_clause = if let Some(lim) = params.limit {
+        format!(" LIMIT {}", lim)
+    } else {
+        String::new()
+    };
+
+    let offset_clause = if let Some(off) = params.offset {
+        format!(" OFFSET {}", off)
+    } else {
+        String::new()
+    };
+
+    let sql = format!(
+        "SELECT {} FROM \"{}\"{}{}{}{}",
+        columns_sql, params.table, where_clause, order_clause, limit_clause, offset_clause
+    );
+
+    let mut stmt = conn.prepare(&sql).map_err(LifeOsError::Database)?;
+
+    let params_refs: Vec<&dyn rusqlite::types::ToSql> = where_params
+        .iter()
+        .map(|v| v as &dyn rusqlite::types::ToSql)
+        .collect();
+
+    let col_names: Vec<String> = stmt.column_names().iter().map(|s| s.to_string()).collect();
+
+    let rows: Result<Vec<Value>, _> = stmt
+        .query_map(params_refs.as_slice(), |row| row_to_json(row, &col_names))
+        .and_then(|mapped| mapped.collect());
+
+    let data = rows.map_err(LifeOsError::Database)?;
+
+    // Handle count
+    if params.count.is_some() {
+        let count_sql = format!(
+            "SELECT COUNT(*) FROM \"{}\"{}",
+            params.table, where_clause
+        );
+        let count: i64 = conn
+            .query_row(&count_sql, params_refs.as_slice(), |row| row.get(0))
+            .unwrap_or(0);
+        return Ok(json!({
+            "data": data,
+            "error": null,
+            "status": 200,
+            "statusText": "OK",
+            "count": count
+        }));
+    }
+
+    Ok(json!({
+        "data": data,
+        "error": null,
+        "status": 200,
+        "statusText": "OK"
+    }))
+}
+
+/// Execute an INSERT and return the inserted row(s).
+fn exec_insert(
+    conn: &Connection,
+    params: &QueryParams,
+) -> Result<Value, LifeOsError> {
+    let body = params.body.as_ref().ok_or_else(|| {
+        LifeOsError::AiBridge("INSERT requires a body".to_string())
+    })?;
+
+    // Handle both single object and array of objects
+    let rows_to_insert: Vec<&serde_json::Map<String, Value>> = if let Value::Array(arr) = body {
+        arr.iter()
+            .filter_map(|v| v.as_object())
+            .collect()
+    } else if let Some(obj) = body.as_object() {
+        vec![obj]
+    } else {
+        return Err(LifeOsError::AiBridge("INSERT body must be object or array".to_string()));
+    };
+
+    let mut inserted = Vec::new();
+
+    for row_data in &rows_to_insert {
+        let mut fields: serde_json::Map<String, Value> = (*row_data).clone();
+
+        // Auto-generate id and timestamps
+        if !fields.contains_key("id") {
+            fields.insert("id".to_string(), Value::String(uuid::Uuid::new_v4().to_string()));
+        }
+        if !fields.contains_key("created_at") {
+            fields.insert("created_at".to_string(), Value::String(chrono::Utc::now().to_rfc3339()));
+        }
+        if !fields.contains_key("user_id") {
+            fields.insert("user_id".to_string(), Value::String("local-user-001".to_string()));
+        }
+
+        for key in fields.keys() {
+            validate_column(key)?;
+        }
+
+        let columns: Vec<String> = fields.keys().cloned().collect();
+        let placeholders: Vec<&str> = columns.iter().map(|_| "?").collect();
+        let quoted_cols: Vec<String> = columns.iter().map(|c| format!("\"{}\"", c)).collect();
+
+        let sql = format!(
+            "INSERT INTO \"{}\" ({}) VALUES ({})",
+            params.table,
+            quoted_cols.join(", "),
+            placeholders.join(", ")
+        );
+
+        let values: Vec<String> = columns.iter().map(|k| value_to_sql_string(&fields[k])).collect();
+        let params_refs: Vec<&dyn rusqlite::types::ToSql> = values
+            .iter()
+            .map(|v| v as &dyn rusqlite::types::ToSql)
+            .collect();
+
+        conn.execute(&sql, params_refs.as_slice()).map_err(LifeOsError::Database)?;
+
+        // If return_select, fetch the inserted row back
+        if params.return_select.unwrap_or(false) {
+            let id = fields.get("id").and_then(|v| v.as_str()).unwrap_or("");
+            let select_sql = format!("SELECT * FROM \"{}\" WHERE id = ?", params.table);
+            let mut stmt = conn.prepare(&select_sql).map_err(LifeOsError::Database)?;
+            let col_names: Vec<String> = stmt.column_names().iter().map(|s| s.to_string()).collect();
+            let row = stmt
+                .query_row(rusqlite::params![id], |r| row_to_json(r, &col_names))
+                .map_err(LifeOsError::Database)?;
+            inserted.push(row);
+        } else {
+            let id = fields.get("id").and_then(|v| v.as_str()).unwrap_or("");
+            inserted.push(json!({ "id": id }));
+        }
+    }
+
+    Ok(json!({
+        "data": inserted,
+        "error": null,
+        "status": 201,
+        "statusText": "Created"
+    }))
+}
+
+/// Execute an UPDATE and return affected rows.
+fn exec_update(
+    conn: &Connection,
+    params: &QueryParams,
+) -> Result<Value, LifeOsError> {
+    let body = params.body.as_ref().ok_or_else(|| {
+        LifeOsError::AiBridge("UPDATE requires a body".to_string())
+    })?;
+
+    let obj = body.as_object().ok_or_else(|| {
+        LifeOsError::AiBridge("UPDATE body must be an object".to_string())
+    })?;
+
+    let mut fields: serde_json::Map<String, Value> = obj.clone();
+    fields.remove("id");
+    fields.remove("created_at");
+    fields.insert("updated_at".to_string(), Value::String(chrono::Utc::now().to_rfc3339()));
+
+    if fields.is_empty() {
+        return Err(LifeOsError::EmptyUpdate);
+    }
+
+    for key in fields.keys() {
+        validate_column(key)?;
+    }
+
+    let set_clauses: Vec<String> = fields.keys().map(|k| format!("\"{}\" = ?", k)).collect();
+    let mut values: Vec<String> = fields.keys().map(|k| value_to_sql_string(&fields[k])).collect();
+
+    let (where_clause, where_params) = if let Some(ref filters) = params.filters {
+        build_where_clause(filters)?
+    } else {
+        (String::new(), Vec::new())
+    };
+    values.extend(where_params);
+
+    let sql = format!(
+        "UPDATE \"{}\" SET {}{}",
+        params.table,
+        set_clauses.join(", "),
+        where_clause
+    );
+
+    let params_refs: Vec<&dyn rusqlite::types::ToSql> = values
+        .iter()
+        .map(|v| v as &dyn rusqlite::types::ToSql)
+        .collect();
+
+    let changed = conn.execute(&sql, params_refs.as_slice()).map_err(LifeOsError::Database)?;
+
+    // If return_select, fetch the updated rows
+    if params.return_select.unwrap_or(false) {
+        let (wc, wp) = if let Some(ref filters) = params.filters {
+            build_where_clause(filters)?
+        } else {
+            (String::new(), Vec::new())
+        };
+        let select_sql = format!("SELECT * FROM \"{}\"{}", params.table, wc);
+        let mut stmt = conn.prepare(&select_sql).map_err(LifeOsError::Database)?;
+        let wp_refs: Vec<&dyn rusqlite::types::ToSql> = wp.iter().map(|v| v as &dyn rusqlite::types::ToSql).collect();
+        let col_names: Vec<String> = stmt.column_names().iter().map(|s| s.to_string()).collect();
+        let rows: Result<Vec<Value>, _> = stmt
+            .query_map(wp_refs.as_slice(), |row| row_to_json(row, &col_names))
+            .and_then(|mapped| mapped.collect());
+        let data = rows.map_err(LifeOsError::Database)?;
+        return Ok(json!({
+            "data": data,
+            "error": null,
+            "status": 200,
+            "statusText": "OK"
+        }));
+    }
+
+    Ok(json!({
+        "data": json!({ "count": changed }),
+        "error": null,
+        "status": 200,
+        "statusText": "OK"
+    }))
+}
+
+/// Execute an UPSERT (INSERT ON CONFLICT UPDATE).
+fn exec_upsert(
+    conn: &Connection,
+    params: &QueryParams,
+) -> Result<Value, LifeOsError> {
+    let body = params.body.as_ref().ok_or_else(|| {
+        LifeOsError::AiBridge("UPSERT requires a body".to_string())
+    })?;
+
+    let conflict_col = params.upsert_conflict.as_deref().unwrap_or("id");
+    validate_column(conflict_col)?;
+
+    let rows_to_upsert: Vec<&serde_json::Map<String, Value>> = if let Value::Array(arr) = body {
+        arr.iter().filter_map(|v| v.as_object()).collect()
+    } else if let Some(obj) = body.as_object() {
+        vec![obj]
+    } else {
+        return Err(LifeOsError::AiBridge("UPSERT body must be object or array".to_string()));
+    };
+
+    let mut upserted = Vec::new();
+
+    for row_data in &rows_to_upsert {
+        let mut fields: serde_json::Map<String, Value> = (*row_data).clone();
+
+        if !fields.contains_key("id") {
+            fields.insert("id".to_string(), Value::String(uuid::Uuid::new_v4().to_string()));
+        }
+        if !fields.contains_key("created_at") {
+            fields.insert("created_at".to_string(), Value::String(chrono::Utc::now().to_rfc3339()));
+        }
+        if !fields.contains_key("user_id") {
+            fields.insert("user_id".to_string(), Value::String("local-user-001".to_string()));
+        }
+        fields.insert("updated_at".to_string(), Value::String(chrono::Utc::now().to_rfc3339()));
+
+        for key in fields.keys() {
+            validate_column(key)?;
+        }
+
+        let columns: Vec<String> = fields.keys().cloned().collect();
+        let placeholders: Vec<&str> = columns.iter().map(|_| "?").collect();
+        let quoted_cols: Vec<String> = columns.iter().map(|c| format!("\"{}\"", c)).collect();
+
+        // Build the ON CONFLICT DO UPDATE SET clause (excluding the conflict column)
+        let update_cols: Vec<String> = columns
+            .iter()
+            .filter(|c| c.as_str() != conflict_col)
+            .map(|c| format!("\"{}\" = excluded.\"{}\"", c, c))
+            .collect();
+
+        let sql = format!(
+            "INSERT INTO \"{}\" ({}) VALUES ({}) ON CONFLICT(\"{}\") DO UPDATE SET {}",
+            params.table,
+            quoted_cols.join(", "),
+            placeholders.join(", "),
+            conflict_col,
+            update_cols.join(", ")
+        );
+
+        let values: Vec<String> = columns.iter().map(|k| value_to_sql_string(&fields[k])).collect();
+        let params_refs: Vec<&dyn rusqlite::types::ToSql> = values
+            .iter()
+            .map(|v| v as &dyn rusqlite::types::ToSql)
+            .collect();
+
+        conn.execute(&sql, params_refs.as_slice()).map_err(LifeOsError::Database)?;
+
+        if params.return_select.unwrap_or(false) {
+            let id = fields.get("id").and_then(|v| v.as_str()).unwrap_or("");
+            let select_sql = format!("SELECT * FROM \"{}\" WHERE id = ?", params.table);
+            let mut stmt = conn.prepare(&select_sql).map_err(LifeOsError::Database)?;
+            let col_names: Vec<String> = stmt.column_names().iter().map(|s| s.to_string()).collect();
+            let row = stmt
+                .query_row(rusqlite::params![id], |r| row_to_json(r, &col_names))
+                .map_err(LifeOsError::Database)?;
+            upserted.push(row);
+        } else {
+            let id = fields.get("id").and_then(|v| v.as_str()).unwrap_or("");
+            upserted.push(json!({ "id": id }));
+        }
+    }
+
+    Ok(json!({
+        "data": upserted,
+        "error": null,
+        "status": 200,
+        "statusText": "OK"
+    }))
+}
+
+/// Execute a DELETE with filters.
+fn exec_delete(
+    conn: &Connection,
+    params: &QueryParams,
+) -> Result<Value, LifeOsError> {
+    let (where_clause, where_params) = if let Some(ref filters) = params.filters {
+        build_where_clause(filters)?
+    } else {
+        (String::new(), Vec::new())
+    };
+
+    if where_clause.is_empty() {
+        return Err(LifeOsError::AiBridge("DELETE requires at least one filter".to_string()));
+    }
+
+    let params_refs: Vec<&dyn rusqlite::types::ToSql> = where_params
+        .iter()
+        .map(|v| v as &dyn rusqlite::types::ToSql)
+        .collect();
+
+    // Try soft delete first (tables with is_deleted column)
+    let soft_sql = format!(
+        "UPDATE \"{}\" SET is_deleted = 1, updated_at = ?{}",
+        params.table,
+        where_clause.replacen(" WHERE ", " WHERE ", 1)  // keep WHERE as-is
+    );
+    let now = chrono::Utc::now().to_rfc3339();
+    let mut soft_params: Vec<String> = vec![now];
+    soft_params.extend(where_params.clone());
+    let soft_refs: Vec<&dyn rusqlite::types::ToSql> = soft_params
+        .iter()
+        .map(|v| v as &dyn rusqlite::types::ToSql)
+        .collect();
+
+    let result = conn.execute(&soft_sql, soft_refs.as_slice());
+    match result {
+        Ok(n) if n > 0 => {
+            return Ok(json!({
+                "data": [],
+                "error": null,
+                "status": 200,
+                "statusText": "OK"
+            }));
+        }
+        _ => {}
+    }
+
+    // Fall back to hard delete
+    let hard_sql = format!("DELETE FROM \"{}\"{}", params.table, where_clause);
+    conn.execute(&hard_sql, params_refs.as_slice()).map_err(LifeOsError::Database)?;
+
+    Ok(json!({
+        "data": [],
+        "error": null,
+        "status": 200,
+        "statusText": "OK"
+    }))
+}
+
+/// Unified db_query command — the single entry point for all CRUD operations
+/// from the frontend. No session token required (desktop app = trusted).
+#[tauri::command]
+fn db_query(state: State<'_, AppState>, params: QueryParams) -> Value {
+    if let Err(e) = validate_table(&params.table) {
+        return json!({
+            "data": null,
+            "error": { "message": e.to_string(), "details": "", "hint": "", "code": "INVALID_TABLE" },
+            "status": 400,
+            "statusText": "Bad Request"
+        });
+    }
+
+    let conn = state.db.lock().unwrap();
+
+    let result = match params.method.as_str() {
+        "select" => exec_select(&conn, &params),
+        "insert" => exec_insert(&conn, &params),
+        "update" => exec_update(&conn, &params),
+        "upsert" => exec_upsert(&conn, &params),
+        "delete" => exec_delete(&conn, &params),
+        other => Err(LifeOsError::AiBridge(format!("Unknown method: {}", other))),
+    };
+
+    match result {
+        Ok(response) => response,
+        Err(e) => json!({
+            "data": null,
+            "error": { "message": e.to_string(), "details": "", "hint": "", "code": "DB_ERROR" },
+            "status": 500,
+            "statusText": "Internal Server Error"
+        }),
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
 // Tauri Commands
 // ═══════════════════════════════════════════════════════════════
 
@@ -1368,12 +1962,32 @@ fn serve_media(path: String) -> Result<Vec<u8>, String> {
     std::fs::read(p).map_err(|e| format!("IO error: {}", e))
 }
 
+/// Serve media as raw bytes via Tauri IPC (efficient binary transfer, no JSON).
+/// Used by the music player to load audio files directly into blob URLs.
+#[tauri::command]
+fn get_media_bytes(path: String) -> Result<tauri::ipc::Response, String> {
+    let p = Path::new(&path);
+    if !is_path_allowed(p) {
+        return Err(format!("Path not allowed: {}", path));
+    }
+    let data = std::fs::read(p).map_err(|e| format!("IO error: {}", e))?;
+    Ok(tauri::ipc::Response::new(data))
+}
+
 // ═══════════════════════════════════════════════════════════════
 // App Entry
 // ═══════════════════════════════════════════════════════════════
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Fix WebKitGTK segfault on NVIDIA Tegra (DMA-BUF renderer + Tegra GPU driver)
+    #[cfg(target_os = "linux")]
+    {
+        if std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").is_err() {
+            std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+        }
+    }
+
     let db_file = db_path();
     let conn = Connection::open(&db_file).expect("Failed to open database");
     conn.execute_batch(SCHEMA_SQL)
@@ -1396,6 +2010,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            db_query,
             init_session,
             get_items,
             create_item,
@@ -1407,6 +2022,7 @@ pub fn run() {
             list_directory,
             get_academy_overview,
             serve_media,
+            get_media_bytes,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

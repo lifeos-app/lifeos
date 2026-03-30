@@ -1,6 +1,6 @@
 /**
  * Academy Page — Study Dashboard
- * 
+ *
  * Full study dashboard with curriculum view, lesson reader,
  * progress tracking, cheatsheets, and integrated music player.
  */
@@ -15,6 +15,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAcademyStore } from '../stores/useAcademyStore';
 import { MusicPlayer } from '../components/academy/MusicPlayer';
+import { PageErrorBoundary } from '../components/PageErrorBoundary';
 import { readAcademyFile } from '../lib/academy-data';
 import {
   PHASES, CHEATSHEETS, getAllLessons, getTotalLessonCount,
@@ -65,7 +66,7 @@ export function Academy() {
               </button>
             )}
             <h1 style={{ fontSize: 24, fontWeight: 700, color: '#fff', margin: 0 }}>
-              🎓 Study Academy
+              Study Academy
             </h1>
           </div>
           <div style={{ display: 'flex', gap: 4 }}>
@@ -110,8 +111,10 @@ export function Academy() {
         )}
       </div>
 
-      {/* Music Player — always visible */}
-      <MusicPlayer />
+      {/* Music Player — wrapped in error boundary for safety */}
+      <PageErrorBoundary pageName="MusicPlayer">
+        <MusicPlayer />
+      </PageErrorBoundary>
     </div>
   );
 }
@@ -578,7 +581,7 @@ function CheatsheetsView({ activeId, onSelect }: {
   return (
     <div style={{ paddingBottom: 24 }}>
       <h2 style={{ fontSize: 18, fontWeight: 600, color: '#fff', marginBottom: 16 }}>
-        📋 Quick Reference Cheatsheets
+        Quick Reference Cheatsheets
       </h2>
       <div style={{
         display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
