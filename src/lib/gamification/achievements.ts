@@ -698,6 +698,173 @@ export const ACHIEVEMENTS: Achievement[] = [
     secret: true,
   },
 
+  // ─── ACADEMY / LESSONS ───
+  {
+    id: 'first_lesson',
+    title: 'First Steps',
+    description: 'Complete your first lesson step',
+    icon: '📖',
+    rarity: 'common',
+    category: 'knowledge',
+    xp_reward: 25,
+    condition: 'lesson_steps_gte',
+    target: 1,
+  },
+  {
+    id: 'lesson_apprentice',
+    title: 'Apprentice Learner',
+    description: 'Complete 10 lesson steps',
+    icon: '🎓',
+    rarity: 'common',
+    category: 'knowledge',
+    xp_reward: 75,
+    condition: 'lesson_steps_gte',
+    target: 10,
+  },
+  {
+    id: 'lesson_scholar',
+    title: 'Scholar',
+    description: 'Complete 25 lesson steps',
+    icon: '📚',
+    rarity: 'rare',
+    category: 'knowledge',
+    xp_reward: 200,
+    condition: 'lesson_steps_gte',
+    target: 25,
+  },
+  {
+    id: 'lesson_sage',
+    title: 'Sage',
+    description: 'Complete 50 lesson steps',
+    icon: '🏛️',
+    rarity: 'epic',
+    category: 'knowledge',
+    xp_reward: 500,
+    condition: 'lesson_steps_gte',
+    target: 50,
+  },
+  {
+    id: 'lesson_polymath',
+    title: 'Polymath',
+    description: 'Complete 100 lesson steps across multiple disciplines',
+    icon: '🧠',
+    rarity: 'legendary',
+    category: 'knowledge',
+    xp_reward: 2000,
+    condition: 'lesson_steps_gte',
+    target: 100,
+  },
+  {
+    id: 'piano_first_note',
+    title: 'First Note',
+    description: 'Complete your first Piano Academy step',
+    icon: '🎵',
+    rarity: 'common',
+    category: 'knowledge',
+    xp_reward: 30,
+    condition: 'piano_steps_gte',
+    target: 1,
+  },
+  {
+    id: 'piano_practitioner',
+    title: 'Piano Practitioner',
+    description: 'Complete 5 Piano Academy steps',
+    icon: '🎹',
+    rarity: 'rare',
+    category: 'knowledge',
+    xp_reward: 150,
+    condition: 'piano_steps_gte',
+    target: 5,
+  },
+  {
+    id: 'piano_virtuoso',
+    title: 'Virtuoso',
+    description: 'Complete all Piano Academy steps',
+    icon: '🎼',
+    rarity: 'epic',
+    category: 'knowledge',
+    xp_reward: 500,
+    condition: 'piano_steps_gte',
+    target: 8,
+  },
+  {
+    id: 'code_first_line',
+    title: 'Hello World',
+    description: 'Complete your first Learning to Code step',
+    icon: '</>',
+    rarity: 'common',
+    category: 'knowledge',
+    xp_reward: 30,
+    condition: 'code_steps_gte',
+    target: 1,
+  },
+  {
+    id: 'code_apprentice',
+    title: 'Code Apprentice',
+    description: 'Complete 3 Learning to Code steps',
+    icon: '{ }',
+    rarity: 'rare',
+    category: 'knowledge',
+    xp_reward: 150,
+    condition: 'code_steps_gte',
+    target: 3,
+  },
+  {
+    id: 'code_craftsman',
+    title: 'Code Craftsman',
+    description: 'Complete all Learning to Code steps',
+    icon: '⌨️',
+    rarity: 'epic',
+    category: 'knowledge',
+    xp_reward: 500,
+    condition: 'code_steps_gte',
+    target: 6,
+  },
+  {
+    id: 'academy_streak_3',
+    title: 'Study Streak',
+    description: 'Practice lessons 3 days in a row',
+    icon: '📖',
+    rarity: 'common',
+    category: 'consistency',
+    xp_reward: 50,
+    condition: 'lesson_streak_gte',
+    target: 3,
+  },
+  {
+    id: 'academy_streak_7',
+    title: 'Dedicated Student',
+    description: 'Practice lessons 7 days in a row',
+    icon: '📋',
+    rarity: 'rare',
+    category: 'consistency',
+    xp_reward: 150,
+    condition: 'lesson_streak_gte',
+    target: 7,
+  },
+  {
+    id: 'academy_streak_30',
+    title: 'Lifelong Learner',
+    description: 'Practice lessons 30 days in a row',
+    icon: '🏅',
+    rarity: 'epic',
+    category: 'consistency',
+    xp_reward: 500,
+    condition: 'lesson_streak_gte',
+    target: 30,
+  },
+  {
+    id: 'multi_discipline',
+    title: 'Renaissance Mind',
+    description: 'Complete steps in 3 different lesson categories',
+    icon: '🔀',
+    rarity: 'rare',
+    category: 'knowledge',
+    xp_reward: 200,
+    condition: 'lesson_categories_gte',
+    target: 3,
+  },
+
   // ─── JUNCTION / SPIRITUAL ───
   {
     id: 'first_practice',
@@ -838,6 +1005,12 @@ interface AchievementStats {
   allHabitsOneDay: boolean;
   perfectHabitWeek: boolean;
   inboxZero: boolean;
+  // Lesson / Academy stats
+  lessonStepsCompleted: number;
+  pianoStepsCompleted: number;
+  codeStepsCompleted: number;
+  lessonStreak: number;
+  lessonCategoriesCompleted: number;
 }
 
 async function gatherAchievementStats(
@@ -857,6 +1030,7 @@ async function gatherAchievementStats(
     eventsRes,
     userXPRes,
     feedbackRes,
+    lessonProgressRes,
   ] = await Promise.all([
     supabase.from('xp_events').select('action_type, created_at, multiplier', { count: 'exact' }).eq('user_id', userId),
     supabase.from('tasks').select('id, status, completed_at', { count: 'exact' }).eq('is_deleted', false),
@@ -869,6 +1043,7 @@ async function gatherAchievementStats(
     supabase.from('schedule_events').select('id', { count: 'exact' }).eq('is_deleted', false),
     supabase.from('user_xp').select('level, total_xp').eq('user_id', userId).maybeSingle(),
     supabase.from('feedback').select('id', { count: 'exact' }).eq('user_id', userId),
+    supabase.from('lesson_progress').select('lesson_id, steps_completed, last_practiced_at, status').eq('user_id', userId).eq('is_deleted', 0),
   ]);
 
   const xpEvents = xpEventsRes.data || [];
@@ -996,6 +1171,39 @@ async function gatherAchievementStats(
     allHabitsOneDay: false,  // Complex, tracked via habit engine
     perfectHabitWeek: false, // Complex, tracked via habit engine
     inboxZero: false,        // Tracked client-side
+    // Lesson / Academy stats
+    lessonStepsCompleted: (lessonProgressRes.data || []).reduce((sum: number, r: { steps_completed?: string | string[] }) => {
+      const steps = Array.isArray(r.steps_completed) ? r.steps_completed : (typeof r.steps_completed === 'string' ? JSON.parse(r.steps_completed) : []);
+      return sum + steps.length;
+    }, 0),
+    pianoStepsCompleted: (lessonProgressRes.data || []).filter((r: { lesson_id: string }) => r.lesson_id === 'piano-academy').reduce((sum: number, r: { steps_completed?: string | string[] }) => {
+      const steps = Array.isArray(r.steps_completed) ? r.steps_completed : (typeof r.steps_completed === 'string' ? JSON.parse(r.steps_completed) : []);
+      return sum + steps.length;
+    }, 0),
+    codeStepsCompleted: (lessonProgressRes.data || []).filter((r: { lesson_id: string }) => r.lesson_id === 'learning-to-code').reduce((sum: number, r: { steps_completed?: string | string[] }) => {
+      const steps = Array.isArray(r.steps_completed) ? r.steps_completed : (typeof r.steps_completed === 'string' ? JSON.parse(r.steps_completed) : []);
+      return sum + steps.length;
+    }, 0),
+    lessonStreak: (() => {
+      const practiceDates = (lessonProgressRes.data || []).map((r: { last_practiced_at: string | null }) => r.last_practiced_at).filter(Boolean).sort().reverse() as string[];
+      // Deduplicate by day
+      const uniqueDays = [...new Set(practiceDates.map((d: string) => d.split('T')[0]))].sort().reverse();
+      let streak = 0;
+      for (let i = 0; i < 365; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const ds = d.toISOString().split('T')[0];
+        if (uniqueDays.includes(ds)) streak++;
+        else if (i > 0) break;
+      }
+      return streak;
+    })(),
+    lessonCategoriesCompleted: new Set(
+      (lessonProgressRes.data || []).filter((r: { steps_completed?: string | string[] }) => {
+        const steps = Array.isArray(r.steps_completed) ? r.steps_completed : (typeof r.steps_completed === 'string' ? JSON.parse(r.steps_completed) : []);
+        return steps.length > 0;
+      }).map((r: { lesson_id: string }) => r.lesson_id)
+    ).size,
   };
 }
 
@@ -1084,6 +1292,17 @@ function evaluateCondition(
       return { unlocked: stats.feedbackSubmitted, progress: stats.feedbackSubmitted ? 1 : 0 };
     case 'tasks_in_10min_gte':
       return { unlocked: false, progress: 0 }; // Complex timing — track client-side
+    // ── Lesson / Academy conditions ──
+    case 'lesson_steps_gte':
+      return { unlocked: stats.lessonStepsCompleted >= target, progress: stats.lessonStepsCompleted };
+    case 'piano_steps_gte':
+      return { unlocked: stats.pianoStepsCompleted >= target, progress: stats.pianoStepsCompleted };
+    case 'code_steps_gte':
+      return { unlocked: stats.codeStepsCompleted >= target, progress: stats.codeStepsCompleted };
+    case 'lesson_streak_gte':
+      return { unlocked: stats.lessonStreak >= target, progress: stats.lessonStreak };
+    case 'lesson_categories_gte':
+      return { unlocked: stats.lessonCategoriesCompleted >= target, progress: stats.lessonCategoriesCompleted };
     default:
       return { unlocked: false, progress: 0 };
   }

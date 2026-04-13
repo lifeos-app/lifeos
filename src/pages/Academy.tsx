@@ -56,7 +56,7 @@ export function Academy() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+    <div role="main" aria-label="Study Academy" style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
       {/* Header */}
       <div style={{ padding: '20px 24px 0', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -74,7 +74,7 @@ export function Academy() {
               Study Academy
             </h1>
           </div>
-          <div style={{ display: 'flex', gap: 4 }}>
+          <div role="tablist" aria-label="Academy sections" style={{ display: 'flex', gap: 4 }}>
             <TabButton active={view === 'curriculum'} onClick={() => setView('curriculum')} icon={<BookOpen size={14} />} label="Curriculum" />
             <TabButton active={view === 'lessons'} onClick={() => setView('lessons')} icon={<Music size={14} />} label="Lessons" />
             <TabButton active={view === 'cheatsheets'} onClick={() => setView('cheatsheets')} icon={<Grid3X3 size={14} />} label="Cheatsheets" />
@@ -86,7 +86,7 @@ export function Academy() {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 0' }}>
+      <div role="tabpanel" aria-label={`${view} content`} style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 0' }}>
         {view === 'curriculum' && (
           <CurriculumView
             completedLessons={store.completedLessons}
@@ -134,13 +134,19 @@ function TabButton({ active, onClick, icon, label }: {
   active: boolean; onClick: () => void; icon: React.ReactNode; label: string;
 }) {
   return (
-    <button onClick={onClick} style={{
-      display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
-      borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 500,
-      background: active ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.04)',
-      color: active ? '#00D4FF' : '#8BA4BE',
-      cursor: 'pointer', transition: 'all 0.15s',
-    }}>
+    <button
+      onClick={onClick}
+      role="tab"
+      aria-selected={active}
+      aria-label={label}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px',
+        borderRadius: 8, border: 'none', fontSize: 13, fontWeight: 500,
+        background: active ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.04)',
+        color: active ? '#00D4FF' : '#8BA4BE',
+        cursor: 'pointer', transition: 'all 0.15s',
+      }}
+    >
       {icon} {label}
     </button>
   );
@@ -154,7 +160,7 @@ function OverallProgress({ completedLessons }: { completedLessons: string[] }) {
   const percent = total > 0 ? Math.round((done / total) * 100) : 0;
 
   return (
-    <div style={{
+    <div role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100} aria-label={`Overall progress: ${percent}%, ${done} of ${total} lessons`} style={{
       display: 'flex', alignItems: 'center', gap: 12,
       padding: '10px 14px', borderRadius: 10,
       background: 'rgba(255,255,255,0.03)', marginBottom: 8,
@@ -207,6 +213,8 @@ function CurriculumView({ completedLessons, onOpenLesson }: {
             {/* Phase Header */}
             <button
               onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
+              aria-expanded={isExpanded}
+              aria-label={`${phase.name} phase, ${percent}% complete, ${done} of ${total} lessons`}
               style={{
                 display: 'flex', alignItems: 'center', gap: 12, width: '100%',
                 padding: '14px 16px', border: 'none', cursor: 'pointer',
@@ -256,6 +264,8 @@ function CurriculumView({ completedLessons, onOpenLesson }: {
                     <div key={topic.id} style={{ marginBottom: 2 }}>
                       <button
                         onClick={() => setExpandedTopic(isTopicExpanded ? null : topic.id)}
+                        aria-expanded={isTopicExpanded}
+                        aria-label={`${topic.name} topic, ${topicDone} of ${topicTotal} lessons`}
                         style={{
                           display: 'flex', alignItems: 'center', gap: 8, width: '100%',
                           padding: '10px 12px', border: 'none', borderRadius: 8,
@@ -288,6 +298,7 @@ function CurriculumView({ completedLessons, onOpenLesson }: {
                               <button
                                 key={lesson.id}
                                 onClick={() => onOpenLesson(lesson.id)}
+                                aria-label={`${lesson.title}, ${isComplete ? 'completed' : 'not completed'}, ${lesson.estimatedMinutes} minutes`}
                                 style={{
                                   display: 'flex', alignItems: 'center', gap: 8, width: '100%',
                                   padding: '8px 10px', border: 'none', borderRadius: 6,
@@ -390,6 +401,7 @@ function LessonViewer({ lessonId, completedLessons, onComplete, onUncomplete, on
         </div>
         <button
           onClick={() => isComplete ? onUncomplete(lessonId) : onComplete(lessonId)}
+          aria-label={isComplete ? 'Mark as incomplete' : 'Mark as complete'}
           style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
             borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13,
@@ -501,7 +513,7 @@ function LessonViewer({ lessonId, completedLessons, onComplete, onUncomplete, on
         paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)',
       }}>
         {prev ? (
-          <button onClick={() => onNavigate(prev.id)} style={{
+          <button onClick={() => onNavigate(prev.id)} aria-label={`Previous lesson: ${prev.title}`} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
             borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)',
             background: 'transparent', color: '#8BA4BE', cursor: 'pointer', fontSize: 13,
@@ -510,7 +522,7 @@ function LessonViewer({ lessonId, completedLessons, onComplete, onUncomplete, on
           </button>
         ) : <div />}
         {next ? (
-          <button onClick={() => onNavigate(next.id)} style={{
+          <button onClick={() => onNavigate(next.id)} aria-label={`Next lesson: ${next.title}`} style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px',
             borderRadius: 8, border: '1px solid rgba(0,212,255,0.3)',
             background: 'rgba(0,212,255,0.08)', color: '#00D4FF', cursor: 'pointer', fontSize: 13,

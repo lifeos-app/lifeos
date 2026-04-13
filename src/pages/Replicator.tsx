@@ -68,7 +68,7 @@ export default function Replicator() {
   }, [deleteItem]);
 
   return (
-    <div style={{ padding: '24px', maxWidth: 1200, margin: '0 auto' }}>
+    <div role="main" aria-label="Digital Replicator" style={{ padding: '24px', maxWidth: 1200, margin: '0 auto' }}>
       {/* Header */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -78,6 +78,7 @@ export default function Replicator() {
           {view !== 'table' && (
             <button
               onClick={() => setView('table')}
+              aria-label="Back to parts table"
               style={{
                 background: 'transparent', border: 'none', cursor: 'pointer',
                 color: '#8BA4BE', padding: 4,
@@ -101,6 +102,7 @@ export default function Replicator() {
           <div style={{ display: 'flex', gap: 8 }}>
             <button
               onClick={() => setView('upload')}
+              aria-label="Import file"
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 padding: '8px 16px', borderRadius: 8,
@@ -113,6 +115,7 @@ export default function Replicator() {
             </button>
             <button
               onClick={() => setFormOpen(true)}
+              aria-label="Add new part"
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 padding: '8px 16px', borderRadius: 8,
