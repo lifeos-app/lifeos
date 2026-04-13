@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Code, Play, CheckCircle2, ChevronLeft, ChevronRight, FileCode, Paintbrush, Zap, RotateCcw } from 'lucide-react';
+import { Code, Play, CheckCircle2, ChevronLeft, ChevronRight, FileCode, Paintbrush, Zap, RotateCcw, LayoutGrid, FunctionSquare, Atom } from 'lucide-react';
 import './LearningToCode.css';
 
 export interface LearningToCodeProps {

@@ -16,6 +16,7 @@ const ALL_TOUR_IDS: TourId[] = ['dashboard', 'goals', 'habits', 'schedule', 'fin
 import './GamificationModal.css';
 
 const GamificationModal = lazy(() => import('./GamificationModal').then(m => ({ default: m.GamificationModal })));
+const MiniCharacter = lazy(() => import('../realm/ui/MiniCharacter').then(m => ({ default: m.MiniCharacter })));
 import {
   LayoutDashboard, Calendar, Target, Flame, Wallet, Heart,
   BookOpen, ChevronLeft, ChevronRight,
@@ -95,7 +96,9 @@ export const Sidebar = React.memo(function Sidebar({ expanded = true, onToggle, 
       {/* Logo + collapse */}
       <div className="sb-top">
         <button className="sb-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, display: 'flex', alignItems: 'center', gap: 8 }} aria-label="Go to dashboard">
-          <Zap size={22} className="sb-logo-icon" />
+          <Suspense fallback={<Zap size={22} className="sb-logo-icon" />}>
+            <MiniCharacter size={28} animate fps={8} onClick={() => navigate('/')} />
+          </Suspense>
           <span className="sb-brand">LifeOS</span>
         </button>
         <button className="sb-collapse" onClick={onToggle} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
