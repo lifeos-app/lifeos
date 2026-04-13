@@ -5,17 +5,19 @@
  * progress tracking, cheatsheets, and integrated music player.
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import {
   ChevronRight, ChevronDown, Check, Clock, BookOpen, Award,
   Flame, ArrowLeft, ArrowRight, CheckCircle2, Grid3X3, BarChart3,
-  ChevronLeft, Zap, Trophy,
+  ChevronLeft, Zap, Trophy, Music, Code, Lock,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAcademyStore } from '../stores/useAcademyStore';
+import { useLessonsStore } from '../stores/useLessonsStore';
 import { MusicPlayer } from '../components/academy/MusicPlayer';
 import { PageErrorBoundary } from '../components/PageErrorBoundary';
+import { PageSkeleton } from '../components/skeletons';
 import { readAcademyFile } from '../lib/academy-data';
 import {
   PHASES, CHEATSHEETS, getAllLessons, getTotalLessonCount,
@@ -23,7 +25,10 @@ import {
   type AcademyPhase, type AcademyTopic, type AcademyLesson,
 } from '../data/academy-manifest';
 
-type AcademyView = 'curriculum' | 'lesson' | 'cheatsheets' | 'progress';
+const PianoAcademy = lazy(() => import('../components/lessons/PianoAcademy'));
+const LearningToCode = lazy(() => import('../components/lessons/LearningToCode'));
+
+type AcademyView = 'curriculum' | 'lesson' | 'cheatsheets' | 'progress' | 'lessons';
 
 export function Academy() {
   const [view, setView] = useState<AcademyView>('curriculum');
@@ -71,6 +76,7 @@ export function Academy() {
           </div>
           <div style={{ display: 'flex', gap: 4 }}>
             <TabButton active={view === 'curriculum'} onClick={() => setView('curriculum')} icon={<BookOpen size={14} />} label="Curriculum" />
+            <TabButton active={view === 'lessons'} onClick={() => setView('lessons')} icon={<Music size={14} />} label="Lessons" />
             <TabButton active={view === 'cheatsheets'} onClick={() => setView('cheatsheets')} icon={<Grid3X3 size={14} />} label="Cheatsheets" />
             <TabButton active={view === 'progress'} onClick={() => setView('progress')} icon={<BarChart3 size={14} />} label="Progress" />
           </div>
@@ -95,6 +101,9 @@ export function Academy() {
             onUncomplete={store.markLessonIncomplete}
             onNavigate={openLesson}
           />
+        )}
+        {view === 'lessons' && (
+          <LessonsView />
         )}
         {view === 'cheatsheets' && (
           <CheatsheetsView
@@ -686,6 +695,180 @@ function StatCard({ icon, label, value, color }: {
       <div style={{ color, marginBottom: 8 }}>{icon}</div>
       <div style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 2 }}>{value}</div>
       <div style={{ fontSize: 12, color: '#8BA4BE' }}>{label}</div>
+    </div>
+  );
+}
+
+// ── Lessons View (Teddy's Picks — nested inside Academy) ──
+
+interface LessonCard {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  color: string;
+  component: 'piano-academy' | 'learning-to-code';
+  locked?: boolean;
+}
+
+const LESSON_CATALOG: LessonCard[] = [
+  {
+    id: 'piano-academy',
+    title: 'Piano Academy',
+    description: 'Learn piano from zero — notes, chords, scales, reading music. An interactive Web Audio piano with 8 lessons.',
+    icon: <Music size={24} color="#FFD700" />,
+    color: '#FFD700',
+    component: 'piano-academy',
+  },
+  {
+    id: 'learning-to-code',
+    title: 'Learning to Code',
+    description: 'Build web pages step by step — HTML, CSS, JavaScript. Write code and see it live in real-time.',
+    icon: <Code size={24} color="#00D4FF" />,
+    color: '#00D4FF',
+    component: 'learning-to-code',
+  },
+  {
+    id: 'guitar-101',
+    title: 'Guitar 101',
+    description: 'Strum your first chords, learn fingerpicking patterns, and play campfire songs.',
+    icon: <Lock size={24} color="#5A7A9A" />,
+    color: '#E8A87C',
+    component: 'piano-academy',
+    locked: true,
+  },
+  {
+    id: 'beat-lab',
+    title: 'Beat Lab',
+    description: 'Create beats, loops, and tracks using the Web Audio API. From drum patterns to full arrangements.',
+    icon: <Lock size={24} color="#5A7A9A" />,
+    color: '#A855F7',
+    component: 'piano-academy',
+    locked: true,
+  },
+];
+
+function LessonsView() {
+  const [activeLesson, setActiveLesson] = useState<string | null>(null);
+  const { completeStep, getCompletedSteps } = useLessonsStore();
+  const activeData = LESSON_CATALOG.find(l => l.id === activeLesson);
+
+  const handleStepComplete = (stepId: string) => {
+    if (activeLesson) completeStep(activeLesson, stepId);
+  };
+
+  // Active lesson view
+  if (activeLesson && activeData && !activeData.locked) {
+    const completedSteps = getCompletedSteps(activeLesson);
+    return (
+      <div style={{ minHeight: '100%' }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 12,
+          padding: '12px 0', marginBottom: 12,
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}>
+          <button
+            onClick={() => setActiveLesson(null)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: 8,
+              padding: '6px 12px', color: '#8BA4BE', cursor: 'pointer', fontSize: 13,
+            }}
+          >
+            <ChevronLeft size={14} /> Back to Lessons
+          </button>
+          <span style={{ color: activeData.color, fontWeight: 600, fontSize: 14 }}>
+            {activeData.title}
+          </span>
+        </div>
+
+        <Suspense fallback={<PageSkeleton />}>
+          {activeData.component === 'piano-academy' && (
+            <PianoAcademy
+              onStepComplete={handleStepComplete}
+              completedSteps={completedSteps}
+            />
+          )}
+          {activeData.component === 'learning-to-code' && (
+            <LearningToCode
+              onStepComplete={handleStepComplete}
+              completedSteps={completedSteps}
+            />
+          )}
+        </Suspense>
+      </div>
+    );
+  }
+
+  // Catalog view
+  return (
+    <div style={{ paddingBottom: 24 }}>
+      <h2 style={{ fontSize: 18, fontWeight: 600, color: '#fff', marginBottom: 16 }}>
+        Teddy's Lessons
+      </h2>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+        gap: 12,
+      }}>
+        {LESSON_CATALOG.map(lesson => {
+          const completedSteps = getCompletedSteps(lesson.id);
+          const hasProgress = completedSteps.length > 0;
+
+          return (
+            <div
+              key={lesson.id}
+              onClick={() => !lesson.locked && setActiveLesson(lesson.id)}
+              style={{
+                background: lesson.locked
+                  ? 'rgba(255,255,255,0.02)'
+                  : 'linear-gradient(135deg, rgba(15,45,74,0.8), rgba(10,37,64,0.6))',
+                border: `1px solid ${lesson.locked ? 'rgba(255,255,255,0.05)' : `${lesson.color}20`}`,
+                borderRadius: 14,
+                padding: 20,
+                cursor: lesson.locked ? 'default' : 'pointer',
+                transition: 'all 0.2s',
+                opacity: lesson.locked ? 0.5 : 1,
+                position: 'relative',
+              }}
+              onMouseEnter={e => {
+                if (!lesson.locked) {
+                  (e.currentTarget as HTMLElement).style.borderColor = lesson.color;
+                  (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+                }
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.borderColor = lesson.locked ? 'rgba(255,255,255,0.05)' : `${lesson.color}20`;
+                (e.currentTarget as HTMLElement).style.transform = 'none';
+              }}
+            >
+              <div style={{ marginBottom: 12 }}>{lesson.icon}</div>
+              <h3 style={{
+                fontSize: 16, fontWeight: 600,
+                color: lesson.locked ? '#5A7A9A' : '#fff',
+                marginBottom: 6,
+              }}>
+                {lesson.title}
+              </h3>
+              <p style={{
+                fontSize: 12, color: lesson.locked ? '#3A5A7A' : '#8BA4BE',
+                lineHeight: 1.5, marginBottom: hasProgress ? 8 : 0,
+              }}>
+                {lesson.locked ? 'Coming soon...' : lesson.description}
+              </p>
+              {hasProgress && !lesson.locked && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  fontSize: 11, color: '#39FF14',
+                }}>
+                  <CheckCircle2 size={12} />
+                  {completedSteps.length} step{completedSteps.length !== 1 ? 's' : ''} completed
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

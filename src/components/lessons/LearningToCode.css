@@ -1,0 +1,317 @@
+/* LearningToCode — Interactive coding lesson styles */
+
+.ltc-container {
+  padding: 20px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Poppins', sans-serif;
+  color: #E0E0E0;
+}
+
+/* Progress dots */
+.ltc-progress-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.ltc-progress-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.ltc-progress-dot:hover {
+  border-color: rgba(0, 212, 255, 0.5);
+}
+
+.ltc-progress-dot.done {
+  background: #39FF14;
+  border-color: #39FF14;
+}
+
+.ltc-progress-dot.current {
+  background: #00D4FF;
+  border-color: #00D4FF;
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+  animation: ltc-pulse 1.5s infinite;
+}
+
+@keyframes ltc-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 212, 255, 0.3); }
+  50% { box-shadow: 0 0 16px rgba(0, 212, 255, 0.6); }
+}
+
+/* Step header */
+.ltc-step-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.ltc-step-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00D4FF;
+  flex-shrink: 0;
+}
+
+.ltc-step-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ltc-step-number {
+  font-size: 11px;
+  color: #5A7A9A;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.ltc-step-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.ltc-complete-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  background: rgba(0, 212, 255, 0.1);
+  color: #00D4FF;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.ltc-complete-btn:hover {
+  background: rgba(0, 212, 255, 0.2);
+  border-color: rgba(0, 212, 255, 0.5);
+}
+
+.ltc-completed-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: rgba(57, 255, 20, 0.1);
+  border: 1px solid rgba(57, 255, 20, 0.2);
+  color: #39FF14;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Description */
+.ltc-description {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  line-height: 1.7;
+  font-size: 14px;
+  color: #8BA4BE;
+}
+
+.ltc-description p {
+  margin: 0;
+}
+
+/* Split pane editor */
+.ltc-editor-container {
+  display: flex;
+  gap: 12px;
+  height: 400px;
+  margin-bottom: 16px;
+}
+
+.ltc-editor-pane,
+.ltc-preview-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(10, 22, 40, 0.8);
+}
+
+.ltc-pane-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  font-weight: 600;
+  color: #5A7A9A;
+}
+
+.ltc-icon-btn {
+  background: none;
+  border: none;
+  color: #5A7A9A;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+}
+
+.ltc-icon-btn:hover {
+  color: #00D4FF;
+}
+
+/* Code textarea */
+.ltc-code-area {
+  flex: 1;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #E0E0E0;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 14px 16px;
+  tab-size: 2;
+  white-space: pre;
+  overflow: auto;
+}
+
+.ltc-code-area::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.ltc-code-area::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.ltc-code-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Preview iframe */
+.ltc-preview-frame {
+  flex: 1;
+  border: none;
+  background: #fff;
+  border-radius: 0 0 12px 12px;
+}
+
+/* Hint */
+.ltc-hint {
+  background: rgba(250, 204, 21, 0.06);
+  border: 1px solid rgba(250, 204, 21, 0.15);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #C9A84C;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.ltc-hint strong {
+  color: #FACC15;
+}
+
+/* Step navigation */
+.ltc-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ltc-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: #8BA4BE;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.ltc-nav-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #E0E0E0;
+}
+
+.ltc-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.ltc-nav-next {
+  border-color: rgba(0, 212, 255, 0.3);
+  background: rgba(0, 212, 255, 0.08);
+  color: #00D4FF;
+}
+
+.ltc-nav-next:hover:not(:disabled) {
+  background: rgba(0, 212, 255, 0.15);
+  border-color: rgba(0, 212, 255, 0.5);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .ltc-container {
+    padding: 16px;
+  }
+
+  .ltc-editor-container {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .ltc-editor-pane,
+  .ltc-preview-pane {
+    height: 280px;
+  }
+
+  .ltc-step-header {
+    flex-wrap: wrap;
+  }
+
+  .ltc-complete-btn,
+  .ltc-completed-badge {
+    width: 100%;
+    justify-content: center;
+  }
+}

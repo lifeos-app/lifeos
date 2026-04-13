@@ -39,3 +39,4 @@ __pycache__/
 
 # Temporary
 CC-PROMPT.md
+.autodev/
