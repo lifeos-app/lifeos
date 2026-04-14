@@ -21,6 +21,7 @@ import { UnifiedTimeline } from '../components/schedule/UnifiedTimeline';
 import { ScheduleHeader } from '../components/schedule/ScheduleHeader';
 import { ScheduleMonthView } from '../components/schedule/ScheduleMonthView';
 import { ScheduleWeekView } from '../components/schedule/ScheduleWeekView';
+import { KanbanBoard } from '../components/KanbanBoard';
 import { ErrorCard } from '../components/ui/ErrorCard';
 import { localDateStr, genId } from '../utils/date';
 import { createScheduleEvent, EVENT_TYPES, PRIMARY_TYPES, OPERATIONS_TYPES, SACRED_TYPES, getLayerForType, getColorForType, type ScheduleLayer, type EventType, type EventTypeInfo } from '../lib/schedule-events';
@@ -298,6 +299,7 @@ export function Schedule() {
     initialLoad.current = false;
     if (view === 'day' || view === 'timeline') fetchDayEvents(isFirst);
     else if (view === 'week') fetchWeekEvents();
+    else if (view === 'board') { /* Board reads from store — already fetched */ }
     else fetchMonthEvents();
   }, [view, fetchDayEvents, fetchWeekEvents, fetchMonthEvents]);
 
@@ -305,6 +307,7 @@ export function Schedule() {
     const h = () => { 
       if (view === 'day' || view === 'timeline') fetchDayEvents();
       else if (view === 'week') fetchWeekEvents();
+      else if (view === 'board') { /* Board uses store data */ }
       else fetchMonthEvents();
     };
     window.addEventListener('lifeos-refresh', h);
@@ -571,6 +574,34 @@ export function Schedule() {
     return chain.join(' › ');
   }, [goals]);
 
+  // ── Growth plan tasks for Board view ──
+  const growthPlanGoal = useMemo(() =>
+    goals.find((g: ScheduleGoal) => g.title === 'TCS 90-Day Growth Plan'),
+  [goals]);
+
+  const growthSubGoalIds = useMemo(() => {
+    if (!growthPlanGoal) return [] as string[];
+    return (useGoalsStore.getState().getChildren(growthPlanGoal.id) || []).map((g: ScheduleGoal) => g.id);
+  }, [growthPlanGoal]);
+
+  const growthTasks = useMemo(() =>
+    tasks.filter(t =>
+      !t.is_deleted &&
+      (growthSubGoalIds.includes(t.goal_id || '') ||
+       (t as Record<string, unknown>).domain === 'financial')
+    ),
+  [tasks, growthSubGoalIds]);
+
+  const handleBoardStatusChange = useCallback(async (id: string, newStatus: string) => {
+    await useScheduleStore.getState().changeTaskStatus(id, newStatus as 'pending' | 'in_progress' | 'done');
+    useScheduleStore.getState().invalidate();
+  }, []);
+
+  const handleBoardPositionChange = useCallback(async (id: string, newPosition: number, newStatus: string) => {
+    await useScheduleStore.getState().changeTaskBoardPosition(id, newPosition, newStatus as 'pending' | 'in_progress' | 'done');
+    useScheduleStore.getState().invalidate();
+  }, []);
+
   const toggleTask = async (id: string, status: string) => {
     await useScheduleStore.getState().changeTaskStatus(id, status === 'done' ? 'pending' : 'done');
     fetchDayEvents();
@@ -588,7 +619,7 @@ export function Schedule() {
   };
 
   // Cascading goal hierarchy for event linking
-  const objectives = useMemo(() => goals.filter((g: ScheduleGoal) => !g.parent_goal_id && g.type === 'objective'), [goals]);
+  const objectives = useMemo(() => goals.filter((g: ScheduleGoal) => !g.parent_goal_id && (g.type === 'objective' || (g as Record<string, unknown>).category === 'growth-plan')), [goals]);
   const epics = useMemo(() => goals.filter((g: ScheduleGoal) => g.parent_goal_id === eventObjective && g.type === 'epic'), [goals, eventObjective]);
   const linkableGoals = useMemo(() => goals.filter((g: ScheduleGoal) => g.parent_goal_id === eventEpic && g.type === 'goal'), [goals, eventEpic]);
 
@@ -1939,6 +1970,35 @@ export function Schedule() {
             </div>
           )}
         </>
+      )}
+
+      {/* Board / Kanban View — Growth Plan Tasks */}
+      {view === 'board' && (
+        <div className="sched-board-view">
+          <div className="sbv-header glass-card">
+            <h2 className="sbv-title">TCS Growth Plan</h2>
+            <span className="sbv-subtitle">{growthTasks.length} tasks across 3 milestones</span>
+          </div>
+          <KanbanBoard
+            tasks={growthTasks.map(t => ({
+              id: t.id,
+              title: t.title,
+              status: t.status as 'pending' | 'in_progress' | 'done' | 'completed' | 'todo' | 'cancelled',
+              priority: (t.priority as 'low' | 'medium' | 'high' | 'urgent') || undefined,
+              due_date: t.due_date,
+              board_status: (t as Record<string, unknown>).board_status as 'todo' | 'in_progress' | 'done' | undefined,
+              board_position: (t as Record<string, unknown>).board_position as number | undefined,
+            }))}
+            onStatusChange={handleBoardStatusChange}
+            onPositionChange={handleBoardPositionChange}
+            enableManualSort
+          />
+          {growthTasks.length === 0 && (
+            <div className="sbv-empty glass-card">
+              <p>No growth plan tasks yet. Seed the 90-day plan from the TCS Growth Overview on the Work tab.</p>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Unified Timeline View */}

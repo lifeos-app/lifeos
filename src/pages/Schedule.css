@@ -1328,6 +1328,63 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
+/* ══════════════════════════════════════════════════════════════
+   BOARD / KANBAN VIEW
+   ══════════════════════════════════════════════════════════════ */
+.sched-board-view {
+  animation: fadeUp 0.4s ease-out;
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sbv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.08) 0%, rgba(212, 175, 55, 0.06) 100%);
+}
+
+.sbv-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #E8ECF1;
+  letter-spacing: 0.3px;
+  margin: 0;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.sbv-subtitle {
+  font-size: 0.85rem;
+  color: #8899AA;
+  font-weight: 400;
+}
+
+.sbv-empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: #8899AA;
+  margin-top: 24px;
+}
+
+.sbv-empty p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Make KanbanBoard fit nicely inside the board view */
+.sched-board-view .kb-board {
+  min-height: 400px;
+}
+
+.sched-board-view .kb-column {
+  min-height: 360px;
+}
+
 /* ── Deep-link highlight pulse ── */
 @keyframes stl-pulse-highlight {
   0%, 100% { box-shadow: none; }

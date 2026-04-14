@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Plus, List, Grid3x3, Calendar as CalendarIcon, Layers } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, List, Grid3x3, Calendar as CalendarIcon, Layers, ClipboardList } from 'lucide-react';
 import { fmtDisplay, MONTHS } from './utils';
 import type { ViewType } from './types';
 
@@ -36,9 +36,9 @@ export function ScheduleHeader({
       <div className="sched-nav">
         {(view === 'day' || view === 'timeline') ? (
           <>
-            <button 
-              className="sched-arrow" 
-              onClick={() => onDayShift(-1)} 
+            <button
+              className="sched-arrow"
+              onClick={() => onDayShift(-1)}
               aria-label="Previous day"
             >
               <ChevronLeft size={18} />
@@ -51,14 +51,18 @@ export function ScheduleHeader({
                 </button>
               )}
             </div>
-            <button 
-              className="sched-arrow" 
-              onClick={() => onDayShift(1)} 
+            <button
+              className="sched-arrow"
+              onClick={() => onDayShift(1)}
               aria-label="Next day"
             >
               <ChevronRight size={18} />
             </button>
           </>
+        ) : view === 'board' ? (
+          <div className="sched-date-info">
+            <h1 className="sched-title">Board</h1>
+          </div>
         ) : view === 'week' ? (
           <>
             <button 
@@ -136,13 +140,21 @@ export function ScheduleHeader({
           >
             <CalendarIcon size={15} />
           </button>
-          <button 
+          <button
             className={`sched-view-btn ${view === 'month' ? 'active' : ''}`}
             onClick={() => onViewChange('month')}
             title="Month view"
             aria-label="Month view"
           >
             <Grid3x3 size={15} />
+          </button>
+          <button
+            className={`sched-view-btn ${view === 'board' ? 'active' : ''}`}
+            onClick={() => onViewChange('board')}
+            title="Board view"
+            aria-label="Board view"
+          >
+            <ClipboardList size={15} />
           </button>
         </div>
       </div>

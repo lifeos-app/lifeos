@@ -188,8 +188,12 @@ export async function seedTCSGrowthPlan(userId: string): Promise<void> {
       goal_id: subGoalId,
       title: task.title,
       description: task.description,
-      status: 'todo' as const,
+      status: 'pending' as const,
       priority: task.priority,
+      board_status: 'todo',
+      domain: 'financial',
+      due_date: monthTargetStr,
+      board_position: ti,
       is_deleted: false,
       created_at: now.toISOString(),
     }));

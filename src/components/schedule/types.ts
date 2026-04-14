@@ -48,4 +48,4 @@ export interface ScheduleGoal {
 
 export type LayerFilter = 'all' | ScheduleLayer;
 
-export type ViewType = 'day' | 'week' | 'month' | 'timeline';
+export type ViewType = 'day' | 'week' | 'month' | 'timeline' | 'board';
