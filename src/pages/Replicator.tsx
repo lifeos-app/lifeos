@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Package, Upload, Plus, ArrowLeft } from 'lucide-react';
+import { Package, Upload, Plus, ArrowLeft, Search, Filter } from 'lucide-react';
 import { usePartsStore, type PartItem } from '../stores/usePartsStore';
 import { FileUploader } from '../components/parts/FileUploader';
 import { ColumnMapper } from '../components/parts/ColumnMapper';
@@ -80,14 +80,21 @@ export default function Replicator() {
               onClick={() => setView('table')}
               aria-label="Back to parts table"
               style={{
-                background: 'transparent', border: 'none', cursor: 'pointer',
-                color: '#8BA4BE', padding: 4,
+                background: 'transparent', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer',
+                color: '#8BA4BE', padding: 6, borderRadius: 6,
+                transition: 'all 0.2s',
               }}
             >
               <ArrowLeft size={20} />
             </button>
           )}
-          <Package size={28} style={{ color: '#10B981' }} />
+          <div style={{
+            width: 40, height: 40, borderRadius: 10,
+            background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <Package size={22} style={{ color: '#10B981' }} />
+          </div>
           <div>
             <h1 style={{ color: '#E2E8F0', fontSize: 24, margin: 0, fontWeight: 700 }}>
               Digital Replicator
@@ -106,8 +113,9 @@ export default function Replicator() {
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 padding: '8px 16px', borderRadius: 8,
-                background: 'transparent', border: '1px solid #1E2A3A',
-                color: '#8BA4BE', cursor: 'pointer', fontSize: 14,
+                background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)',
+                color: '#10B981', cursor: 'pointer', fontSize: 14, fontWeight: 500,
+                transition: 'all 0.2s',
               }}
             >
               <Upload size={16} />
@@ -119,8 +127,10 @@ export default function Replicator() {
               style={{
                 display: 'flex', alignItems: 'center', gap: 6,
                 padding: '8px 16px', borderRadius: 8,
-                background: '#10B981', border: 'none',
+                background: 'linear-gradient(135deg, #10B981, #059669)', border: 'none',
                 color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 500,
+                boxShadow: '0 2px 8px rgba(16,185,129,0.3)',
+                transition: 'all 0.2s',
               }}
             >
               <Plus size={16} />
@@ -133,9 +143,13 @@ export default function Replicator() {
       {/* Import result toast */}
       {importResult && (
         <div
+          role="status"
+          aria-live="polite"
           style={{
-            padding: '10px 16px', marginBottom: 16, borderRadius: 8,
-            background: importResult.includes('fail') ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)',
+            padding: '12px 16px', marginBottom: 16, borderRadius: 8,
+            background: importResult.includes('fail') ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)',
+            border: importResult.includes('fail') ? '1px solid rgba(239,68,68,0.2)' : '1px solid rgba(16,185,129,0.2)',
+            backdropFilter: 'blur(12px)',
             color: importResult.includes('fail') ? '#EF4444' : '#10B981',
             fontSize: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}
@@ -164,10 +178,11 @@ export default function Replicator() {
         loading && items.length === 0 ? (
           <div style={{ padding: 60, textAlign: 'center', color: '#64748B' }}>Loading...</div>
         ) : items.length === 0 ? (
-          <div style={{
+          <div role="status" style={{
             padding: '80px 40px', textAlign: 'center',
-            background: '#141824', borderRadius: 12,
-            border: '1px solid #1E2A3A',
+            background: 'rgba(17,24,39,0.6)', borderRadius: 12,
+            border: '1px solid rgba(255,255,255,0.06)',
+            backdropFilter: 'blur(12px)',
           }}>
             <Package size={48} style={{ color: '#1E2A3A', marginBottom: 16 }} />
             <h3 style={{ color: '#E2E8F0', fontSize: 18, marginBottom: 8 }}>No parts yet</h3>
