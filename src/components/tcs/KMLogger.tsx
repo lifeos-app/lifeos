@@ -6,10 +6,11 @@
  */
 
 import { useState, useCallback } from 'react';
-import { Car, Plus, Check } from 'lucide-react';
+import { Car, Plus, Check, Route } from 'lucide-react';
 import { supabase } from '../../lib/data-access';
-import { TCS_CONFIG, calcDeduction } from '../../lib/tcs-config';
+import { TCS_CONFIG, calcDeduction, ROUTE_KM } from '../../lib/tcs-config';
 import { useFinanceStore } from '../../stores/useFinanceStore';
+import { useScheduleStore } from '../../stores/useScheduleStore';
 import { useUserStore } from '../../stores/useUserStore';
 import { useGamificationContext } from '../../lib/gamification/context';
 import { genId, todayStr, fmtCurrency } from '../../utils/date';
@@ -24,6 +25,16 @@ export function KMLogger() {
   const [logging, setLogging] = useState(false);
   const [confirmation, setConfirmation] = useState<string | null>(null);
   const [error, setError] = useState('');
+
+  // Auto-suggest: check if tonight has TCS work events
+  const todayEvents = useScheduleStore(s => s.getEventsForDate(todayStr()));
+  const expenses = useFinanceStore(s => s.expenses);
+  const hasKmToday = expenses.some(e => e.date === todayStr() && (e.travel_km || 0) > 0);
+  const hasTCSWorkToday = todayEvents.some(e =>
+    e.event_type === 'work' || e.category === 'work' ||
+    (e.metadata as Record<string, unknown>)?.source === 'tcs'
+  );
+  const showRouteSuggestion = hasTCSWorkToday && !hasKmToday && !confirmation;
 
   const logKm = useCallback(async (km: number) => {
     if (km <= 0) return;
@@ -108,6 +119,19 @@ export function KMLogger() {
           <Check size={14} />
           <span>{confirmation}</span>
         </div>
+      )}
+
+      {/* Auto-suggest: Log tonight's route if TCS work events exist and no km logged yet */}
+      {showRouteSuggestion && (
+        <button
+          className="km-logger-route-suggestion"
+          onClick={() => logKm(ROUTE_KM)}
+          disabled={logging}
+        >
+          <Route size={14} />
+          <span>Log Tonight's Route</span>
+          <span className="km-logger-route-km">{ROUTE_KM}km</span>
+        </button>
       )}
 
       <div className="km-logger-presets">

@@ -64,6 +64,15 @@ export const TCS_CONFIG = {
 export type TCSVenue = typeof TCS_CONFIG.venues[number];
 export type TSCKmPreset = typeof TCS_CONFIG.kmPresets[number];
 
+/** ATO cents-per-km rate for 2025-2026 FY */
+export const ATO_RATE = TCS_CONFIG.atoKmRate;
+
+/** Full route km */
+export const ROUTE_KM = TCS_CONFIG.routeKm;
+
+/** Venue array shorthand */
+export const VENUES = TCS_CONFIG.venues;
+
 /** Calculate ATO deduction for a given km distance */
 export function calcDeduction(km: number): number {
   return km * TCS_CONFIG.atoKmRate;

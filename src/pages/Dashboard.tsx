@@ -69,7 +69,7 @@ import { logger } from '../utils/logger';
 import { ErrorCard } from '../components/ui/ErrorCard';
 import { EmptyState } from '../components/EmptyState';
 import { FeatureErrorBoundary } from '../components/FeatureErrorBoundary';
-import { TCSTodayCard } from '../components/tcs';
+import { TCSTodayCard, DailyCheckin, TCSDrivingWidget } from '../components/tcs';
 
 type DashTab = 'today' | 'schedule' | 'goals' | 'habits' | 'insights';
 
@@ -313,6 +313,12 @@ export function Dashboard() {
               </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="TCS Tonight" compact>
                 <TCSTodayCard />
+              </FeatureErrorBoundary>
+              <FeatureErrorBoundary feature="TCS Check-in" compact>
+                <DailyCheckin />
+              </FeatureErrorBoundary>
+              <FeatureErrorBoundary feature="TCS Driving" compact>
+                <TCSDrivingWidget />
               </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Streak Warnings" compact>
                 <DashboardStreakWarnings />

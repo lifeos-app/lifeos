@@ -1,0 +1,282 @@
+/**
+ * DailyCheckin — Glass card styling for TCS daily check-in
+ * Matches existing TCS component design: Orbitron/Poppins, cyan/green/orange
+ */
+
+.tcs-daily-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 12px;
+  padding: 16px;
+  backdrop-filter: blur(12px);
+  margin-bottom: 12px;
+}
+
+.tcs-daily-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  color: #00D4FF;
+}
+
+.tcs-daily-header > svg {
+  color: #F97316;
+}
+
+.tcs-daily-streak {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  color: #F97316;
+  padding: 2px 8px;
+  background: rgba(249, 115, 22, 0.1);
+  border: 1px solid rgba(249, 115, 22, 0.2);
+  border-radius: 12px;
+}
+
+.tcs-daily-done {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  color: #39FF14;
+  font-size: 13px;
+  font-family: 'Poppins', sans-serif;
+  justify-content: center;
+  background: rgba(57, 255, 20, 0.05);
+  border-radius: 8px;
+}
+
+/* Phase indicator */
+.tcs-daily-phase {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: #888;
+}
+
+.tcs-daily-phase svg {
+  color: #3B82F6;
+}
+
+/* Stats rows */
+.tcs-daily-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tcs-daily-stat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  font-size: 13px;
+  color: #fff;
+}
+
+.tcs-daily-stat-row svg {
+  color: #888;
+  flex-shrink: 0;
+}
+
+.tcs-daily-stat-label {
+  flex: 1;
+  font-family: 'Poppins', sans-serif;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+}
+
+.tcs-daily-stat-value {
+  font-family: 'Orbitron', monospace;
+  font-size: 12px;
+  color: #00D4FF;
+}
+
+.tcs-daily-stat-time {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  color: #888;
+}
+
+.tcs-daily-stat-rate {
+  font-family: 'Orbitron', monospace;
+  font-size: 12px;
+  color: #39FF14;
+}
+
+/* Morning overview (km + income) */
+.tcs-daily-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  background: rgba(0, 212, 255, 0.04);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 212, 255, 0.1);
+}
+
+.tcs-daily-overview-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-family: 'Poppins', sans-serif;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.tcs-daily-overview-item svg {
+  color: #888;
+  flex-shrink: 0;
+}
+
+.tcs-daily-overview-deduction {
+  margin-left: auto;
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  color: #39FF14;
+}
+
+.tcs-daily-overview-income {
+  font-family: 'Orbitron', monospace;
+  font-size: 12px;
+  color: #39FF14;
+}
+
+/* Mood / Energy selectors */
+.tcs-daily-selectors {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tcs-daily-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tcs-daily-selector-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  color: #888;
+}
+
+.tcs-daily-selector-options {
+  display: flex;
+  gap: 4px;
+}
+
+.tcs-daily-selector-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.tcs-daily-selector-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.tcs-daily-selector-btn.active {
+  background: rgba(0, 212, 255, 0.1);
+  transform: scale(1.1);
+}
+
+/* Notes textarea */
+.tcs-daily-notes {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  resize: vertical;
+  outline: none;
+  margin-bottom: 10px;
+}
+
+.tcs-daily-notes:focus {
+  border-color: rgba(0, 212, 255, 0.4);
+}
+
+.tcs-daily-notes::placeholder {
+  color: #555;
+}
+
+/* Submit button */
+.tcs-daily-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(135deg, #39FF14, #00D4FF);
+  border: none;
+  border-radius: 8px;
+  color: #000;
+  font-weight: 600;
+  font-size: 13px;
+  font-family: 'Orbitron', monospace;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tcs-daily-submit:hover {
+  transform: scale(1.02);
+  filter: brightness(1.1);
+}
+
+.tcs-daily-submit:active {
+  transform: scale(0.98);
+}
+
+/* Confirmed state */
+.tcs-daily-confirmed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  color: #39FF14;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  background: rgba(57, 255, 20, 0.05);
+  border: 1px solid rgba(57, 255, 20, 0.2);
+  border-radius: 8px;
+  animation: tcs-daily-fadeIn 0.3s ease;
+}
+
+@keyframes tcs-daily-fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -66,6 +66,43 @@
   animation: km-fade-in 0.2s ease-out;
 }
 
+/* ── Route Suggestion ── */
+
+.km-logger-route-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(57, 255, 20, 0.12), rgba(0, 212, 255, 0.08));
+  border: 1px solid rgba(57, 255, 20, 0.25);
+  border-radius: 8px;
+  color: #39FF14;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.km-logger-route-suggestion:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(57, 255, 20, 0.2), rgba(0, 212, 255, 0.12));
+  border-color: rgba(57, 255, 20, 0.4);
+  transform: translateY(-1px);
+}
+
+.km-logger-route-suggestion:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.km-logger-route-km {
+  margin-left: auto;
+  font-size: 11px;
+  color: #00D4FF;
+  font-family: 'Orbitron', sans-serif;
+}
+
 @keyframes km-fade-in {
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }
