@@ -4,7 +4,10 @@ import App from './App.tsx'
 import { installGlobalErrorHandlers } from './lib/error-reporter'
 import { openLocalDB } from './lib/local-db'
 import { initSyncEngine } from './lib/sync-engine'
+import { registerServiceWorker } from './lib/sw-register'
 import { logger } from './utils/logger';
+import { loadDeferredFonts } from './utils/lazy-fonts';
+import { setupRoutePrefetching } from './utils/route-prefetch';
 
 // Install global error handlers (catches unhandled errors + promise rejections)
 installGlobalErrorHandlers()
@@ -24,56 +27,14 @@ createRoot(document.getElementById('root')!).render(
 )
 
 // ─── Service Worker Registration ────────────────────────────────────
-// Stale-while-revalidate for static assets, network-first for API calls,
-// offline fallback page for navigation.
-if ('serviceWorker' in navigator) {
-  // Only register in production (Vite dev server handles its own HMR)
-  if (import.meta.env.PROD) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js', { scope: '/' })
-        .then((registration) => {
-          logger.log('[SW] Registered successfully, scope:', registration.scope);
-
-          // Check for updates every 30 minutes
-          setInterval(() => {
-            registration.update();
-          }, 30 * 60 * 1000);
-
-          // Handle updates: activate new SW immediately
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            if (!newWorker) return;
-
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New version available — activate it
-                logger.log('[SW] New version available, activating...');
-                newWorker.postMessage('SKIP_WAITING');
-              }
-            });
-          });
-        })
-        .catch((error) => {
-          logger.error('[SW] Registration failed:', error);
-        });
-
-      // Reload page when new SW takes control (seamless update)
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!refreshing) {
-          refreshing = true;
-          logger.log('[SW] Controller changed, reloading...');
-          window.location.reload();
-        }
-      });
-    });
-  } else {
-    // Development: unregister any lingering SWs to avoid stale caches
-    navigator.serviceWorker.getRegistrations().then(registrations => {
-      registrations.forEach(reg => reg.unregister());
-    });
-    if ('caches' in window) {
-      caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
-    }
-  }
-}
+// Offline-first: stale-while-revalidate for static assets, network-first
+// for API calls, offline fallback page for navigation.
+// Dev SWs are auto-cleaned by index.html boot script + registerServiceWorker
+// only activates in production builds.
+window.addEventListener('load', () => {
+  registerServiceWorker();
+  // Load fonts after initial render — avoids blocking FCP
+  loadDeferredFonts();
+  // Set up route chunk prefetching on hover/focus
+  setupRoutePrefetching();
+});

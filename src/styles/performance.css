@@ -1,0 +1,61 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   LifeOS Performance Utilities — CSS rendering optimizations
+   
+   These utilities use modern CSS performance features:
+   - content-visibility: auto — skips rendering off-screen elements
+   - contain — limits browser layout/paint scope
+   - will-change — hints for GPU-accelerated animations
+   
+   Use sparingly — overuse of will-change can hurt performance.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Off-screen content skipping ──
+   Apply to heavy sections that are below the fold.
+   Browser skips layout/paint until they scroll into view.
+   contain-intrinsic-size prevents layout shift (CLS).
+*/
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
+/* ── Containment scopes ──
+   Use on repeated list items, cards in grids, etc.
+   Prevents layout thrash when sibling elements change.
+*/
+.contain-layout {
+  contain: layout style;
+}
+
+.contain-paint {
+  contain: layout style paint;
+}
+
+.contain-strict {
+  contain: strict;
+}
+
+/* ── GPU acceleration hints ──
+   Only use on elements that WILL animate.
+   Remove after animation completes if possible.
+*/
+.gpu-accelerate {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* ── Reduced motion ──
+   Respect user preferences — disable animations for a11y
+*/
+@media (prefers-reduced-motion: reduce) {
+  .gpu-accelerate {
+    will-change: auto;
+    transform: none;
+  }
+  
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

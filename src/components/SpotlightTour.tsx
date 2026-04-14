@@ -14,6 +14,7 @@
 import { useEffect, useCallback } from 'react';
 import type { DriveStep, Config } from 'driver.js';
 // driver.js default CSS removed — using our own in styles/tour.css
+import '../styles/tour.css';
 import { supabase } from '../lib/data-access';
 
 // Lazy-load driver.js — only fetched when a tour actually runs

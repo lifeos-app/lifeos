@@ -33,21 +33,20 @@ import {
   PageSkeleton, SocialSkeleton, ReflectSkeleton, CharacterSkeleton,
   WorkSkeleton, StorySkeleton, InboxSkeleton,
 } from './components/skeletons';
-import '@fontsource/poppins/latin-300.css';
-import '@fontsource/poppins/latin-400.css';
-import '@fontsource/poppins/latin-500.css';
-import '@fontsource/poppins/latin-600.css';
-import '@fontsource/poppins/latin-700.css';
-import '@fontsource/orbitron/latin-400.css';
-import '@fontsource/orbitron/latin-700.css';
-import '@fontsource/orbitron/latin-900.css';
+// Fonts are deferred via loadDeferredFonts() in main.tsx for faster FCP
+// Only the critical Poppins 400 is preloaded; the rest load after idle
 import './styles/theme.css';
 import './styles/design-system.css';
 import './styles/mobile.css';
-import './styles/tour.css';
-import './styles/onboarding-animations.css';
-import './realm/onboarding/onboarding.css';
+import './styles/performance.css';
+// Tour and onboarding CSS loaded lazily — only needed when those UIs appear
+// (reduces initial CSS payload by ~15KB)
+// These are now loaded dynamically by the components that need them:
+// - tour.css: SpotlightTour component
+// - onboarding-animations.css: HealthOnboarding, LifeOnboarding
+// - onboarding.css: OnboardingQuest (Realm)
 import { logger } from './utils/logger';
+import { useSyncOnReconnect } from './hooks/useSyncOnReconnect';
 
 // Lazy load pages (with retry on chunk load failure)
 const Login = lazyRetry(() => import('./pages/Login').then(m => ({ default: m.Login })));
@@ -192,21 +191,30 @@ function AppRoutes() {
 
   // Hydrate all stores once user is authenticated — makes page navigation instant
   // skipSync: true prevents 6 individual syncs; we fire a single sync after all hydrate
+  // Uses requestIdleCallback to defer hydration and keep initial render fast
   useEffect(() => {
     if (!user) return;
-    const skipSync = { skipSync: true };
-    Promise.allSettled([
-      useScheduleStore.getState().fetchAll(skipSync),
-      useHealthStore.getState().fetchToday(skipSync),
-      useHabitsStore.getState().fetchAll(skipSync),
-      useFinanceStore.getState().fetchAll(skipSync),
-      useGoalsStore.getState().fetchAll(skipSync),
-      useJournalStore.getState().fetchRecent(50, skipSync),
-      useLiveActivityStore.getState().hydrate(),
-      useAssetsStore.getState().fetchAll(skipSync),
-    ]).then(() => {
-      import('./lib/sync-engine').then(m => m.syncNowImmediate(user.id)).catch(e => logger.warn('[app] initial sync failed:', e));
-    });
+    const hydrateStores = () => {
+      const skipSync = { skipSync: true };
+      Promise.allSettled([
+        useScheduleStore.getState().fetchAll(skipSync),
+        useHealthStore.getState().fetchToday(skipSync),
+        useHabitsStore.getState().fetchAll(skipSync),
+        useFinanceStore.getState().fetchAll(skipSync),
+        useGoalsStore.getState().fetchAll(skipSync),
+        useJournalStore.getState().fetchRecent(50, skipSync),
+        useLiveActivityStore.getState().hydrate(),
+        useAssetsStore.getState().fetchAll(skipSync),
+      ]).then(() => {
+        import('./lib/sync-engine').then(m => m.syncNowImmediate(user.id)).catch(e => logger.warn('[app] initial sync failed:', e));
+      });
+    };
+    // Defer store hydration to idle time — renders UI faster
+    if (typeof requestIdleCallback !== 'undefined') {
+      requestIdleCallback(hydrateStores, { timeout: 2000 });
+    } else {
+      setTimeout(hydrateStores, 200);
+    }
   }, [user?.id]);
 
   // Listen for lifeos-refresh events and invalidate all stores (debounced)
@@ -380,6 +388,7 @@ function AppRoutes() {
 
 function App() {
   const oauthReady = useOAuthCallbackHandler();
+  useSyncOnReconnect();
 
   if (!oauthReady) return <GlobalLoadingSpinner />;
 

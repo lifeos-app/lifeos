@@ -1,20 +1,20 @@
-// ═══════════════════════════════════════════════════════════
+// =================================================================
 // LifeOS Service Worker
 // Strategies:
 //   - Stale-while-revalidate for static assets (JS, CSS, images, fonts)
 //   - Network-first for API calls
 //   - Offline fallback page for navigation requests
-// ═══════════════════��═══════════════════════════════════════
+// =================================================================
 
-const CACHE_VERSION = 'lifeos-v2';
+const CACHE_VERSION = 'lifeos-v4';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const API_CACHE = `${CACHE_VERSION}-api`;
 const OFFLINE_PAGE = '/offline.html';
 
-// ─── Static asset patterns ──────────────────────────────────────────
+// -- Static asset patterns -----------------------------------------
 const STATIC_EXTENSIONS = /\.(js|css|woff2?|ttf|otf|eot|png|jpg|jpeg|gif|webp|svg|ico|avif)(\?.*)?$/i;
 
-// ─── API patterns ───────���───────────────────────────────────────────
+// -- API patterns ---------------------------------------------------
 const API_PATTERNS = [
   /\/rest\/v1\//,     // Supabase PostgREST
   /\/api\//,          // Local API
@@ -40,22 +40,21 @@ function isNavigationRequest(request) {
     (request.method === 'GET' && request.headers.get('accept')?.includes('text/html'));
 }
 
-// ─── Install ────────────────────────────────────────────────────────
+// -- Install --------------------------------------------------------
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
-      // Pre-cache the offline fallback page
-      return cache.addAll([OFFLINE_PAGE]).catch(() => {
-        // Offline page might not exist yet — that's ok
-        console.log('[SW] Offline page not available for pre-cache');
+      // Pre-cache the offline fallback page and app shell
+      return cache.addAll([OFFLINE_PAGE, '/']).catch(() => {
+        console.log('[SW] App shell pre-cache failed (may not exist in dev)');
       });
     })
   );
-  // Activate immediately — don't wait for old SW to stop
+  // Activate immediately -- don't wait for old SW to stop
   self.skipWaiting();
 });
 
-// ─── Activate ───────────────────────────────────────────────────────
+// -- Activate -------------------------------------------------------
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -70,7 +69,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// ─── Fetch ───��───────────────────────────────���──────────────────────
+// -- Fetch -----------------------------------------------------------
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
@@ -83,19 +82,19 @@ self.addEventListener('fetch', (event) => {
   // Skip chrome-extension and other non-http requests
   if (!url.protocol.startsWith('http')) return;
 
-  // ── Strategy 1: Network-first for API calls ──
+  // Strategy 1: Network-first for API calls
   if (isApiRequest(url)) {
     event.respondWith(networkFirst(event.request, API_CACHE));
     return;
   }
 
-  // ── Strategy 2: Stale-while-revalidate for static assets ──
+  // Strategy 2: Stale-while-revalidate for static assets
   if (isStaticAsset(url)) {
     event.respondWith(staleWhileRevalidate(event.request, STATIC_CACHE));
     return;
   }
 
-  // ── Strategy 3: Network-first with offline fallback for navigation ──
+  // Strategy 3: Network-first with offline fallback for navigation
   if (isNavigationRequest(event.request)) {
     event.respondWith(navigationWithFallback(event.request));
     return;
@@ -104,7 +103,7 @@ self.addEventListener('fetch', (event) => {
   // Everything else: network only (don't cache)
 });
 
-// ─── Strategies ─────────────────────────────────────────────────────
+// -- Strategies ------------------------------------------------------
 
 /**
  * Stale-while-revalidate: return cached version immediately,
@@ -117,17 +116,14 @@ async function staleWhileRevalidate(request, cacheName) {
   const fetchPromise = fetch(request)
     .then((networkResponse) => {
       if (networkResponse.ok) {
-        // Clone before putting in cache (response can only be consumed once)
         cache.put(request, networkResponse.clone());
       }
       return networkResponse;
     })
     .catch(() => {
-      // Network failed — cached version (if any) already returned
       return cachedResponse;
     });
 
-  // Return cached version immediately, or wait for network
   return cachedResponse || fetchPromise;
 }
 
@@ -151,11 +147,11 @@ async function networkFirst(request, cacheName) {
 
     return networkResponse;
   } catch (error) {
-    // Network failed — try cache
+    // Network failed -- try cache
     const cachedResponse = await cache.match(request);
     if (cachedResponse) return cachedResponse;
 
-    // Nothing in cache either — return error response
+    // Nothing in cache either -- return error response
     return new Response(
       JSON.stringify({ error: 'Offline', message: 'No cached data available' }),
       {
@@ -180,9 +176,9 @@ async function navigationWithFallback(request) {
     const offlinePage = await cache.match(OFFLINE_PAGE);
     if (offlinePage) return offlinePage;
 
-    // Last resort: simple offline message
+    // Last resort: simple offline message (no emoji per design rules)
     return new Response(
-      '<html><body style="background:#0a1628;color:#8BA4BE;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:system-ui"><div style="text-align:center"><h1>📱 LifeOS</h1><p>You\'re offline. Check your connection and try again.</p></div></body></html>',
+      '<html><body style="background:#0a1628;color:#8BA4BE;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:system-ui"><div style="text-align:center"><h1 style="color:#E2E8F0">LifeOS</h1><p>You\'re offline. Check your connection and try again.</p></div></body></html>',
       {
         status: 503,
         headers: { 'Content-Type': 'text/html' },
@@ -191,7 +187,7 @@ async function navigationWithFallback(request) {
   }
 }
 
-// ─── Message handling ────��──────────────────────────────────────────
+// -- Message handling ------------------------------------------------
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') {
     self.skipWaiting();
@@ -201,5 +197,28 @@ self.addEventListener('message', (event) => {
     caches.keys().then((keys) => {
       keys.forEach((key) => caches.delete(key));
     });
+  }
+
+  if (event.data === 'REGISTER_SYNC') {
+    // Background sync registration -- best effort
+    if ('sync' in self.registration) {
+      self.registration.sync.register('lifeos-data-sync').catch(() => {
+        console.log('[SW] Background sync not supported');
+      });
+    }
+  }
+});
+
+// -- Background Sync -------------------------------------------------
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'lifeos-data-sync') {
+    event.waitUntil(
+      // Notify all clients that they should sync
+      self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage('SYNC_NOW');
+        });
+      })
+    );
   }
 });

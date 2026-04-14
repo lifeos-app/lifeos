@@ -1,10 +1,13 @@
 /**
  * sw-register.ts — Service Worker registration, update detection, and install prompt
  *
- * DEPRECATED — SW is disabled. Service worker registration is a no-op.
- * Only version.json polling (onUpdateAvailable / applyUpdate) remains active,
- * used by UpdateBanner.tsx to detect new deploys.
- * Do NOT call registerServiceWorker().
+ * Service worker provides offline-first support:
+ *   - Stale-while-revalidate for static assets (JS, CSS, images, fonts)
+ *   - Network-first for API calls (with cache fallback)
+ *   - Offline fallback page for navigation requests
+ *
+ * In development (localhost): SW is auto-unregistered by index.html boot script.
+ * In production: SW registers on window load and checks for updates every 30 min.
  */
 
 import { logger } from '../utils/logger';
@@ -21,15 +24,68 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-// ── Registration ──
+// ── Registration ──────────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+/**
+ * Register the service worker for offline-first caching.
+ * Only registers in production builds (Vite handles HMR in dev).
+ * The index.html boot script already unregisters SWs on localhost.
+ */
 export async function registerServiceWorker() {
-  // DEPRECATED — no-op. SW is disabled to prevent caching auth issues.
-  // main.tsx actively unregisters any lingering SWs on startup.
+  if (!('serviceWorker' in navigator)) return;
+  if (!import.meta.env.PROD) return;
+
+  try {
+    const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    logger.log('[SW] Registered successfully, scope:', registration.scope);
+
+    // Check for updates every 30 minutes
+    setInterval(() => {
+      registration.update();
+    }, 30 * 60 * 1000);
+
+    // Handle updates: activate new SW immediately
+    registration.addEventListener('updatefound', () => {
+      const newWorker = registration.installing;
+      if (!newWorker) return;
+
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          logger.log('[SW] New version available, activating...');
+          newWorker.postMessage('SKIP_WAITING');
+        }
+      });
+    });
+
+    // Notify callback when update is available
+    if (_updateCallback) {
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              _updateCallback?.(registration);
+            }
+          });
+        }
+      });
+    }
+  } catch (error) {
+    logger.error('[SW] Registration failed:', error);
+  }
+
+  // Reload page when new SW takes control (seamless update)
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      logger.log('[SW] Controller changed, reloading...');
+      window.location.reload();
+    }
+  });
 }
 
-// ── Background Sync Registration ──
+// ── Background Sync Registration ─────────────────────────────────
 
 export function requestBackgroundSync() {
   if (!('serviceWorker' in navigator)) return;
@@ -40,7 +96,7 @@ export function requestBackgroundSync() {
   });
 }
 
-// ── Update Detection ──
+// ── Update Detection ─────────────────────────────────────────────
 
 export function onUpdateAvailable(callback: SWCallback) {
   _updateCallback = callback;
@@ -52,7 +108,7 @@ export function applyUpdate(registration: ServiceWorkerRegistration) {
   }
 }
 
-// ── Install Prompt ──
+// ── Install Prompt ────────────────────────────────────────────────
 
 export function getDeferredPrompt(): BeforeInstallPromptEvent | null {
   return _deferredPrompt;
@@ -67,16 +123,15 @@ export function onAppInstalled(callback: () => void) {
 }
 
 export function isAppInstalled(): boolean {
-  // Check if running as PWA (cross-browser)
   try {
     return window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as unknown as Record<string, unknown>).standalone === true; // iOS Safari standalone mode
+      (window.navigator as unknown as Record<string, unknown>).standalone === true;
   } catch {
     return false;
   }
 }
 
-// ── Capture install prompt ──
+// ── Capture install prompt ────────────────────────────────────────
 if (typeof window !== 'undefined') {
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();

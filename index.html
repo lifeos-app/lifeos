@@ -72,8 +72,17 @@
     <link rel="alternate" hreflang="en" href="https://app.runlifeos.com/app/" />
     <link rel="alternate" hreflang="en-AU" href="https://app.runlifeos.com/app/" />
     
-    <!-- Preload critical images -->
-    <!-- removed: preload for icon-192.png not needed (used as favicon/touch-icon only) -->
+    <!-- Preconnect to external origins for faster connections -->
+    <link rel="preconnect" href="https://supabase.co" />
+    <link rel="dns-prefetch" href="https://supabase.co" />
+    <link rel="preconnect" href="https://openrouter.ai" />
+    <link rel="dns-prefetch" href="https://openrouter.ai" />
+
+    <!-- Critical CSS: prevent white flash before JS hydration -->
+    <style>
+      body { margin: 0; background: #050E1A; color: #8BA4BE; }
+      #root { min-height: 100dvh; }
+    </style>
 
     <!-- Structured Data: SoftwareApplication -->
     <script type="application/ld+json">
@@ -209,9 +218,9 @@
     </script>
   </head>
   <body>
-    <!-- Nuclear SW killer — runs before React, prevents stale cache loops -->
+    <!-- SW management: clear stale SWs in dev only, let prod SW work for offline-first -->
     <script>
-      if('serviceWorker' in navigator){
+      if('serviceWorker' in navigator && location.hostname === 'localhost'){
         navigator.serviceWorker.getRegistrations().then(function(r){
           r.forEach(function(reg){reg.unregister()});
         });

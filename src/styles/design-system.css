@@ -550,6 +550,7 @@
   transition: all var(--transition-default);
   position: relative;
   overflow: hidden;
+  contain: layout style paint;
 }
 
 .card::before {

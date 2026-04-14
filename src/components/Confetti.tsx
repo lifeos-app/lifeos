@@ -1,8 +1,9 @@
 /**
  * Confetti — lightweight CSS-only burst animation.
- * Uses .confetti-piece class from onboarding-animations.css (imported globally).
+ * Uses .confetti-piece class from onboarding-animations.css.
  */
 import { useEffect, useState } from 'react';
+import '../styles/onboarding-animations.css';
 
 const COLORS = ['#00D4FF', '#7C5CFC', '#FFD93D', '#4ECB71', '#FF6B6B', '#FF9F43', '#A8E6CF'];
 const SHAPES = ['rect', 'circle'];

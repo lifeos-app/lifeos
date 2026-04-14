@@ -21,9 +21,15 @@
       max-width: 400px;
     }
     .offline-icon {
-      font-size: 64px;
       margin-bottom: 16px;
       opacity: 0.8;
+    }
+    .offline-icon svg {
+      width: 64px;
+      height: 64px;
+      stroke: #00D4FF;
+      fill: none;
+      stroke-width: 1.5;
     }
     h1 {
       font-size: 24px;
@@ -55,6 +61,13 @@
       background: rgba(0, 212, 255, 0.2);
       border-color: rgba(0, 212, 255, 0.5);
     }
+    .retry-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+    }
     .tips {
       margin-top: 32px;
       font-size: 12px;
@@ -63,21 +76,42 @@
     .tips li {
       list-style: none;
       padding: 4px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .tips li svg {
+      width: 14px;
+      height: 14px;
+      stroke: #4A6580;
+      fill: none;
+      stroke-width: 2;
+      flex-shrink: 0;
     }
   </style>
 </head>
 <body>
   <div class="offline-container">
-    <div class="offline-icon">📡</div>
+    <div class="offline-icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 12 C2 6.5 6.5 2 12 2 C17.5 2 22 6.5 22 12" stroke-linecap="round"/>
+        <path d="M5 12 C5 8.1 8.1 5 12 5 C15.9 5 19 8.1 19 12" stroke-linecap="round"/>
+        <path d="M8 12 C8 9.8 9.8 8 12 8 C14.2 8 16 9.8 16 12" stroke-linecap="round"/>
+        <circle cx="12" cy="12" r="1.5" fill="#00D4FF" stroke="none"/>
+        <line x1="3" y1="3" x2="21" y2="21" stroke="#EF4444" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
     <h1>You're Offline</h1>
     <p>LifeOS needs an internet connection to sync your data. Your local changes are saved and will sync when you're back online.</p>
     <button class="retry-btn" onclick="window.location.reload()">
-      🔄 Try Again
+      <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3v5h5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 16h5v5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Try Again
     </button>
     <ul class="tips">
-      <li>💡 Check your Wi-Fi or cellular connection</li>
-      <li>💡 Try moving to a location with better signal</li>
-      <li>💡 Your data is safe — it will sync automatically</li>
+      <li><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4" stroke-linecap="round"/><path d="M12 8h.01" stroke-linecap="round"/></svg> Check your Wi-Fi or cellular connection</li>
+      <li><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4" stroke-linecap="round"/><path d="M12 8h.01" stroke-linecap="round"/></svg> Try moving to a location with better signal</li>
+      <li><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round" stroke-linejoin="round"/></svg> Your data is safe — it will sync automatically</li>
     </ul>
   </div>
 </body>

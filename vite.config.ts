@@ -154,14 +154,37 @@ export default defineConfig(({ mode }) => {
           if (id.includes('node_modules/zustand')) {
             return 'vendor-state';
           }
-          // ── App: Gamification engine (large, only active after login) ──
-          if (id.includes('/lib/gamification/') ||
-              id.includes('/hooks/useGamification')) {
-            return 'gamification';
+          // ── Vendor: date-fns (used by schedule, habits, health) ──
+          if (id.includes('node_modules/date-fns')) {
+            return 'vendor-date';
           }
           // ── App: System bus + adapters ──
           if (id.includes('/lib/systems/')) {
             return 'systems';
+          }
+          // ── App: LLM/AI engine (only used by AI chat features) ──
+          // Note: morning-brief imports from gamification, so some llm files
+          // will stay in the main bundle to avoid circular chunks
+          if ((id.includes('/lib/llm/') || id.includes('/lib/llm-proxy') ||
+               id.includes('/lib/llm-providers') || id.includes('/lib/streaming')) &&
+              !id.includes('morning-brief')) {
+            return 'llm-engine';
+          }
+          // ── Vendor: Tone.js (audio engine for Realm — ~430KB) ──
+          if (id.includes('node_modules/tone/')) {
+            return 'vendor-tone';
+          }
+          // ── Vendor: XLSX (spreadsheet parser — only used by Replicator file upload) ──
+          if (id.includes('node_modules/xlsx/') || id.includes('node_modules/sheetjs')) {
+            return 'vendor-xlsx';
+          }
+          // ── Vendor: Chart.js (data visualization) ──
+          if (id.includes('node_modules/chart.js') || id.includes('node_modules/chartjs')) {
+            return 'vendor-charts';
+          }
+          // ── App: Social features (guilds, partners, messaging) ──
+          if (id.includes('/lib/social/')) {
+            return 'social';
           }
         },
       },
