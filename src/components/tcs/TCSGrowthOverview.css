@@ -1,0 +1,338 @@
+/* ═══════════════════════════════════════════════════════════
+   TCSGrowthOverview — 90-Day Growth Plan visual progress
+   Glass card, Orbitron/Poppins, dark theme, lucide only
+   ═══════════════════════════════════════════════════════════ */
+
+.tcs-growth-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: tcs-growth-fade-up 0.3s ease;
+}
+
+/* ── Header ── */
+
+.tcs-growth-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tcs-growth-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tcs-growth-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tcs-growth-icon {
+  color: #00D4FF;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(0, 212, 255, 0.3));
+}
+
+.tcs-growth-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.tcs-growth-progress-label {
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.tcs-growth-progress-pct {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #39FF14;
+  filter: drop-shadow(0 0 2px rgba(57, 255, 20, 0.3));
+}
+
+/* ── Progress Bar ── */
+
+.tcs-growth-progress-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.tcs-growth-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00D4FF, #39FF14);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+/* ── Month Columns ── */
+
+.tcs-growth-months {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tcs-growth-month {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tcs-growth-month:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.tcs-growth-month-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.tcs-growth-month-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.tcs-growth-month-count {
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+.tcs-growth-month-subtitle {
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.35);
+  margin: 0;
+  line-height: 1.3;
+}
+
+/* ── Task List ── */
+
+.tcs-growth-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+}
+
+.tcs-growth-task {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tcs-growth-task:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.tcs-growth-task--done {
+  border-color: rgba(57, 255, 20, 0.1);
+  background: rgba(57, 255, 20, 0.02);
+}
+
+.tcs-growth-task--progress {
+  border-color: rgba(0, 212, 255, 0.12);
+  background: rgba(0, 212, 255, 0.02);
+}
+
+.tcs-growth-task-icon {
+  flex-shrink: 0;
+}
+
+.tcs-growth-task-icon--done {
+  color: #39FF14;
+  filter: drop-shadow(0 0 3px rgba(57, 255, 20, 0.4));
+}
+
+.tcs-growth-task-icon--progress {
+  color: #00D4FF;
+  filter: drop-shadow(0 0 2px rgba(0, 212, 255, 0.3));
+}
+
+.tcs-growth-task-icon--todo {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.tcs-growth-task-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  flex: 1;
+  line-height: 1.3;
+}
+
+.tcs-growth-task--done .tcs-growth-task-title {
+  color: rgba(255, 255, 255, 0.45);
+  text-decoration: line-through;
+}
+
+.tcs-growth-task--progress .tcs-growth-task-title {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.tcs-growth-task-priority {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.tcs-growth-task-priority--urgent {
+  color: #FF4444;
+  filter: drop-shadow(0 0 2px rgba(255, 68, 68, 0.4));
+}
+
+/* ── Month Mini Progress Bar ── */
+
+.tcs-growth-month-bar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 1.5px;
+  overflow: hidden;
+  margin-top: auto;
+}
+
+.tcs-growth-month-bar-fill {
+  height: 100%;
+  border-radius: 1.5px;
+  transition: width 0.4s ease;
+}
+
+/* ── Footer ── */
+
+.tcs-growth-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tcs-growth-footer-icon {
+  color: rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.tcs-growth-footer-text {
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Empty / Seed State ── */
+
+.tcs-growth-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 12px;
+  text-align: center;
+}
+
+.tcs-growth-empty-text {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+  line-height: 1.5;
+  max-width: 280px;
+}
+
+.tcs-growth-seed-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(57, 255, 20, 0.1));
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  border-radius: 10px;
+  color: #00D4FF;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tcs-growth-seed-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.25), rgba(57, 255, 20, 0.15));
+  border-color: rgba(0, 212, 255, 0.5);
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.2);
+}
+
+.tcs-growth-seed-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tcs-growth-spin {
+  animation: tcs-growth-spin 1s linear infinite;
+}
+
+@keyframes tcs-growth-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Fade-up animation ── */
+
+@keyframes tcs-growth-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 600px) {
+  .tcs-growth-months {
+    flex-direction: column;
+  }
+
+  .tcs-growth-month {
+    min-width: unset;
+  }
+}

@@ -10,6 +10,7 @@ import {
   Building2, Users, Plus, Edit2, X, ChevronDown, ChevronRight, BarChart3, CreditCard, Package,
   TrendingUp, Banknote, CalendarCheck,
 } from 'lucide-react';
+import { KMLogger, VehicleLogbook, InvoiceTracker, TCSGrowthOverview } from '../tcs';
 
 export const WorkTab = React.memo(function WorkTab() {
   const ctx = useFinances();
@@ -71,6 +72,12 @@ export const WorkTab = React.memo(function WorkTab() {
 
   return (
     <div className="fin-work">
+      {/* ── TCS Operations ── */}
+      <KMLogger />
+      <VehicleLogbook />
+      <InvoiceTracker />
+      <TCSGrowthOverview />
+
       {/* ── Projected Monthly Income ── */}
       {businessFinancials.length > 0 && (
         <div className="fin-glass-card fin-projected-income-card">

@@ -1,0 +1,264 @@
+/* ═══════════════════════════════════════════════════════════
+   InvoiceTracker — Per-venue expected vs actual income
+   Glass card, Orbitron/Poppins, dark theme, lucide only
+   ═══════════════════════════════════════════════════════════ */
+
+.invoice-tracker {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: invoice-tracker-fade-up 0.3s ease;
+}
+
+/* ── Header ── */
+
+.invoice-tracker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.invoice-tracker-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.invoice-tracker-icon {
+  color: #00D4FF;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(0, 212, 255, 0.3));
+}
+
+.invoice-tracker-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.invoice-tracker-month {
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* ── Venue Rows ── */
+
+.invoice-tracker-venues {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.invoice-tracker-venue {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.invoice-tracker-venue:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Status-specific border accents */
+.invoice-tracker-venue--on-track {
+  border-left: 3px solid #39FF14;
+}
+
+.invoice-tracker-venue--under {
+  border-left: 3px solid #F97316;
+}
+
+.invoice-tracker-venue--no-data {
+  border-left: 3px solid #F43F5E;
+}
+
+.invoice-tracker-venue-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.invoice-tracker-venue-name {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.invoice-tracker-venue-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid;
+  flex-shrink: 0;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+.invoice-tracker-venue-amounts {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.invoice-tracker-actual {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.invoice-tracker-expected {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* ── Progress Bar ── */
+
+.invoice-tracker-bar-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.invoice-tracker-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+  min-width: 0;
+}
+
+/* ── Empty State ── */
+
+.invoice-tracker-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 12px;
+}
+
+.invoice-tracker-empty-icon {
+  color: rgba(255, 255, 255, 0.15);
+}
+
+.invoice-tracker-empty-text {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.35);
+  text-align: center;
+}
+
+/* ── Footer Totals ── */
+
+.invoice-tracker-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+}
+
+.invoice-tracker-footer-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.invoice-tracker-footer-label {
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  white-space: nowrap;
+}
+
+.invoice-tracker-footer-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.invoice-tracker-footer-value--actual {
+  color: #39FF14;
+  filter: drop-shadow(0 0 2px rgba(57, 255, 20, 0.3));
+}
+
+.invoice-tracker-footer-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+/* ── Fade-up animation ── */
+
+@keyframes invoice-tracker-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 480px) {
+  .invoice-tracker-footer {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .invoice-tracker-footer-divider {
+    display: none;
+  }
+
+  .invoice-tracker-footer-stat {
+    flex: 1 1 45%;
+    justify-content: center;
+  }
+
+  .invoice-tracker-venue-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+
+  .invoice-tracker-actual {
+    font-size: 14px;
+  }
+}

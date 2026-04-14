@@ -1,0 +1,242 @@
+/* ═══════════════════════════════════════════════════════════
+   TCSTodayCard — Tonight's run at a glance
+   Glass card, Orbitron/Poppins, dark theme, lucide only
+   ═══════════════════════════════════════════════════════════ */
+
+.tcs-today-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: tcs-today-fade-up 0.3s ease;
+}
+
+/* ── Header ── */
+
+.tcs-today-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tcs-today-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tcs-today-icon {
+  color: #00D4FF;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(0, 212, 255, 0.3));
+}
+
+.tcs-today-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.tcs-today-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tcs-today-date {
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.tcs-today-count {
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 8px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.tcs-today-count--done {
+  color: #39FF14;
+  background: rgba(57, 255, 20, 0.1);
+}
+
+/* ── Venue List ── */
+
+.tcs-today-venues {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tcs-today-venue {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tcs-today-venue:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.tcs-today-venue--done {
+  border-color: rgba(57, 255, 20, 0.15);
+  background: rgba(57, 255, 20, 0.03);
+}
+
+.tcs-today-venue-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.tcs-today-venue-check {
+  color: #39FF14;
+  filter: drop-shadow(0 0 3px rgba(57, 255, 20, 0.4));
+}
+
+.tcs-today-venue-brief {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.tcs-today-venue-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tcs-today-venue-name {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tcs-today-venue--done .tcs-today-venue-name {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.tcs-today-venue-suburb {
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.tcs-today-venue-rate {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #00D4FF;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.tcs-today-venue--done .tcs-today-venue-rate {
+  color: rgba(0, 212, 255, 0.5);
+}
+
+/* ── Bottom Stats Row ── */
+
+.tcs-today-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+}
+
+.tcs-today-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tcs-today-stat-icon {
+  color: rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
+}
+
+.tcs-today-stat-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.tcs-today-stat-value--income {
+  color: #39FF14;
+  filter: drop-shadow(0 0 2px rgba(57, 255, 20, 0.3));
+}
+
+.tcs-today-stat-label {
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  white-space: nowrap;
+}
+
+.tcs-today-stat-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+/* ── Fade-up animation ── */
+
+@keyframes tcs-today-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 480px) {
+  .tcs-today-stats {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .tcs-today-stat-divider {
+    display: none;
+  }
+
+  .tcs-today-stat {
+    flex: 1 1 45%;
+    justify-content: center;
+  }
+
+  .tcs-today-stat-label {
+    display: none;
+  }
+}

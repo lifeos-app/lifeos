@@ -1,0 +1,126 @@
+/* JobCompleteButton — Glass/gradient button for one-tap job completion */
+
+.job-complete-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+/* ── Completed state (static green check) ── */
+
+.job-complete-done {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.job-complete-done-icon {
+  color: #4ade80;
+  filter: drop-shadow(0 0 4px rgba(74, 222, 128, 0.4));
+}
+
+/* ── Unknown venue fallback ── */
+
+.job-complete-unknown {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.job-complete-unknown-text {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ── Action button ── */
+
+.job-complete-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(74, 222, 128, 0.15), rgba(34, 197, 94, 0.08));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #4ade80;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.job-complete-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(74, 222, 128, 0.25), rgba(34, 197, 94, 0.15));
+  border-color: rgba(74, 222, 128, 0.4);
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.15);
+  transform: translateY(-1px);
+}
+
+.job-complete-btn:active:not(:disabled) {
+  transform: translateY(0);
+  background: linear-gradient(135deg, rgba(74, 222, 128, 0.3), rgba(34, 197, 94, 0.18));
+}
+
+.job-complete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.job-complete-btn-text {
+  line-height: 1;
+}
+
+.job-complete-btn-rate {
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.7;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(74, 222, 128, 0.1);
+  line-height: 1;
+}
+
+/* ── Spinner (processing state) ── */
+
+.job-complete-spinner {
+  animation: job-complete-spin 0.8s linear infinite;
+}
+
+@keyframes job-complete-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ── Feedback toast ── */
+
+.job-complete-feedback {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+  color: #4ade80;
+  font-size: 12px;
+  font-weight: 500;
+  animation: job-complete-fade-in 0.25s ease-out;
+}
+
+@keyframes job-complete-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

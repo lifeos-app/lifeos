@@ -1,0 +1,245 @@
+/* KMLogger — Glass card styles for TCS km logging */
+
+.km-logger {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Header ── */
+
+.km-logger-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.km-logger-icon {
+  color: #00D4FF;
+  flex-shrink: 0;
+}
+
+.km-logger-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.km-logger-rate {
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* ── Error / Confirmation ── */
+
+.km-logger-error {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: #ff4757;
+  background: rgba(255, 71, 87, 0.1);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.km-logger-confirmation {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: #39FF14;
+  background: rgba(57, 255, 20, 0.08);
+  border-radius: 6px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  animation: km-fade-in 0.2s ease-out;
+}
+
+@keyframes km-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Preset Grid ── */
+
+.km-logger-presets {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.km-logger-preset-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 6px;
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.12), rgba(0, 212, 255, 0.04));
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.km-logger-preset-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.25), rgba(0, 212, 255, 0.1));
+  border-color: rgba(0, 212, 255, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 212, 255, 0.15);
+}
+
+.km-logger-preset-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.km-logger-preset-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.km-logger-preset-label {
+  font-family: 'Poppins', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: #00D4FF;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.km-logger-preset-km {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.km-logger-preset-deduction {
+  font-family: 'Poppins', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: #39FF14;
+}
+
+/* ── Custom Input ── */
+
+.km-logger-custom {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 10px;
+}
+
+.km-logger-custom-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.km-logger-custom-icon {
+  color: rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.km-logger-custom-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s ease;
+  min-width: 0;
+}
+
+.km-logger-custom-input:focus {
+  border-color: rgba(0, 212, 255, 0.5);
+}
+
+.km-logger-custom-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+/* Remove number input spinners */
+.km-logger-custom-input::-webkit-inner-spin-button,
+.km-logger-custom-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.km-logger-custom-input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.km-logger-custom-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, #00D4FF, #00A8CC);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.km-logger-custom-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #00E5FF, #00B8D4);
+  box-shadow: 0 2px 8px rgba(0, 212, 255, 0.3);
+}
+
+.km-logger-custom-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 480px) {
+  .km-logger-presets {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .km-logger-custom-btn span {
+    display: none;
+  }
+
+  .km-logger-custom-btn {
+    padding: 8px 10px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 640px) {
+  .km-logger-presets {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .km-logger-preset-km {
+    font-size: 14px;
+  }
+
+  .km-logger-preset-label {
+    font-size: 9px;
+  }
+}
