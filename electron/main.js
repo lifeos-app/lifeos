@@ -19,6 +19,7 @@ import { app, BrowserWindow, ipcMain, protocol, shell } from 'electron';
 import { join, resolve } from 'node:path';
 import { existsSync, readFileSync, statSync, createReadStream } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { createServer } from 'node:http';
 import {
   initDatabase,
   closeDatabase,
@@ -36,6 +37,126 @@ import { initSteam, getSteamStatus } from './steam.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const isDev = !app.isPackaged;
+
+// ═══════════════════════════════════════════════════════════════
+// Local OAuth Callback Server
+// ─────────────────────────────────────────────────────────────
+// On Linux, custom protocol handlers (lifeos://) lose the URL
+// fragment (#access_token=...) when the OS routes the URL back.
+// Solution: spin up a temporary localhost HTTP server that serves
+// a page to extract the fragment and post the tokens to Electron.
+// ═══════════════════════════════════════════════════════════════
+
+let oauthCallbackServer = null;
+let oauthCallbackPort = null;
+let pendingOAuthResolve = null;
+
+function startOAuthCallbackServer() {
+  if (oauthCallbackServer) return oauthCallbackPort;
+
+  return new Promise((resolve, reject) => {
+    const server = createServer((req, res) => {
+      const url = new URL(req.url, `http://127.0.0.1:${oauthCallbackPort}`);
+
+      if (url.pathname === '/auth/callback') {
+        // Serve the HTML page that extracts the hash fragment and posts it back
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(`<!DOCTYPE html>
+<html><head><title>LifeOS — Logging in...</title>
+<style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0A1628;color:#E2E8F0}
+.card{text-align:center;padding:48px;background:#111827;border:1px solid #1A3A5C;border-radius:12px;max-width:400px}
+h2{color:#00D4FF;margin:0 0 12px}.spin{display:inline-block;width:24px;height:24px;border:3px solid #1A3A5C;border-top-color:#00D4FF;border-radius:50%;animation:rot 0.6s linear infinite;margin-bottom:12px}
+@keyframes rot{to{transform:rotate(360deg)}}</style></head>
+<body><div class="card"><div class="spin"></div><h2>Almost there!</h2><p>Redirecting back to LifeOS...</p></div>
+<script>
+// The tokens are in the URL hash fragment — extract them and post back
+const hash = window.location.hash.substring(1);
+const params = new URLSearchParams(hash);
+const access_token = params.get('access_token');
+const refresh_token = params.get('refresh_token');
+if (access_token && refresh_token) {
+  // Send tokens to the local Electron server
+  fetch('/auth/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ access_token, refresh_token })
+  }).then(() => {
+    document.querySelector('.card').innerHTML = '<h2>✓ Logged in!</h2><p>You can close this tab and return to LifeOS.</p>';
+  }).catch(err => {
+    document.querySelector('.card').innerHTML = '<h2>Error</h2><p>' + err.message + '</p>';
+  });
+} else {
+  document.querySelector('.card').innerHTML = '<h2>No tokens found</h2><p>Please try again from the LifeOS app.</p>';
+}
+</script></body></html>`);
+        return;
+      }
+
+      if (url.pathname === '/auth/token' && req.method === 'POST') {
+        // Receive tokens from the callback page
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+          try {
+            const tokens = JSON.parse(body);
+            if (tokens.access_token && tokens.refresh_token) {
+              // Forward tokens to the Electron renderer via the pending callback
+              if (pendingOAuthResolve) {
+                pendingOAuthResolve(tokens);
+                pendingOAuthResolve = null;
+              }
+              // Also dispatch directly to the renderer if window is available
+              if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.webContents.executeJavaScript(`
+                  (function() {
+                    window.dispatchEvent(new CustomEvent('electron-auth-callback', {
+                      detail: { access_token: '${tokens.access_token}', refresh_token: '${tokens.refresh_token}' }
+                    }));
+                  })();
+                `);
+                mainWindow.focus();
+              }
+            }
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end('{"ok":true}');
+          } catch (e) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end('{"error":"invalid json"}');
+          }
+        });
+        return;
+      }
+
+      // 404 for anything else
+      res.writeHead(404);
+      res.end('Not found');
+    });
+
+    // Listen on a fixed port for OAuth callbacks (32123 is easy to remember)
+    // This port must be registered in the Supabase dashboard redirect URLs
+    const OAUTH_PORT = 32123;
+    server.listen(OAUTH_PORT, '127.0.0.1', () => {
+      const port = server.address().port;
+      oauthCallbackServer = server;
+      oauthCallbackPort = port;
+      console.log(`[oauth] Local callback server listening on http://127.0.0.1:${port}`);
+      resolve(port);
+    });
+
+    server.on('error', (err) => {
+      console.error('[oauth] Callback server error:', err);
+      reject(err);
+    });
+  });
+}
+
+function stopOAuthCallbackServer() {
+  if (oauthCallbackServer) {
+    oauthCallbackServer.close();
+    oauthCallbackServer = null;
+    oauthCallbackPort = null;
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════
 // Database
@@ -190,6 +311,12 @@ function registerIpcHandlers() {
     return shell.openExternal(url);
   });
 
+  // Get the OAuth callback port (starts the server if needed)
+  ipcMain.handle('oauth:get-callback-port', async () => {
+    const port = await startOAuthCallbackServer();
+    return port;
+  });
+
   // App info
   ipcMain.handle('app:info', () => {
     return {
@@ -199,6 +326,7 @@ function registerIpcHandlers() {
       electron: process.versions.electron,
       dbPath,
       isDev,
+      oauthCallbackPort,
     };
   });
 }
@@ -296,6 +424,9 @@ app.whenReady().then(async () => {
   // Register IPC handlers
   registerIpcHandlers();
 
+  // Start OAuth callback server on startup (lazy — only starts when first requested)
+  // The server starts when oauth:get-callback-port IPC is called from the renderer.
+
   // Initialize Steam (x86_64 only, graceful fallback)
   await initSteam();
 
@@ -335,4 +466,5 @@ app.on('window-all-closed', () => {
 // Cleanup on quit
 app.on('before-quit', () => {
   closeDatabase();
+  stopOAuthCallbackServer();
 });

@@ -653,14 +653,19 @@ export const useUserStore = create<UserState>((set, get) => ({
     const isElectron = !!(window as any).electronAPI?.isElectron;
 
     if (isElectron) {
-      // Electron: open system browser, redirect back via lifeos:// deep link.
-      // Use the CLOUD Supabase client (not the db proxy, which routes to SQLite).
+      // Electron: use local HTTP callback server for OAuth.
+      // On Linux, custom protocol handlers (lifeos://) lose the URL fragment,
+      // so we redirect to a localhost server that reads the hash in-browser.
       const { supabase: cloudSupabase } = await import('../lib/supabase');
+
+      // Start the local callback server and get its port
+      const callbackPort = await (window as any).electronAPI.getOAuthCallbackPort();
+      const redirectTo = `http://127.0.0.1:${callbackPort}/auth/callback`;
 
       const { data, error } = await cloudSupabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'lifeos://auth/callback',
+          redirectTo,
           skipBrowserRedirect: true,
         },
       });
@@ -669,7 +674,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         (window as any).electronAPI.openExternal(data.url);
       }
 
-      // Wait for deep link callback with tokens (120s timeout)
+      // Wait for the local callback server to post tokens back (120s timeout)
       return new Promise<void>((resolve, reject) => {
         const timeout = setTimeout(() => reject(new Error('Auth timeout — try again')), 120000);
         window.addEventListener('electron-auth-callback', async (e: any) => {
