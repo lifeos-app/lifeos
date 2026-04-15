@@ -44,10 +44,15 @@ export function Login() {
   const handleGoogleSignIn = async () => {
     setError('');
     setLoading(true);
+    const isElectronAuth = !!(window as any).electronAPI?.isElectron;
+    if (isElectronAuth) {
+      setSuccess('Opening browser for Google sign-in... Complete login there, then return here.');
+    }
     try {
       await signInWithGoogle();
     } catch (err: unknown) {
       setError(getErrorMessage(err));
+      setSuccess('');
       setLoading(false);
     }
   };
