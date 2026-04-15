@@ -2,7 +2,7 @@
 // Renders level-up modals, achievement toasts, XP floaters
 // Place this ONCE at the app root level
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useGamificationContext } from '../../lib/gamification/context';
 import { LevelUpModal } from './LevelUpModal';
 import { AchievementToastContainer, showAchievementToast } from './AchievementToast';
@@ -15,17 +15,37 @@ interface XPFloat {
   amount: number;
 }
 
+// Track which notification IDs we've already processed,
+// so we don't re-show toasts on re-renders / re-mounts
+const processedIds = new Set<string>();
+
 export function GamificationOverlay() {
   const { notifications, dismissNotification } = useGamificationContext();
   const [levelUpData, setLevelUpData] = useState<{ level: number } | null>(null);
   const [xpFloats, setXPFloats] = useState<XPFloat[]>([]);
+  const mountedRef = useRef(false);
 
-  // Process notifications
+  // Only process notifications that we haven't seen yet
   useEffect(() => {
+    // Skip notifications that were already in the queue when we first mounted
+    // (prevents re-showing on every dashboard navigation)
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      // Mark all existing notifications as processed without showing them
+      for (const notif of notifications) {
+        processedIds.add(notif.id);
+        dismissNotification(notif.id);
+      }
+      return;
+    }
+
     for (const notif of notifications) {
+      if (processedIds.has(notif.id)) continue;
+      processedIds.add(notif.id);
+
       switch (notif.type) {
         case 'level_up':
-          setLevelUpData({ level: notif.data.newLevel });
+          setLevelUpData({ level: notif.data.newLevel as number });
           dismissNotification(notif.id);
           break;
 
@@ -36,7 +56,7 @@ export function GamificationOverlay() {
 
         case 'xp_gain': {
           const id = `xp-${Date.now()}-${Math.random()}`;
-          setXPFloats(prev => [...prev, { id, amount: notif.data.amount }]);
+          setXPFloats(prev => [...prev, { id, amount: notif.data.amount as number }]);
           dismissNotification(notif.id);
           // Remove after animation
           setTimeout(() => {

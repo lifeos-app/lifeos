@@ -321,30 +321,30 @@
 
 .ach-toast {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 12px;
+  right: 12px;
   z-index: 9999;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   pointer-events: none;
 }
 
 .ach-toast-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 10px;
+  padding: 8px 12px;
   background: rgba(15, 45, 74, 0.95);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  border: 2px solid;
-  border-radius: 14px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  animation: ach-slide-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border: 1.5px solid;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  animation: ach-slide-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   pointer-events: all;
-  min-width: 240px;
-  max-width: 340px;
+  min-width: 200px;
+  max-width: 280px;
 }
 
 .ach-toast-item.common { border-color: rgba(139, 164, 190, 0.4); }
@@ -367,7 +367,7 @@
 }
 
 .ach-toast-icon {
-  font-size: 24px;
+  font-size: 18px;
   flex-shrink: 0;
 }
 
@@ -390,13 +390,13 @@
 .ach-toast-title {
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 12px;
   color: #fff;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .ach-toast-desc {
-  font-size: 11px;
+  font-size: 10px;
   color: #8BA4BE;
 }
 

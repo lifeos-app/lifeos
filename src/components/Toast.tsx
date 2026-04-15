@@ -12,7 +12,7 @@ interface ToastProps {
   onClose: () => void;
 }
 
-export function Toast({ message, icon = 'sparkles', color = '#39FF14', duration = 4000, action, onClose }: ToastProps) {
+export function Toast({ message, icon = 'sparkles', color = '#39FF14', duration = 3000, action, onClose }: ToastProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {

@@ -29,7 +29,7 @@ export function AchievementToastContainer() {
     const id = `ach-toast-${++toastId}`;
     setToasts(prev => [...prev, { id, achievement, exiting: false }]);
 
-    // Auto-dismiss after 5s
+    // Auto-dismiss after 3s (shorter for less intrusion)
     setTimeout(() => {
       setToasts(prev =>
         prev.map(t => t.id === id ? { ...t, exiting: true } : t)
@@ -37,7 +37,14 @@ export function AchievementToastContainer() {
       setTimeout(() => {
         setToasts(prev => prev.filter(t => t.id !== id));
       }, 400);
-    }, 5000);
+    }, 3000);
+  }, []);
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts(prev => prev.map(t => t.id === id ? { ...t, exiting: true } : t));
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 400);
   }, []);
 
   useEffect(() => {
@@ -55,11 +62,14 @@ export function AchievementToastContainer() {
         <div
           key={id}
           className={`ach-toast-item ${achievement.rarity} ${exiting ? 'exiting' : ''}`}
+          onClick={() => dismissToast(id)}
+          style={{ cursor: 'pointer' }}
+          title="Click to dismiss"
         >
-          <span className="ach-toast-icon"><EmojiIcon emoji={achievement.icon} size={24} fallbackAsText /></span>
+          <span className="ach-toast-icon"><EmojiIcon emoji={achievement.icon} size={18} fallbackAsText /></span>
           <div className="ach-toast-body">
             <div className={`ach-toast-label ${achievement.rarity}`}>
-              <Trophy size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />{RARITY_LABELS[achievement.rarity]} Achievement
+              <Trophy size={10} style={{ marginRight: 3, verticalAlign: 'middle' }} />{RARITY_LABELS[achievement.rarity]} Achievement
             </div>
             <div className="ach-toast-title">{achievement.title}</div>
             <div className="ach-toast-desc">{achievement.description}</div>

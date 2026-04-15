@@ -21,6 +21,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 const SNOOZE_KEY = 'lifeos-nudge-snoozed-';
+const DISMISSED_KEY = 'lifeos-nudge-dismissed';
 
 function isSnoozed(nudgeType: string): boolean {
   try {
@@ -34,6 +35,28 @@ function snoozeNudge(nudgeType: string, durationMs = 60 * 60 * 1000) {
   try {
     localStorage.setItem(`${SNOOZE_KEY}${nudgeType}`, String(Date.now() + durationMs));
   } catch { /* silent */ }
+}
+
+// Persistent dismissed IDs — survive page reload / re-navigation
+function getDismissedIds(): Set<string> {
+  try {
+    const stored = localStorage.getItem(DISMISSED_KEY);
+    if (!stored) return new Set();
+    return new Set(JSON.parse(stored));
+  } catch { return new Set(); }
+}
+
+function saveDismissedId(nudgeType: string) {
+  try {
+    const ids = getDismissedIds();
+    // Store by type (not ID) so same-type nudges from re-fetches are also blocked
+    ids.add(nudgeType);
+    localStorage.setItem(DISMISSED_KEY, JSON.stringify([...ids]));
+  } catch { /* silent */ }
+}
+
+function isPersistentlyDismissed(nudgeType: string): boolean {
+  return getDismissedIds().has(nudgeType);
 }
 
 export function AgentNudgeBar() {
@@ -60,8 +83,10 @@ export function AgentNudgeBar() {
     return () => clearInterval(interval);
   }, [user, fetchNudges]);
 
-  const handleDismiss = useCallback((nudgeId: string) => {
+  const handleDismiss = useCallback((nudgeId: string, nudgeType: string) => {
     setDismissingIds(prev => new Set(prev).add(nudgeId));
+    // Persist the dismissal so it doesn't reappear on next dashboard visit
+    saveDismissedId(nudgeType);
     // Wait for slide-out animation, then actually dismiss
     setTimeout(() => {
       dismissNudge(nudgeId);
@@ -73,7 +98,7 @@ export function AgentNudgeBar() {
 
   const handleSnooze = useCallback((nudgeId: string, nudgeType: string) => {
     snoozeNudge(nudgeType);
-    handleDismiss(nudgeId);
+    handleDismiss(nudgeId, nudgeType);
   }, [handleDismiss]);
 
   const handleAskAI = useCallback((nudgeTitle: string, nudgeSummary: string) => {
@@ -83,7 +108,7 @@ export function AgentNudgeBar() {
     document.dispatchEvent(event);
   }, []);
 
-  const handleActionClick = async (action: AgentAction, nudgeId: string) => {
+  const handleActionClick = async (action: AgentAction, nudgeId: string, nudgeType: string) => {
     if (!user) return;
 
     if (action.requiresConfirm && !confirm(`${action.label}?`)) return;
@@ -91,19 +116,21 @@ export function AgentNudgeBar() {
     // Handle navigate actions directly
     if (action.type === 'navigate' && action.payload?.path) {
       navigate(action.payload.path as string);
-      handleDismiss(nudgeId);
+      handleDismiss(nudgeId, nudgeType);
       return;
     }
 
     const success = await executeAction(user.id, action);
     if (success) {
-      handleDismiss(nudgeId);
+      handleDismiss(nudgeId, nudgeType);
     }
   };
 
+  // Filter out snoozed, persistently dismissed, and already-dismissed nudges;
+  // show max 1 nudge to avoid blocking the dashboard
   const activeNudges = nudges
-    .filter(n => !n.dismissed && !isSnoozed(n.type))
-    .slice(0, 3); // Show max 3
+    .filter(n => !n.dismissed && !isSnoozed(n.type) && !isPersistentlyDismissed(n.type))
+    .slice(0, 1);
 
   if (activeNudges.length === 0) return null;
 
@@ -135,7 +162,7 @@ export function AgentNudgeBar() {
                   </button>
                   <button
                     className="agent-nudge-dismiss"
-                    onClick={() => handleDismiss(nudge.id)}
+                    onClick={() => handleDismiss(nudge.id, nudge.type)}
                     aria-label="Dismiss"
                   >
                     ×
@@ -148,7 +175,7 @@ export function AgentNudgeBar() {
                   <button
                     key={i}
                     className="agent-nudge-action-btn"
-                    onClick={() => handleActionClick(action, nudge.id)}
+                    onClick={() => handleActionClick(action, nudge.id, nudge.type)}
                     style={{ borderColor: PRIORITY_COLORS[nudge.priority] }}
                   >
                     {action.label}

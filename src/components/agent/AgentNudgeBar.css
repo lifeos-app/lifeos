@@ -1,20 +1,16 @@
+/* Non-blocking nudge bar — flows inline with dashboard content */
 .agent-nudge-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  animation: slideDown 0.4s ease-out;
+  gap: 8px;
+  margin-bottom: 8px;
+  animation: fadeUp 0.3s ease-out;
 }
 
-@keyframes slideDown {
+@keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(-100%);
+    transform: translateY(-8px);
   }
   to {
     opacity: 1;
@@ -24,13 +20,13 @@
 
 .agent-nudge {
   display: flex;
-  gap: 16px;
-  padding: 16px 20px;
-  background: rgba(10, 15, 25, 0.98);
-  backdrop-filter: blur(20px);
-  border-radius: 12px;
-  border-left: 4px solid #00D4FF;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(10, 15, 25, 0.92);
+  backdrop-filter: blur(12px);
+  border-radius: 10px;
+  border-left: 3px solid #00D4FF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   animation: slideIn 0.3s ease-out;
 }
 
@@ -46,7 +42,7 @@
 }
 
 .agent-nudge-icon {
-  font-size: 32px;
+  font-size: 22px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -61,13 +57,13 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 8px;
+  margin-bottom: 4px;
 }
 
 .agent-nudge-title {
   margin: 0;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 600;
   color: #fff;
 }
@@ -94,10 +90,10 @@
 }
 
 .agent-nudge-summary {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  line-height: 1.6;
-  color: #E0E0E0;
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #C0C0C0;
 }
 
 .agent-nudge-actions {
@@ -107,12 +103,12 @@
 }
 
 .agent-nudge-action-btn {
-  padding: 8px 16px;
+  padding: 5px 12px;
   background: rgba(0, 212, 255, 0.1);
   border: 1px solid #00D4FF;
-  border-radius: 8px;
+  border-radius: 6px;
   color: #00D4FF;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
@@ -123,43 +119,39 @@
   transform: translateY(-1px);
 }
 
-/* Mobile optimizations */
+/* Mobile optimizations — nudge bar is inline, no overlay overrides needed */
 @media (max-width: 768px) {
   .agent-nudge-bar {
-    padding: 12px;
-    /* Don't overlap content — push it down instead of fixed overlay */
-    position: relative;
-    top: auto;
-    left: auto;
-    right: auto;
-    z-index: auto;
+    gap: 6px;
+    margin-bottom: 6px;
   }
 
   .agent-nudge {
-    padding: 14px 16px;
+    padding: 8px 12px;
+    gap: 10px;
   }
 
   .agent-nudge-icon {
-    font-size: 28px;
+    font-size: 20px;
   }
 
   .agent-nudge-title {
-    font-size: 15px;
+    font-size: 12px;
   }
 
   .agent-nudge-summary {
-    font-size: 13px;
+    font-size: 11px;
   }
 
   .agent-nudge-action-btn {
-    min-height: 44px;
-    padding: 10px 16px;
+    min-height: 36px;
+    padding: 6px 12px;
   }
 
   .agent-nudge-dismiss,
   .agent-nudge-snooze {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: 32px;
+    min-height: 32px;
   }
 }
 
