@@ -273,7 +273,7 @@ async function sanitizeForSupabase(table: string, data: Record<string, unknown>)
   // Whitelist: only keep fields that exist in Supabase
   const cleaned: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(renamed)) {
-    if (allowedColumns.has(key)) {
+    if (allowedColumns.has(key) && !isKnownMissing(supabaseTable, key)) {
       cleaned[key] = value;
     }
   }
@@ -289,6 +289,52 @@ function getRecordKey(table: TableName, record: Record<string, unknown>): string
   const keyPath = getKeyPath(table);
   return record[keyPath];
 }
+
+// ══════════════════════════════════════════════════════════════
+// Learned Missing Columns (self-healing schema drift)
+// ══════════════════════════════════════════════════════════════
+
+/**
+ * When a push fails because a column doesn't exist in Supabase,
+ * we add it here so future pushes strip it automatically.
+ * Key: "supabaseTable:columnName", Value: timestamp when learned.
+ */
+const _learnedMissingCols: Map<string, number> = new Map();
+const MISSING_COL_KEY = 'lifeos_sync_missing_cols';
+
+function loadMissingCols(): void {
+  try {
+    const raw = localStorage.getItem(MISSING_COL_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      for (const [k, v] of Object.entries(parsed)) {
+        _learnedMissingCols.set(k, v as number);
+      }
+    }
+  } catch { /* ignore */ }
+}
+
+function saveMissingCols(): void {
+  const obj: Record<string, number> = {};
+  for (const [k, v] of _learnedMissingCols) obj[k] = v;
+  localStorage.setItem(MISSING_COL_KEY, JSON.stringify(obj));
+}
+
+function learnMissingColumn(supabaseTable: string, colName: string): void {
+  const key = `${supabaseTable}:${colName}`;
+  if (!_learnedMissingCols.has(key)) {
+    logger.warn(`[sync] Learned missing column: ${key}`);
+    _learnedMissingCols.set(key, Date.now());
+    saveMissingCols();
+  }
+}
+
+function isKnownMissing(supabaseTable: string, colName: string): boolean {
+  return _learnedMissingCols.has(`${supabaseTable}:${colName}`);
+}
+
+// Load on module init
+loadMissingCols();
 
 // ══════════════════════════════════════════════════════════════
 // Retry Queue & Error Recovery
@@ -515,10 +561,16 @@ async function pushToSupabase(userId: string): Promise<number> {
       const { synced, ...data } = record;
 
       if (record.deleted_at || record.is_deleted) {
-        const { error } = await syncClient
-          .from(supabaseTable)
-          .update({ is_deleted: true })
-          .eq(pkField, recordKey);
+        // Only include is_deleted in update if the cloud table has it
+        const deleteUpdate: Record<string, unknown> = {};
+        if (!isKnownMissing(supabaseTable, 'is_deleted')) {
+          deleteUpdate.is_deleted = true;
+        }
+        // If table doesn't have is_deleted, we can't soft-delete — 
+        // just mark as synced locally (record stays in Supabase as-is)
+        const { error } = Object.keys(deleteUpdate).length > 0
+          ? await syncClient.from(supabaseTable).update(deleteUpdate).eq(pkField, recordKey)
+          : { error: null }; // Nothing to update, treat as success
 
         if (!error) {
           await localMarkSynced(retry.table, recordKey);
@@ -590,6 +642,22 @@ async function pushToSupabase(userId: string): Promise<number> {
               removeFromRetryQueue(table, rk, 'push');
               totalPushed++;
             } else {
+              // Check if error is about a missing column — learn it and retry once
+              const colMatch = indError.message?.match(/column ["']?(\w+)["']? does not exist/i) ||
+                               indError.message?.match(/Could not find.*column.*['"](\w+)['"]/i);
+              if (colMatch) {
+                learnMissingColumn(supabaseTable, colMatch[1]);
+                // Retry with the column stripped
+                const retryData = await sanitizeForSupabase(table, data);
+                const { error: retryErr } = await syncClient.from(supabaseTable)
+                  .upsert(retryData, { onConflict: pkField });
+                if (!retryErr) {
+                  await localMarkSynced(table, rk);
+                  removeFromRetryQueue(table, rk, 'push');
+                  totalPushed++;
+                  continue;
+                }
+              }
               addToRetryQueue(table, rk, 'push', indError.message);
             }
           }
@@ -599,30 +667,44 @@ async function pushToSupabase(userId: string): Promise<number> {
       // Batch soft deletes
       if (toDelete.length > 0) {
         const deleteIds = toDelete.map(r => getRecordKey(table, r));
-        const { error } = await syncClient.from(supabaseTable)
-          .update({ is_deleted: true })
-          .in(pkField, deleteIds);
-        if (!error) {
-          for (const record of toDelete) {
-            const rk = getRecordKey(table, record);
-            await localMarkSynced(table, rk);
-            removeFromRetryQueue(table, rk, 'push');
-            totalPushed++;
-          }
-        } else {
-          // Fallback to individual deletes
-          for (const record of toDelete) {
-            const rk = getRecordKey(table, record);
-            const { error: indError } = await syncClient.from(supabaseTable)
-              .update({ is_deleted: true })
-              .eq(pkField, rk);
-            if (!indError) {
+        // Only include is_deleted if cloud table has it
+        const deletePayload: Record<string, unknown> = {};
+        if (!isKnownMissing(supabaseTable, 'is_deleted')) {
+          deletePayload.is_deleted = true;
+        }
+        if (Object.keys(deletePayload).length > 0) {
+          const { error } = await syncClient.from(supabaseTable)
+            .update(deletePayload)
+            .in(pkField, deleteIds);
+          if (!error) {
+            for (const record of toDelete) {
+              const rk = getRecordKey(table, record);
               await localMarkSynced(table, rk);
               removeFromRetryQueue(table, rk, 'push');
               totalPushed++;
-            } else {
-              addToRetryQueue(table, rk, 'push', indError.message);
             }
+          } else {
+            // Fallback to individual deletes
+            for (const record of toDelete) {
+              const rk = getRecordKey(table, record);
+              const { error: indError } = await syncClient.from(supabaseTable)
+                .update(deletePayload)
+                .eq(pkField, rk);
+              if (!indError) {
+                await localMarkSynced(table, rk);
+                removeFromRetryQueue(table, rk, 'push');
+                totalPushed++;
+              } else {
+                addToRetryQueue(table, rk, 'push', indError.message);
+              }
+            }
+          }
+        } else {
+          // Table doesn't have is_deleted — just mark as synced locally
+          for (const record of toDelete) {
+            const rk = getRecordKey(table, record);
+            await localMarkSynced(table, rk);
+            totalPushed++;
           }
         }
       }
