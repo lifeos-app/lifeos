@@ -22,6 +22,22 @@ import { localDateStr, genId } from '../../utils/date';
 import { VENUES, ROUTE_KM, ATO_RATE, projectedMonthlyCleaning } from '../../lib/tcs-config';
 import './DailyCheckin.css';
 
+// ── Stable date/time helpers (avoid new Date() in render path) ──
+/** Compute today and isMorning once per component lifecycle mount. */
+function useStableDateState() {
+  const [dateState, setDateState] = useState<{ today: string; isMorning: boolean } | null>(null);
+
+  useEffect(() => {
+    const now = new Date();
+    setDateState({
+      today: localDateStr(now),
+      isMorning: now.getHours() < 14,
+    });
+  }, []);
+
+  return dateState;
+}
+
 // ── Mood/Energy Options ──────────────────────────────────────
 const MOOD_OPTIONS = [
   { value: 1, icon: Frown, label: 'Rough', color: '#F43F5E' },
@@ -41,15 +57,28 @@ const ENERGY_OPTIONS = [
 
 export function DailyCheckin() {
   const user = useUserStore(s => s.user);
-  const today = localDateStr();
-  const isMorning = new Date().getHours() < 14;
+  const dateState = useStableDateState();
+  const today = dateState?.today ?? '';
+  const isMorning = dateState?.isMorning ?? true; // safe default
 
-  // ── Store data ──
-  const events = useScheduleStore(s => s.getEventsForDate(today));
+  // ── Store data (use stable selectors) ──
+  const allEvents = useScheduleStore(s => s.events);
   const expenses = useFinanceStore(s => s.expenses);
   const income = useFinanceStore(s => s.income);
   const journalEntries = useJournalStore(s => s.entries);
   const addEntry = useJournalStore(s => s.addEntry);
+
+  // ── Events for today (derived outside store selector to avoid new-array-every-call) ──
+  const events = useMemo(() => {
+    if (!today) return [];
+    const dayStart = `${today}T00:00:00`;
+    const dayEnd = `${today}T23:59:59`;
+    const todayLocal = localDateStr();
+    return allEvents.filter(e => {
+      if (!e.start_time) return today === todayLocal;
+      return e.start_time <= dayEnd && (e.end_time ? e.end_time > dayStart : e.start_time >= dayStart);
+    });
+  }, [allEvents, today]);
 
   // ── Local state ──
   const [mood, setMood] = useState<number | null>(null);
@@ -115,8 +144,10 @@ export function DailyCheckin() {
 
   // ── Streak calculation ──
   const streak = useMemo(() => {
+    if (!today) return 0;
     let count = 0;
-    const d = new Date();
+    // Clone the date from today's string rather than calling new Date() directly
+    const d = new Date(today + 'T12:00:00');
     while (true) {
       const dateStr = localDateStr(d);
       const hasCheckin = journalEntries.some(e =>
@@ -131,7 +162,7 @@ export function DailyCheckin() {
       }
     }
     return count;
-  }, [journalEntries]);
+  }, [journalEntries, today]);
 
   // ── Submit handler ──
   const handleSubmit = useCallback(async () => {
@@ -169,6 +200,18 @@ export function DailyCheckin() {
   }, [user, isMorning, tcsEvents, completedJobs, todayKm, todayIncome, expectedIncome, mood, energy, notes, today, addEntry]);
 
   // ── Render ──
+  // Guard: show nothing until we have a stable date (prevents hydration mismatch)
+  if (!dateState) {
+    return (
+      <div className="tcs-daily-card">
+        <div className="tcs-daily-header">
+          <Clock size={16} />
+          <span>Loading check-in...</span>
+        </div>
+      </div>
+    );
+  }
+
   if (alreadyCheckedIn && !confirmed) {
     return (
       <div className="tcs-daily-card">

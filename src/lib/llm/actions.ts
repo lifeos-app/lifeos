@@ -25,6 +25,9 @@ export type AIActionType =
   | 'create_event'
   | 'log_income'
   | 'log_expense'
+  | 'log_activity'
+  | 'log_mood'
+  | 'quick_journal'
   | 'complete_task'
   | 'navigate';
 
@@ -86,7 +89,8 @@ export function parseAIActions(response: string): AIAction[] {
 function isValidAction(obj: Partial<AIAction>): obj is AIAction {
   const validTypes: AIActionType[] = [
     'create_task', 'log_habit', 'log_health', 'create_event',
-    'log_income', 'log_expense', 'complete_task', 'navigate',
+    'log_income', 'log_expense', 'log_activity', 'log_mood', 'quick_journal',
+    'complete_task', 'navigate',
   ];
   return (
     typeof obj.type === 'string' &&
@@ -121,6 +125,12 @@ export async function executeAIAction(
         return await execLogIncome(action.params, userId, supabase);
       case 'log_expense':
         return await execLogExpense(action.params, userId, supabase);
+      case 'log_activity':
+        return await execLogActivity(action.params, userId, supabase);
+      case 'log_mood':
+        return await execLogMood(action.params, userId, supabase);
+      case 'quick_journal':
+        return await execQuickJournal(action.params, userId, supabase);
       case 'complete_task':
         return await execCompleteTask(action.params, userId, supabase);
       case 'navigate':
@@ -345,4 +355,86 @@ async function execCompleteTask(
   const { error } = await query;
   if (error) throw new Error(error.message);
   return `✅ Task completed: "${taskName ?? taskId}"`;
+}
+
+async function execLogActivity(
+  params: Record<string, unknown>,
+  userId: string,
+  supabase: SupabaseClient
+): Promise<string> {
+  const activity = String(params.activity ?? params.title ?? 'Activity');
+  const category = params.category ? String(params.category) : 'general';
+  const notes = params.notes ? String(params.notes) : null;
+  const date = String(params.date ?? new Date().toISOString().split('T')[0]);
+
+  // Insert as a schedule event (activities are stored as events)
+  const { error } = await supabase.from('schedule_events').insert({
+    user_id:     userId,
+    title:       activity,
+    start_time:  `${date}T12:00:00`,
+    end_time:    `${date}T13:00:00`,
+    day_type:    category,
+    notes:       notes ? `[${category}] ${notes}` : null,
+  });
+
+  if (error) throw new Error(error.message);
+  return `📌 Activity logged: "${activity}"${category !== 'general' ? ` (${category})` : ''}`;
+}
+
+async function execLogMood(
+  params: Record<string, unknown>,
+  userId: string,
+  supabase: SupabaseClient
+): Promise<string> {
+  const mood = String(params.mood ?? 'neutral');
+  const notes = params.notes ? String(params.notes) : null;
+  const today = new Date().toISOString().split('T')[0];
+
+  const moodMap: Record<string, number> = {
+    great: 5, good: 4, neutral: 3, okay: 3,
+    bad: 2, terrible: 1, tired: 2, stressed: 2,
+  };
+  const moodScore = moodMap[mood] ?? 3;
+
+  const { error } = await supabase.from('health_metrics').upsert({
+    user_id: userId,
+    date: today,
+    mood_score: moodScore,
+    notes,
+  }, { onConflict: 'user_id,date' });
+
+  if (error) throw new Error(error.message);
+  return `🧘 Mood logged: ${mood} (${moodScore}/5)`;
+}
+
+async function execQuickJournal(
+  params: Record<string, unknown>,
+  userId: string,
+  supabase: SupabaseClient
+): Promise<string> {
+  const content = String(params.content ?? params.entry ?? '');
+  const mood = params.mood ? String(params.mood) : null;
+  const energy = params.energy ? Number(params.energy) : null;
+  const tags = params.tags ? String(params.tags) : '';
+  const today = new Date().toISOString().split('T')[0];
+
+  const moodMap: Record<string, number> = {
+    great: 5, good: 4, neutral: 3, okay: 3,
+    bad: 2, terrible: 1, tired: 2, stressed: 2,
+  };
+  const moodScore = mood ? (moodMap[mood] ?? null) : null;
+
+  const { error } = await supabase.from('journal_entries').insert({
+    user_id: userId,
+    date: today,
+    title: 'Quick Journal',
+    content,
+    mood: moodScore,
+    energy,
+    tags,
+    is_deleted: false,
+  });
+
+  if (error) throw new Error(error.message);
+  return `📓 Journal entry saved${mood ? ` (mood: ${mood})` : ''}`;
 }

@@ -10,6 +10,7 @@ import { useState } from 'react';
 import {
   CheckSquare, DollarSign, Calendar, Zap, Target,
   MapPin, Check, X, Loader2, AlertCircle,
+  Activity, SmilePlus, BookOpen,
 } from 'lucide-react';
 import type { AIAction, AIActionType } from '../../lib/llm/actions';
 
@@ -22,6 +23,9 @@ const ACTION_ICONS: Record<AIActionType, React.ElementType> = {
   create_event:   Calendar,
   log_income:     DollarSign,
   log_expense:    DollarSign,
+  log_activity:   Activity,
+  log_mood:       SmilePlus,
+  quick_journal:  BookOpen,
   complete_task:  CheckSquare,
   navigate:       MapPin,
 };
@@ -33,6 +37,9 @@ const ACTION_COLORS: Record<AIActionType, string> = {
   create_event:   '#A855F7',
   log_income:     '#22C55E',
   log_expense:    '#F97316',
+  log_activity:   '#3B82F6',
+  log_mood:       '#EC4899',
+  quick_journal:  '#8B5CF6',
   complete_task:  '#39FF14',
   navigate:       '#6B7280',
 };
@@ -44,6 +51,9 @@ const ACTION_LABELS: Record<AIActionType, string> = {
   create_event:   'Create Event',
   log_income:     'Log Income',
   log_expense:    'Log Expense',
+  log_activity:   'Log Activity',
+  log_mood:       'Log Mood',
+  quick_journal:  'Quick Journal',
   complete_task:  'Complete Task',
   navigate:       'Navigate',
 };
