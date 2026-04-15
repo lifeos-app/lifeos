@@ -17,6 +17,36 @@
 import { db as supabase, getEnvironment } from './data-access';
 import { useUserStore } from '../stores/useUserStore';
 import { logger } from '../utils/logger';
+
+// ── Cloud Sync for Electron ──
+// In Electron, `db` routes to local SQLite. When a cloud session exists
+// (user logged in via Google OAuth), we need the cloud Supabase client
+// for push/pull operations.
+let _cloudSupabase: any = null;
+
+/**
+ * Get the appropriate Supabase client for sync operations.
+ * - Web: returns the standard db adapter (already cloud)
+ * - Electron + cloud session: returns the cloud Supabase client
+ * - Electron + local mode: returns the db adapter (SQLite)
+ * - Tauri: returns the db adapter (local)
+ */
+async function getSyncClient(): Promise<any> {
+  const env = getEnvironment();
+  if (env === 'electron') {
+    const mode = useUserStore.getState().mode;
+    if (mode === 'synced') {
+      // Cloud session active — use cloud Supabase for data sync
+      if (!_cloudSupabase) {
+        const { supabase: cloud } = await import('./supabase');
+        _cloudSupabase = cloud;
+      }
+      return _cloudSupabase;
+    }
+  }
+  // Web, Tauri, or Electron local mode: use the standard db adapter
+  return supabase;
+}
 import {
   localGetUnsynced,
   localMarkSynced,
@@ -142,15 +172,20 @@ async function fetchRuntimeColumns(): Promise<Record<string, Set<string>> | null
     return _runtimeColumns;
   }
 
-  // Skip schema introspection in Tauri/Electron mode — uses local SQLite directly
+  // Skip schema introspection in Tauri mode — uses local SQLite directly
+  // In Electron+synced mode, we CAN introspect the cloud schema
   const syncEnv = getEnvironment();
-  if (syncEnv === 'tauri' || syncEnv === 'electron') {
+  if (syncEnv === 'tauri') {
+    return null;
+  }
+  if (syncEnv === 'electron' && useUserStore.getState().mode !== 'synced') {
     return null;
   }
 
   try {
     const tableNames = SYNC_TABLES.map(t => getSupabaseTable(t));
-    const { data, error } = await supabase.rpc('get_table_columns', { table_names: tableNames });
+    const client = await getSyncClient();
+    const { data, error } = await client.rpc('get_table_columns', { table_names: tableNames });
 
     if (error || !data) {
       logger.warn('[sync] Schema introspection failed, using static fallback:', error?.message);
@@ -459,6 +494,7 @@ function notifyListeners(status: SyncStatus) {
  */
 async function pushToSupabase(userId: string): Promise<number> {
   let totalPushed = 0;
+  const syncClient = await getSyncClient();
 
   // First, process retry queue for push operations
   const retries = getReadyRetries().filter(r => r.operation === 'push');
@@ -479,7 +515,7 @@ async function pushToSupabase(userId: string): Promise<number> {
       const { synced, ...data } = record;
 
       if (record.deleted_at || record.is_deleted) {
-        const { error } = await supabase
+        const { error } = await syncClient
           .from(supabaseTable)
           .update({ is_deleted: true })
           .eq(pkField, recordKey);
@@ -493,7 +529,7 @@ async function pushToSupabase(userId: string): Promise<number> {
           addToRetryQueue(retry.table, retry.recordId, 'push', error.message);
         }
       } else {
-        const { error } = await supabase
+        const { error } = await syncClient
           .from(supabaseTable)
           .upsert(await sanitizeForSupabase(retry.table, data), { onConflict: pkField });
 
@@ -535,7 +571,7 @@ async function pushToSupabase(userId: string): Promise<number> {
       // Batch upsert
       if (toUpsert.length > 0) {
         const batchData = await Promise.all(toUpsert.map(r => sanitizeForSupabase(table, r.data)));
-        const { error } = await supabase.from(supabaseTable).upsert(batchData, { onConflict: pkField });
+        const { error } = await syncClient.from(supabaseTable).upsert(batchData, { onConflict: pkField });
         if (!error) {
           for (const { record } of toUpsert) {
             const rk = getRecordKey(table, record);
@@ -548,7 +584,7 @@ async function pushToSupabase(userId: string): Promise<number> {
           logger.warn(`[sync] Batch upsert failed for ${table}, falling back to individual:`, error.message);
           for (const { record, data } of toUpsert) {
             const rk = getRecordKey(table, record);
-            const { error: indError } = await supabase.from(supabaseTable).upsert(await sanitizeForSupabase(table, data), { onConflict: pkField });
+            const { error: indError } = await syncClient.from(supabaseTable).upsert(await sanitizeForSupabase(table, data), { onConflict: pkField });
             if (!indError) {
               await localMarkSynced(table, rk);
               removeFromRetryQueue(table, rk, 'push');
@@ -563,7 +599,7 @@ async function pushToSupabase(userId: string): Promise<number> {
       // Batch soft deletes
       if (toDelete.length > 0) {
         const deleteIds = toDelete.map(r => getRecordKey(table, r));
-        const { error } = await supabase.from(supabaseTable)
+        const { error } = await syncClient.from(supabaseTable)
           .update({ is_deleted: true })
           .in(pkField, deleteIds);
         if (!error) {
@@ -577,7 +613,7 @@ async function pushToSupabase(userId: string): Promise<number> {
           // Fallback to individual deletes
           for (const record of toDelete) {
             const rk = getRecordKey(table, record);
-            const { error: indError } = await supabase.from(supabaseTable)
+            const { error: indError } = await syncClient.from(supabaseTable)
               .update({ is_deleted: true })
               .eq(pkField, rk);
             if (!indError) {
@@ -613,6 +649,7 @@ async function pushToSupabase(userId: string): Promise<number> {
  * PostgREST defaults to 1000-row limit — we page through all results.
  */
 async function pullTable(userId: string, table: TableName): Promise<number> {
+  const syncClient = await getSyncClient();
   const meta = await getSyncMeta(table);
   const lastPull = meta?.last_pull_at || new Date(0).toISOString();
   const supabaseTable = getSupabaseTable(table);
@@ -622,7 +659,7 @@ async function pullTable(userId: string, table: TableName): Promise<number> {
 
   // Page through all results
   while (true) {
-    const { data, error } = await supabase
+    const { data, error } = await syncClient
       .from(supabaseTable)
       .select('*')
       .eq('user_id', userId)

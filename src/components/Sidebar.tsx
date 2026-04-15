@@ -261,13 +261,6 @@ export const Sidebar = React.memo(function Sidebar({ expanded = true, onToggle, 
           onClick={() => {
             alert('🎉 Early Adopter — Pro Unlocked!\n\nThank you for being one of the first to use LifeOS. All Pro features are yours for free.\n\nWe\'re building something special, and you\'re part of it from the beginning.');
           }}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', margin: '0 8px 8px',
-            background: 'linear-gradient(135deg, rgba(0,212,255,0.08), rgba(139,92,246,0.08))',
-            border: '1px solid rgba(0,212,255,0.2)', borderRadius: 10, color: '#00D4FF',
-            fontSize: 13, fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s',
-            width: 'calc(100% - 16px)',
-          }}
         >
           <Crown size={16} /> <span>Pro — Early Adopter</span>
         </button>

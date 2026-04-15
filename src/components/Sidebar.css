@@ -239,26 +239,26 @@
 }
 
 .sb-upgrade-btn {
-  display: flex !important;
+  display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px !important;
-  margin: 0 4px 8px !important;
-  background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(0,212,255,0.06)) !important;
-  border: 1px solid rgba(255,215,0,0.15) !important;
-  border-radius: 10px !important;
-  color: #FFD700 !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  text-decoration: none !important;
-  transition: all 0.25s !important;
+  padding: 10px 14px;
+  margin: 0 4px 8px;
+  background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(0,212,255,0.06));
+  border: 1px solid rgba(255,215,0,0.15);
+  border-radius: 10px;
+  color: #FFD700;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.25s;
   cursor: pointer;
 }
 
 .sb-upgrade-btn:hover {
-  background: linear-gradient(135deg, rgba(255,215,0,0.14), rgba(0,212,255,0.1)) !important;
-  border-color: rgba(255,215,0,0.3) !important;
-  box-shadow: 0 0 20px rgba(255,215,0,0.08) !important;
+  background: linear-gradient(135deg, rgba(255,215,0,0.14), rgba(0,212,255,0.1));
+  border-color: rgba(255,215,0,0.3);
+  box-shadow: 0 0 20px rgba(255,215,0,0.08);
   transform: translateY(-1px);
 }
 
@@ -397,24 +397,28 @@
      All sidebar content is always in the DOM — CSS is the single
      authority for what's visible when collapsed. */
   .sidebar.collapsed { width: 64px; }
+  .sidebar.collapsed .sb-top { padding: 0 8px 12px; justify-content: center; }
+  .sidebar.collapsed .sb-logo { gap: 0; }
   .sidebar.collapsed .sb-collapse { margin: 0 auto; }
   .sidebar.collapsed .sb-label { display: none; }
-  .sidebar.collapsed .sb-link { justify-content: center; padding: 8px; }
+  .sidebar.collapsed .sb-link { justify-content: center; padding: 8px; gap: 0; }
+  .sidebar.collapsed .sb-icon-wrap { width: 36px; height: 36px; }
   .sidebar.collapsed .sb-email { display: none; }
-  .sidebar.collapsed .sb-user { justify-content: center; }
+  .sidebar.collapsed .sb-user { justify-content: center; padding: 8px 0; }
   .sidebar.collapsed .sb-brand { display: none; }
   .sidebar.collapsed .sb-ai-hint { display: none; }
   .sidebar.collapsed .sb-xp-bar { display: none; }
   .sidebar.collapsed .sb-badge { display: none; }
   .sidebar.collapsed .sb-section-label { display: none; }
   .sidebar.collapsed .sb-settings-link { display: none; }
-  .sidebar.collapsed .sb-upgrade-btn { display: none; }
+  .sidebar.collapsed .sb-upgrade-btn { display: none !important; }
   .sidebar.collapsed .sb-upgrade-btn span { display: none; }
   .sidebar.collapsed .sb-tutorials-ring { display: none; }
   .sidebar.collapsed .sb-tutorials-complete { display: none; }
   .sidebar.collapsed .sb-tutorials-btn .sb-label,
   .sidebar.collapsed .sb-setup-btn .sb-label,
   .sidebar.collapsed .sb-feedback-btn .sb-label { display: none; }
+  .sidebar.collapsed .sb-footer { padding: 4px 0 0; }
 
   /* Collapse button always visible on non-mobile */
   .sb-collapse { display: flex; }

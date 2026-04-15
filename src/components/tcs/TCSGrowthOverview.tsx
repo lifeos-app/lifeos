@@ -5,7 +5,7 @@
  * and a "Seed Growth Plan" button if no plan exists yet.
  */
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { Rocket, Circle, CheckCircle2, Clock, Loader2, Target } from 'lucide-react';
 import { useGoalsStore } from '../../stores/useGoalsStore';
 import { useScheduleStore } from '../../stores/useScheduleStore';
@@ -37,6 +37,7 @@ export function TCSGrowthOverview() {
   const fetchSchedule = useScheduleStore(s => s.fetchAll);
   const user = useUserStore(s => s.user);
   const [seeding, setSeeding] = useState(false);
+  const hasAutoSeeded = useRef(false);
 
   // Find parent goal
   const parentGoal = useMemo(
@@ -80,6 +81,32 @@ export function TCSGrowthOverview() {
     fetchGoals();
     fetchSchedule();
   }, [fetchGoals, fetchSchedule]);
+
+  // Auto-seed on first load if no plan exists
+  useEffect(() => {
+    if (hasAutoSeeded.current) return;
+    if (!user?.id) return;
+    // parentGoal is undefined while goals are still loading;
+    // only act once goals array is populated (even if empty)
+    if (goals.length === 0 && !parentGoal) return; // still loading
+    if (parentGoal) return; // plan already exists
+
+    hasAutoSeeded.current = true;
+    (async () => {
+      setSeeding(true);
+      try {
+        await seedTCSGrowthPlan(user.id);
+        useGoalsStore.getState().invalidate();
+        useScheduleStore.getState().invalidate();
+      } catch (err) {
+        console.error('[TCSGrowthOverview] Auto-seed failed:', err);
+        // Allow retry on next mount if seeding failed
+        hasAutoSeeded.current = false;
+      } finally {
+        setSeeding(false);
+      }
+    })();
+  }, [user?.id, parentGoal, goals.length]);
 
   // Seed handler
   const handleSeed = async () => {

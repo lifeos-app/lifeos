@@ -229,43 +229,125 @@ export const useUserStore = create<UserState>((set, get) => ({
   },
 
   initAuth: () => {
-    // ── Tauri / Electron mode: skip network auth, use local user immediately ──
+    // ── Tauri / Electron mode ──
     const detectedEnv = getEnvironment();
     if (detectedEnv === 'tauri' || detectedEnv === 'electron') {
-      set({
-        user: { id: 'local-user-001', email: 'local@lifeos.app', email_confirmed_at: new Date().toISOString(), user_metadata: { full_name: 'LifeOS User' } } as any,
-        mode: 'local',
-        authLoading: false,
-        connectionError: false,
-        profileLoading: true,
-      });
-      // Fetch profile from SQLite via IPC (NOT IndexedDB local-db.ts)
-      // Use SELECT * — local schema has full_name instead of display_name, no occupation/primary_focus
-      supabase.from('user_profiles')
-        .select('*')
-        .eq('user_id', 'local-user-001')
-        .maybeSingle()
-        .then(({ data }: any) => {
-          if (data) {
-            // Map full_name → display_name for consistency with cloud schema
-            const profile = { ...data, display_name: data.display_name || data.full_name || null };
-            set({ profile, profileLoading: false, firstName: profile.display_name || 'Commander' });
-          } else {
-            // Profile row should exist (seeded by database.js), but create if missing
-            supabase.from('user_profiles').upsert({
-              user_id: 'local-user-001',
-              full_name: 'LifeOS User',
-              onboarding_complete: false,
-              preferences: {},
-            }, { onConflict: 'user_id' }).select().single().then(({ data: created }: any) => {
-              set({ profile: created || { user_id: 'local-user-001', onboarding_complete: false, preferences: {} }, profileLoading: false, firstName: 'Commander' });
+      // Before falling back to local user, check if there's a persisted
+      // cloud Supabase session (from a previous Google OAuth login).
+      // In Electron mode, the cloud client has persistSession=true,
+      // so the session survives restarts in localStorage.
+      (async () => {
+        try {
+          const { supabase: cloudSupabase } = await import('../lib/supabase');
+          const { data: { session: cloudSession } } = await cloudSupabase.auth.getSession();
+
+          if (cloudSession?.user && cloudSession.expires_at && cloudSession.expires_at > Date.now() / 1000 - 300) {
+            // Cloud session exists and is fresh (within 5min of expiry).
+            // Restore the authenticated user — this enables cloud sync.
+            const user = cloudSession.user;
+            const firstName = user.user_metadata?.full_name?.split(' ')[0]
+              || user.user_metadata?.name?.split(' ')[0]
+              || 'Commander';
+
+            set({
+              session: cloudSession,
+              user,
+              mode: 'synced',
+              authLoading: false,
+              connectionError: false,
+              profileLoading: true,
             });
+            localStorage.setItem('lifeos_user_mode', 'synced');
+            localStorage.setItem('lifeos_current_user_id', user.id);
+
+            // Fetch profile from cloud
+            try {
+              const { data: profileData } = await cloudSupabase
+                .from('user_profiles')
+                .select('user_id,display_name,occupation,primary_focus,onboarding_complete,preferences')
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+              if (profileData) {
+                const profile = profileData as UserProfile;
+                const pn = profile.display_name || firstName;
+                set({ profile, profileLoading: false, firstName: pn });
+                cacheProfile(profile);
+              } else {
+                // New user — create profile
+                const { data: created } = await cloudSupabase.from('user_profiles').upsert({
+                  user_id: user.id,
+                  display_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+                  onboarding_complete: false,
+                  preferences: {},
+                }, { onConflict: 'user_id' }).select().single();
+                const profile = created || { user_id: user.id, display_name: null, onboarding_complete: false, preferences: {} } as UserProfile;
+                set({ profile, profileLoading: false, firstName });
+                cacheProfile(profile);
+              }
+            } catch {
+              set({ profileLoading: false });
+            }
+
+            logger.log('[Auth] Electron: restored cloud session for', user.email);
+            return; // Cloud session restored — skip local fallback
           }
-        })
-        .catch(() => {
-          // Fallback: unblock the app even if profile fetch fails
-          set({ profile: { user_id: 'local-user-001', onboarding_complete: true, preferences: {} } as any, profileLoading: false, firstName: 'Commander' });
+
+          // Try refreshing the session if it's expired but has a refresh token
+          if (cloudSession?.refresh_token) {
+            const { data: refreshed } = await cloudSupabase.auth.refreshSession();
+            if (refreshed.session?.user) {
+              const user = refreshed.session.user;
+              set({
+                session: refreshed.session,
+                user,
+                mode: 'synced',
+                authLoading: false,
+                connectionError: false,
+                profileLoading: true,
+              });
+              localStorage.setItem('lifeos_user_mode', 'synced');
+              localStorage.setItem('lifeos_current_user_id', user.id);
+              logger.log('[Auth] Electron: refreshed cloud session for', user.email);
+              get().fetchProfile();
+              return;
+            }
+          }
+        } catch (e) {
+          logger.warn('[Auth] Electron: cloud session check failed, falling back to local:', e);
+        }
+
+        // No cloud session — fall back to local user (original behavior)
+        set({
+          user: { id: 'local-user-001', email: 'local@lifeos.app', email_confirmed_at: new Date().toISOString(), user_metadata: { full_name: 'LifeOS User' } } as any,
+          mode: 'local',
+          authLoading: false,
+          connectionError: false,
+          profileLoading: true,
         });
+        supabase.from('user_profiles')
+          .select('*')
+          .eq('user_id', 'local-user-001')
+          .maybeSingle()
+          .then(({ data }: any) => {
+            if (data) {
+              const profile = { ...data, display_name: data.display_name || data.full_name || null };
+              set({ profile, profileLoading: false, firstName: profile.display_name || 'Commander' });
+            } else {
+              supabase.from('user_profiles').upsert({
+                user_id: 'local-user-001',
+                full_name: 'LifeOS User',
+                onboarding_complete: false,
+                preferences: {},
+              }, { onConflict: 'user_id' }).select().single().then(({ data: created }: any) => {
+                set({ profile: created || { user_id: 'local-user-001', onboarding_complete: false, preferences: {} }, profileLoading: false, firstName: 'Commander' });
+              });
+            }
+          })
+          .catch(() => {
+            set({ profile: { user_id: 'local-user-001', onboarding_complete: true, preferences: {} } as any, profileLoading: false, firstName: 'Commander' });
+          });
+      })();
       return () => {}; // no cleanup needed
     }
 
