@@ -183,22 +183,8 @@ export function Login() {
         </p>
       </div>
 
-      {/* Desktop-only: Use Offline option — Tauri or Electron */}
+      {/* Desktop-only: Use Offline option (Tauri OR Electron) */}
       {isTauri && (
-        <button
-          className="login-offline-btn"
-          onClick={() => {
-            useUserStore.getState().initLocalMode();
-          }}
-          type="button"
-        >
-          <WifiOff size={16} />
-          Use Offline — no account needed
-        </button>
-      )}
-
-      {/* Show "Use Offline" for Electron too when Google OAuth isn't set up */}
-      {typeof window !== 'undefined' && (window as any).electronAPI && !isTauri && (
         <button
           className="login-offline-btn"
           onClick={() => {
