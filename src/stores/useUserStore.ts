@@ -317,36 +317,16 @@ export const useUserStore = create<UserState>((set, get) => ({
           logger.warn('[Auth] Electron: cloud session check failed, falling back to local:', e);
         }
 
-        // No cloud session — fall back to local user (original behavior)
+        // No cloud session — show login page instead of auto-creating local user.
+        // The Login page has both "Sign in with Google" and "Use Offline" buttons.
+        // This ensures the user always sees the login screen on first launch.
         set({
-          user: { id: 'local-user-001', email: 'local@lifeos.app', email_confirmed_at: new Date().toISOString(), user_metadata: { full_name: 'LifeOS User' } } as any,
-          mode: 'local',
+          user: null,
+          mode: 'synced', // default — Login page shows Google + offline options
           authLoading: false,
           connectionError: false,
-          profileLoading: true,
+          profileLoading: false,
         });
-        supabase.from('user_profiles')
-          .select('*')
-          .eq('user_id', 'local-user-001')
-          .maybeSingle()
-          .then(({ data }: any) => {
-            if (data) {
-              const profile = { ...data, display_name: data.display_name || data.full_name || null };
-              set({ profile, profileLoading: false, firstName: profile.display_name || 'Commander' });
-            } else {
-              supabase.from('user_profiles').upsert({
-                user_id: 'local-user-001',
-                full_name: 'LifeOS User',
-                onboarding_complete: false,
-                preferences: {},
-              }, { onConflict: 'user_id' }).select().single().then(({ data: created }: any) => {
-                set({ profile: created || { user_id: 'local-user-001', onboarding_complete: false, preferences: {} }, profileLoading: false, firstName: 'Commander' });
-              });
-            }
-          })
-          .catch(() => {
-            set({ profile: { user_id: 'local-user-001', onboarding_complete: true, preferences: {} } as any, profileLoading: false, firstName: 'Commander' });
-          });
       })();
       return () => {}; // no cleanup needed
     }
