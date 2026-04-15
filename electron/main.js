@@ -272,10 +272,18 @@ app.on('open-url', (event, url) => {
 
 const isJetson = process.arch === 'arm64' && process.platform === 'linux';
 if (isJetson) {
-  app.commandLine.appendSwitch('disable-gpu');
-  app.commandLine.appendSwitch('disable-software-rasterizer');
-  app.commandLine.appendSwitch('disable-gpu-compositing');
+  // Jetson Orin Nano: Mesa/ARM GPU crashes Chromium repeatedly.
+  // Must use full software rendering stack — no GPU process at all.
+  // These flags MUST be set before app.whenReady().
   app.commandLine.appendSwitch('no-sandbox');
+  app.commandLine.appendSwitch('disable-gpu');
+  app.commandLine.appendSwitch('disable-gpu-compositing');
+  app.commandLine.appendSwitch('disable-software-rasterizer');
+  app.commandLine.appendSwitch('disable-gpu-sandbox');
+  app.commandLine.appendSwitch('use-gl', 'angle');
+  app.commandLine.appendSwitch('use-angle', 'swiftshader');
+  app.commandLine.appendSwitch('disable-features', 'VaapiVideoDecoder,VaapiVideoEncoder,VaapiVideoDecodeLinuxGL');
+  app.commandLine.appendSwitch('enable-features', 'SharedArrayBuffer');
 }
 
 app.whenReady().then(async () => {
@@ -300,6 +308,21 @@ app.whenReady().then(async () => {
       createWindow();
     }
   });
+});
+
+// GPU process crash handler — prevents hard exit on Jetson ARM
+app.on('gpu-process-crashed', (_event, details) => {
+  console.error('[electron] GPU process crashed:', details);
+  // Don't exit — let the app continue with software rendering fallback
+});
+
+// Render process gone handler — try to recover window
+app.on('render-process-gone', (_event, webContents, details) => {
+  console.error('[electron] Render process gone:', details);
+  // Try to reload the window if possible
+  if (!details.killed && mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.reload();
+  }
 });
 
 // Quit when all windows are closed (except macOS)
