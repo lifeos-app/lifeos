@@ -333,24 +333,10 @@ export function getMusicUrl(trackOrPath: MusicTrack | string): string {
  * In browser mode: returns an HTTP URL synchronously.
  */
 export async function loadTrackUrl(trackPath: string): Promise<string> {
-  // Electron path: load via IPC binary transfer
+  // Electron path: use custom protocol (lifeos-media://) for streaming — avoids IPC Buffer serialization issues
   if (isElectronCheck()) {
-    try {
-      const api = (window as any).electronAPI;
-      if (api?.readMedia) {
-        const fullPath = resolveMediaPath(trackPath);
-        const result = await api.readMedia(fullPath);
-        if (result.data) {
-          const mime = trackPath.endsWith('.ogg') ? 'audio/ogg'
-                     : trackPath.endsWith('.wav') ? 'audio/wav'
-                     : 'audio/mpeg';
-          const blob = new Blob([result.data], { type: mime });
-          return URL.createObjectURL(blob);
-        }
-      }
-    } catch (err) {
-      console.warn('[academy-data] Electron media load failed:', err);
-    }
+    const fullPath = resolveMediaPath(trackPath);
+    return `lifeos-media://${fullPath}`;
   }
 
   // Tauri path: load via Rust IPC
@@ -358,8 +344,8 @@ export async function loadTrackUrl(trackPath: string): Promise<string> {
     try {
       const invoke = await getTauriInvoke();
       if (invoke) {
-        const fullPath = resolveMediaPath(trackPath);
-        const bytes = await invoke('get_media_bytes', { path: fullPath }) as ArrayBuffer;
+        const fullPaths = resolveMediaPath(trackPath);
+        const bytes = await invoke('get_media_bytes', { path: fullPaths }) as ArrayBuffer;
         const mime = trackPath.endsWith('.ogg') ? 'audio/ogg'
                    : trackPath.endsWith('.wav') ? 'audio/wav'
                    : 'audio/mpeg';
