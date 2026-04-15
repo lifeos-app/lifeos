@@ -44,12 +44,4 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // ── App Info ──
   getAppInfo: () => ipcRenderer.invoke('app:info'),
-
-  // ── Command Center ──
-  checkServiceHealth: (port) => ipcRenderer.invoke('cc:check-service', port),
-  getSystemMetrics:   () => ipcRenderer.invoke('cc:system-metrics'),
-  getClaudeSessions:  () => ipcRenderer.invoke('cc:claude-sessions'),
-  launchService:      (serviceId) => ipcRenderer.invoke('cc:launch-service', serviceId),
-  checkFederationNode:(host) => ipcRenderer.invoke('cc:check-federation', host),
-  getObsidianSync:    () => ipcRenderer.invoke('cc:obsidian-sync'),
 });

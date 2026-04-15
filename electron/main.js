@@ -60,9 +60,9 @@ function createWindow() {
     minWidth: 900,
     minHeight: 600,
     title: 'LifeOS — Command Center',
-    icon: join(__dirname, '..', 'public', 'favicon.svg'),
+    icon: join(__dirname, '..', 'public', 'icon-512.png'),
     webPreferences: {
-      preload: join(__dirname, 'preload.js'),
+      preload: join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false, // needed for better-sqlite3 via preload
@@ -263,6 +263,20 @@ app.on('open-url', (event, url) => {
 // ═══════════════════════════════════════════════════════════════
 // App Lifecycle
 // ═══════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════
+// GPU / Rendering — Jetson ARM fix
+// Chromium's GPU process crashes on Jetson Orin Nano (exit_code=133).
+// Use software rendering for Mesa/ARM compatibility.
+// ═══════════════════════════════════════════════════════════════
+
+const isJetson = process.arch === 'arm64' && process.platform === 'linux';
+if (isJetson) {
+  app.commandLine.appendSwitch('disable-gpu');
+  app.commandLine.appendSwitch('disable-software-rasterizer');
+  app.commandLine.appendSwitch('disable-gpu-compositing');
+  app.commandLine.appendSwitch('no-sandbox');
+}
 
 app.whenReady().then(async () => {
   // Initialize database
