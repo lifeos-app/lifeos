@@ -46,5 +46,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getAppInfo: () => ipcRenderer.invoke('app:info'),
 
   // ── OAuth ──
-  getOAuthCallbackPort: () => ipcRenderer.invoke('oauth:get-callback-port'),
+  openAuthPopup: (url) => ipcRenderer.invoke('open-auth-popup', url),
 });

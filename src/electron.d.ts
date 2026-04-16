@@ -13,7 +13,8 @@ interface ElectronAPI {
   getLifeContext: () => Promise<any>;
   getSteamStatus: () => Promise<any>;
   getAppInfo: () => Promise<any>;
-  getOAuthCallbackPort: () => Promise<number>;
+  getOAuthCallbackPort: never;
+  openAuthPopup: (url: string) => Promise<{ access_token: string; refresh_token: string } | null>;
 }
 
 declare global {

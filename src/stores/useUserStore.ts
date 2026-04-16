@@ -653,102 +653,84 @@ export const useUserStore = create<UserState>((set, get) => ({
     const isElectron = !!(window as any).electronAPI?.isElectron;
 
     if (isElectron) {
-      // Electron: use local HTTP callback server for OAuth.
-      // On Linux, custom protocol handlers (lifeos://) lose the URL fragment,
-      // so we redirect to a localhost server that reads the hash in-browser.
+      // Electron: open Google auth in a new BrowserWindow via IPC.
+      // The auth window navigates to Google, then Supabase redirects back
+      // to our app URL with tokens in the hash. We catch that navigation
+      // and extract the tokens. Simple and reliable — no protocol handlers,
+      // no local servers, no cross-origin issues.
       const { supabase: cloudSupabase } = await import('../lib/supabase');
-
-      // Start the local callback server and get its port
-      const callbackPort = await (window as any).electronAPI.getOAuthCallbackPort();
-      const redirectTo = `http://127.0.0.1:${callbackPort}/auth/callback`;
 
       const { data, error } = await cloudSupabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo,
+          redirectTo: window.location.origin + '/app/',
           skipBrowserRedirect: true,
         },
       });
       if (error) throw error;
-      if (data?.url) {
-        (window as any).electronAPI.openExternal(data.url);
+      if (!data?.url) throw new Error('No OAuth URL returned');
+
+      // Tell Electron to open a popup window for this auth URL
+      // It will detect when the popup redirects back to our app and send us the tokens
+      const tokens = await (window as any).electronAPI.openAuthPopup(data.url);
+
+      if (!tokens?.access_token || !tokens?.refresh_token) {
+        throw new Error('Authentication failed — no tokens received');
       }
 
-      // Wait for the local callback server to post tokens back (120s timeout)
-      return new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('Auth timeout — try again')), 120000);
-        window.addEventListener('electron-auth-callback', async (e: any) => {
-          clearTimeout(timeout);
-          try {
-            const { access_token, refresh_token } = e.detail;
-            const { error: sessionError } = await cloudSupabase.auth.setSession({
-              access_token,
-              refresh_token,
-            });
-            if (sessionError) {
-              reject(sessionError);
-              return;
-            }
-
-            // Get the authenticated user from the session
-            const { data: sessionData } = await cloudSupabase.auth.getSession();
-            const user = sessionData?.session?.user ?? null;
-            if (user) {
-              set({
-                user,
-                session: sessionData.session,
-                mode: 'synced',
-                authLoading: false,
-                connectionError: false,
-              });
-              localStorage.setItem('lifeos_user_mode', 'synced');
-              localStorage.setItem('lifeos_current_user_id', user.id);
-
-              // Fetch profile from cloud Supabase (not local SQLite)
-              try {
-                const { data: profileData } = await cloudSupabase
-                  .from('user_profiles')
-                  .select('user_id,display_name,occupation,primary_focus,onboarding_complete,preferences')
-                  .eq('user_id', user.id)
-                  .maybeSingle();
-
-                if (profileData) {
-                  const profile = profileData as UserProfile;
-                  const firstName = profile.display_name
-                    || user.user_metadata?.full_name?.split(' ')[0]
-                    || 'Commander';
-                  set({ profile, profileLoading: false, firstName });
-                } else {
-                  // New user — create profile
-                  await cloudSupabase.from('user_profiles').upsert({
-                    user_id: user.id,
-                    display_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
-                    onboarding_complete: false,
-                    preferences: {},
-                  }, { onConflict: 'user_id' });
-                  set({
-                    profile: {
-                      user_id: user.id,
-                      display_name: user.user_metadata?.full_name || null,
-                      occupation: null,
-                      primary_focus: null,
-                      onboarding_complete: false,
-                      preferences: {},
-                    },
-                    profileLoading: false,
-                    firstName: user.user_metadata?.full_name?.split(' ')[0] || 'Commander',
-                  });
-                }
-              } catch {
-                set({ profileLoading: false });
-              }
-            }
-            resolve();
-          } catch (err) {
-            reject(err);
-          }
-        }, { once: true });
+      const { error: sessionError } = await cloudSupabase.auth.setSession({
+        access_token: tokens.access_token,
+        refresh_token: tokens.refresh_token,
       });
+      if (sessionError) throw sessionError;
+
+      const { data: sessionData } = await cloudSupabase.auth.getSession();
+      const user = sessionData?.session?.user ?? null;
+      if (user) {
+        set({
+          user,
+          session: sessionData.session,
+          mode: 'synced',
+          authLoading: false,
+          connectionError: false,
+        });
+        localStorage.setItem('lifeos_user_mode', 'synced');
+        localStorage.setItem('lifeos_current_user_id', user.id);
+
+        try {
+          const { data: profileData } = await cloudSupabase
+            .from('user_profiles')
+            .select('user_id,display_name,occupation,primary_focus,onboarding_complete,preferences')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          if (profileData) {
+            const profile = profileData as UserProfile;
+            const firstName = profile.display_name
+              || user.user_metadata?.full_name?.split(' ')[0]
+              || 'Commander';
+            set({ profile, profileLoading: false, firstName });
+          } else {
+            await cloudSupabase.from('user_profiles').upsert({
+              user_id: user.id,
+              display_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+              onboarding_complete: false,
+              preferences: {},
+            }, { onConflict: 'user_id' });
+            set({
+              profile: {
+                user_id: user.id,
+                display_name: user.user_metadata?.full_name || null,
+                occupation: null,
+                primary_focus: null,
+                onboarding_complete: false,
+                preferences: {},
+              },
+              profileLoading: false,
+              firstName: user.user_metadata?.full_name?.split(' ')[0] || 'Commander',
+            });
+          }
+        } catch { set({ profileLoading: false }); }
+      }
     } else {
       // Web: normal OAuth redirect
       const { error } = await supabase.auth.signInWithOAuth({
