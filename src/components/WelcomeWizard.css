@@ -1,0 +1,818 @@
+/* ══════════════════════════════════════════════════
+   WelcomeWizard — Onboarding Wizard
+   Extends the Login page design language
+   ══════════════════════════════════════════════════ */
+
+/* ── Page Layout ── */
+.wizard-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 20px;
+  overflow: hidden;
+  background: #050E1A;
+}
+
+/* Reuse the same mesh background pattern as login */
+.wizard-page .login-mesh,
+.wizard-mesh {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.wizard-mesh-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+}
+
+.wizard-mesh-orb:nth-child(1) {
+  width: 600px;
+  height: 600px;
+  top: -20%;
+  left: -10%;
+  background: rgba(0, 212, 255, 0.12);
+  animation: wizardOrb1 20s ease-in-out infinite;
+}
+
+.wizard-mesh-orb:nth-child(2) {
+  width: 500px;
+  height: 500px;
+  bottom: -15%;
+  right: -10%;
+  background: rgba(139, 92, 246, 0.1);
+  animation: wizardOrb2 25s ease-in-out infinite;
+}
+
+.wizard-mesh-orb:nth-child(3) {
+  width: 400px;
+  height: 400px;
+  top: 30%;
+  right: 20%;
+  background: rgba(57, 255, 20, 0.06);
+  animation: wizardOrb3 22s ease-in-out infinite;
+}
+
+.wizard-mesh-orb:nth-child(4) {
+  width: 350px;
+  height: 350px;
+  bottom: 20%;
+  left: 15%;
+  background: rgba(244, 63, 94, 0.06);
+  animation: wizardOrb4 28s ease-in-out infinite;
+}
+
+@keyframes wizardOrb1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(10%, 15%) scale(1.15); }
+  66% { transform: translate(-5%, -10%) scale(0.9); }
+}
+
+@keyframes wizardOrb2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-12%, -8%) scale(1.1); }
+  66% { transform: translate(8%, 5%) scale(0.95); }
+}
+
+@keyframes wizardOrb3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-15%, 12%) scale(1.2); }
+}
+
+@keyframes wizardOrb4 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(12%, -10%) scale(1.1); }
+}
+
+/* ── Star Particles ── */
+.wizard-stars {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.wizard-star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  animation: wizardStarTwinkle 3s ease-in-out infinite;
+}
+
+.wizard-star:nth-child(1)  { top: 10%; left: 15%; animation-delay: 0s; animation-duration: 2.5s; }
+.wizard-star:nth-child(2)  { top: 20%; left: 75%; animation-delay: 0.5s; animation-duration: 3s; }
+.wizard-star:nth-child(3)  { top: 35%; left: 30%; animation-delay: 1s; animation-duration: 2.8s; width: 1.5px; height: 1.5px; }
+.wizard-star:nth-child(4)  { top: 55%; left: 85%; animation-delay: 1.5s; animation-duration: 3.2s; }
+.wizard-star:nth-child(5)  { top: 70%; left: 45%; animation-delay: 0.3s; animation-duration: 2.6s; width: 1px; height: 1px; }
+.wizard-star:nth-child(6)  { top: 80%; left: 10%; animation-delay: 2s; animation-duration: 3.5s; }
+.wizard-star:nth-child(7)  { top: 15%; left: 55%; animation-delay: 0.8s; animation-duration: 2.3s; width: 3px; height: 3px; }
+.wizard-star:nth-child(8)  { top: 45%; left: 65%; animation-delay: 1.2s; animation-duration: 3.1s; }
+.wizard-star:nth-child(9)  { top: 90%; left: 80%; animation-delay: 0.6s; animation-duration: 2.7s; width: 1.5px; height: 1.5px; }
+.wizard-star:nth-child(10) { top: 25%; left: 90%; animation-delay: 1.8s; animation-duration: 2.9s; }
+.wizard-star:nth-child(11) { top: 65%; left: 20%; animation-delay: 2.2s; animation-duration: 3.3s; }
+.wizard-star:nth-child(12) { top: 5%; left: 40%; animation-delay: 0.4s; animation-duration: 2.4s; width: 2.5px; height: 2.5px; }
+
+@keyframes wizardStarTwinkle {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.5); }
+}
+
+/* ── Wizard Card ── */
+.wizard-card {
+  width: 100%;
+  max-width: 560px;
+  background: rgba(15, 45, 74, 0.9);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  border: 1px solid #1A3A5C;
+  border-radius: 16px;
+  padding: 40px 36px;
+  z-index: 2;
+  position: relative;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4),
+              0 0 80px rgba(0, 212, 255, 0.05);
+  animation: wizardCardEnter 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Subtle top gradient line — same as login card */
+.wizard-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.3), rgba(139, 92, 246, 0.2), transparent);
+  border-radius: 1px;
+}
+
+@keyframes wizardCardEnter {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Progress Indicator ── */
+.wizard-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 32px;
+  position: relative;
+}
+
+.wizard-progress-bar {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.wizard-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00D4FF, #0EA5E9);
+  border-radius: 1px;
+  transition: width 0.5s ease;
+  animation: progressFill 0.5s ease forwards;
+}
+
+.wizard-progress-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.wizard-progress-dot.active {
+  background: #00D4FF;
+  border-color: #00D4FF;
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.5),
+              0 0 24px rgba(0, 212, 255, 0.2);
+  transform: scale(1.2);
+}
+
+.wizard-progress-dot.completed {
+  background: rgba(0, 212, 255, 0.4);
+  border-color: rgba(0, 212, 255, 0.6);
+}
+
+/* ── Step Content ── */
+.wizard-step {
+  position: relative;
+  opacity: 1;
+  transition: all 0.5s ease;
+}
+
+.wizard-step-enter {
+  animation: slideInRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.wizard-step-exit {
+  animation: slideOutLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ── Typography ── */
+.wizard-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
+}
+
+.wizard-subtitle {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #8BA4BE;
+  margin: 0 0 28px 0;
+  line-height: 1.6;
+}
+
+/* ── Text Input ── */
+.wizard-input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #1A3A5C;
+  background: #0a1f35;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s ease;
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+.wizard-input:focus {
+  border-color: #00D4FF;
+  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15),
+              0 0 20px rgba(0, 212, 255, 0.1);
+  background: rgba(10, 31, 53, 0.9);
+}
+
+.wizard-input::placeholder {
+  color: #5A7A9A;
+}
+
+/* ── Select / Dropdown ── */
+.wizard-select {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #1A3A5C;
+  background: #0a1f35;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s ease;
+  min-height: 48px;
+  box-sizing: border-box;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%238BA4BE' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+}
+
+.wizard-select:focus {
+  border-color: #00D4FF;
+  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15),
+              0 0 20px rgba(0, 212, 255, 0.1);
+}
+
+.wizard-select option {
+  background: #0a1f35;
+  color: #fff;
+}
+
+/* ── Module Selection Cards ── */
+.wizard-module-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px solid #1A3A5C;
+  background: rgba(10, 31, 53, 0.6);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: none;
+}
+
+.wizard-module-card:hover {
+  border-color: rgba(0, 212, 255, 0.3);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.08);
+  background: rgba(10, 31, 53, 0.8);
+  transform: translateY(-1px);
+}
+
+.wizard-module-card.selected {
+  border-color: #00D4FF;
+  box-shadow: 0 0 16px rgba(0, 212, 255, 0.15),
+              0 0 32px rgba(0, 212, 255, 0.08),
+              inset 0 0 16px rgba(0, 212, 255, 0.05);
+  background: rgba(0, 212, 255, 0.06);
+}
+
+.wizard-module-card .module-icon {
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(0, 212, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.wizard-module-card.selected .module-icon {
+  background: rgba(0, 212, 255, 0.15);
+}
+
+.wizard-module-card .module-name {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.wizard-module-card .module-desc {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: #5A7A9A;
+}
+
+.wizard-module-card .module-check {
+  margin-left: auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.wizard-module-card.selected .module-check {
+  background: #00D4FF;
+  border-color: #00D4FF;
+}
+
+/* ── Quick-Add Pills ── */
+.wizard-quick-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  border: 1px solid #1A3A5C;
+  background: transparent;
+  color: #8BA4BE;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.wizard-quick-add:hover {
+  background: #00D4FF;
+  color: #050E1A;
+  border-color: #00D4FF;
+  box-shadow: 0 0 16px rgba(0, 212, 255, 0.25);
+}
+
+.wizard-quick-add:active {
+  transform: scale(0.96);
+}
+
+/* ── Primary CTA Button ── */
+.wizard-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #00D4FF 0%, #0EA5E9 100%);
+  color: #050E1A;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.wizard-btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.wizard-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 24px rgba(0, 212, 255, 0.35),
+              0 0 40px rgba(0, 212, 255, 0.15);
+}
+
+.wizard-btn-primary:hover::before {
+  opacity: 1;
+}
+
+.wizard-btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.wizard-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Secondary Outline Button ── */
+.wizard-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: 1px solid #1A3A5C;
+  background: transparent;
+  color: #00D4FF;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 48px;
+}
+
+.wizard-btn-secondary:hover {
+  background: rgba(0, 212, 255, 0.08);
+  border-color: rgba(0, 212, 255, 0.4);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+}
+
+.wizard-btn-secondary:active {
+  transform: scale(0.98);
+}
+
+/* ── Skip Link ── */
+.wizard-btn-skip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  border: none;
+  background: none;
+  color: #5A7A9A;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.wizard-btn-skip:hover {
+  color: #8BA4BE;
+}
+
+/* ── Hermetic Quote ── */
+.wizard-hermetic-quote {
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 300;
+  color: #8BA4BE;
+  padding: 20px 16px;
+  margin: 16px 0;
+  line-height: 1.7;
+  opacity: 0;
+  animation: fadeInOut 2s ease forwards;
+  position: relative;
+}
+
+.wizard-hermetic-quote::before {
+  content: '\201C';
+  position: absolute;
+  top: 4px;
+  left: 0;
+  font-size: 32px;
+  color: rgba(0, 212, 255, 0.15);
+  font-style: normal;
+  line-height: 1;
+}
+
+/* ── Celebration (Step 5) ── */
+.wizard-celebration {
+  text-align: center;
+  padding: 24px 0;
+  position: relative;
+}
+
+.wizard-celebration-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  animation: celebrateGlow 2s ease-in-out infinite;
+  display: inline-block;
+}
+
+.wizard-celebration-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.wizard-celebration-sub {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: #8BA4BE;
+  margin-bottom: 24px;
+}
+
+/* Decorative glow orbs behind celebration */
+.wizard-celebration::before,
+.wizard-celebration::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+  animation: celebrateGlow 2s ease-in-out infinite;
+}
+
+.wizard-celebration::before {
+  width: 200px;
+  height: 200px;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 212, 255, 0.12);
+}
+
+.wizard-celebration::after {
+  width: 150px;
+  height: 150px;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(139, 92, 246, 0.08);
+  animation-delay: 0.5s;
+}
+
+/* ── Summary Items ── */
+.wizard-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(10, 31, 53, 0.5);
+  margin-bottom: 8px;
+  transition: all 0.3s ease;
+}
+
+.wizard-summary-item:hover {
+  background: rgba(10, 31, 53, 0.8);
+}
+
+.wizard-summary-item .checkmark {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 212, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #00D4FF;
+  font-size: 12px;
+}
+
+.wizard-summary-item .summary-label {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  color: #8BA4BE;
+}
+
+.wizard-summary-item .summary-value {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  margin-left: auto;
+}
+
+/* ══════════════════════════════════════════════════
+   Keyframe Animations
+   ══════════════════════════════════════════════════ */
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(60px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-60px);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInOut {
+  0%   { opacity: 0; }
+  20%  { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes celebrateGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.3));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 24px rgba(0, 212, 255, 0.6))
+           drop-shadow(0 0 48px rgba(0, 212, 255, 0.2));
+    transform: scale(1.05);
+  }
+}
+
+@keyframes progressFill {
+  from { width: 0; }
+  to   { width: var(--progress, 20%); }
+}
+
+/* ── Utility: Button Row ── */
+.wizard-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.wizard-actions-row {
+  display: flex;
+  gap: 12px;
+}
+
+.wizard-actions-row > * {
+  flex: 1;
+}
+
+/* ── Utility: Module Grid ── */
+.wizard-module-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.wizard-quick-add-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* ── Scrollable Step Content ── */
+.wizard-step-scroll {
+  max-height: 50vh;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-bottom: 8px;
+}
+
+.wizard-step-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.wizard-step-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.wizard-step-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 212, 255, 0.2);
+  border-radius: 4px;
+}
+
+/* ══════════════════════════════════════════════════
+   Responsive — Mobile (< 860px)
+   ══════════════════════════════════════════════════ */
+
+@media (max-width: 860px) {
+  .wizard-card {
+    max-width: 100%;
+    padding: 28px 20px;
+    border-radius: 14px;
+  }
+
+  .wizard-title {
+    font-size: 22px;
+  }
+
+  .wizard-subtitle {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .wizard-progress {
+    margin-bottom: 24px;
+  }
+
+  .wizard-module-grid {
+    gap: 8px;
+  }
+
+  .wizard-actions {
+    margin-top: 20px;
+  }
+
+  .wizard-step-scroll {
+    max-height: 45vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .wizard-page {
+    padding: 12px;
+  }
+
+  .wizard-card {
+    padding: 24px 16px;
+    border-radius: 12px;
+  }
+
+  .wizard-title {
+    font-size: 20px;
+  }
+
+  .wizard-module-card {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .wizard-module-card .module-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .wizard-actions-row {
+    flex-direction: column;
+  }
+
+  .wizard-quick-add {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+}

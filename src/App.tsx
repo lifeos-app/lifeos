@@ -47,6 +47,8 @@ import './styles/performance.css';
 // - onboarding.css: OnboardingQuest (Realm)
 import { logger } from './utils/logger';
 import { useSyncOnReconnect } from './hooks/useSyncOnReconnect';
+import { WelcomeWizard } from './components/WelcomeWizard';
+import './components/WelcomeWizard.css';
 
 // Lazy load pages (with retry on chunk load failure)
 const Login = lazyRetry(() => import('./pages/Login').then(m => ({ default: m.Login })));
@@ -309,16 +311,31 @@ function AppRoutes() {
     // Profile creation (for new users) happens inside fetchProfile() in the store.
     if (profileLoading) return showSpinner;
 
-    // 4. Auto-mark onboarding complete for new users — they'll see Dashboard + SpotlightTour
-    //    Realm onboarding is now opt-in via DashboardRealmInvite card
+    // 4. New user onboarding — show WelcomeWizard instead of auto-skipping
+    //    This replaces the old broken behavior (3/10 onboarding quality)
     if (profile && !profile.onboarding_complete) {
-      // Mark complete in store immediately so we fall through to routes
-      profile.onboarding_complete = true;
-      // Persist to Supabase in background (don't block render)
-      supabase.from('user_profiles')
-        .update({ onboarding_complete: true })
-        .eq('user_id', user.id)
-        .then(() => refreshProfile());
+      return (
+        <WelcomeWizard
+          userId={user.id}
+          onComplete={() => {
+            // Mark complete so we proceed to routes
+            useUserStore.getState().set(s => {
+              if (s.profile) s.profile.onboarding_complete = true;
+            });
+            refreshProfile();
+          }}
+          onSkip={() => {
+            // Mark complete and proceed
+            useUserStore.getState().set(s => {
+              if (s.profile) s.profile.onboarding_complete = true;
+            });
+            supabase.from('user_profiles')
+              .update({ onboarding_complete: true })
+              .eq('user_id', user.id)
+              .then(() => refreshProfile());
+          }}
+        />
+      );
     }
   } else {
     // 3. Local mode: wait for profile to load
