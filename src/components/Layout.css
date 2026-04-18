@@ -71,15 +71,16 @@
   .layout-main {
     overflow-y: auto;
     overflow-x: hidden;
-    /* Account for bottom nav height + safe area */
-    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    /* Account for bottom nav height (~60px) + safe area for iPhone notch */
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
 
   .layout-content {
     overflow-y: visible;
     overflow-x: hidden;
     flex: none;
-    padding: 16px 12px 100px;
+    /* 80px bottom padding for fixed bottom nav + env(safe-area-inset-bottom) for notch */
+    padding: 16px 12px calc(80px + env(safe-area-inset-bottom, 0px));
     /* Prevent any horizontal overflow */
     max-width: 100vw;
   }
@@ -141,15 +142,44 @@
     font-size: 16px; /* Prevent iOS zoom on focus */
   }
 
-  /* Touch-friendly minimum sizes */
-  button, a, [role="button"] {
+  /* Touch-friendly minimum sizes — Apple HIG 44x44px */
+  button, a, [role="button"],
+  .task-row, .task-chk,
+  .dash-habit-row, .dash-goal-row, .dash-fin-row,
+  .week-cell, .ds-event, .ds-habit-chip,
+  .mn-sheet-item,
+  .card-action, .card-link, .view-btn,
+  .dash-achievement-card, .dash-suggestion-row {
     min-height: 44px;
+  }
+
+  /* Ensure clickable links are wide enough */
+  a, .card-link, .sb-link {
+    min-width: 44px;
   }
 
   /* Full-width cards on mobile */
   .dash-card, .goal-card, .habit-card,
   .fin-business-card, .glass-card {
     border-radius: 12px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    overflow-x: hidden;
+  }
+
+  /* Ensure text wrapping on mobile for all card content */
+  .dash-card *, .habit-card *, .goal-card * {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+}
+
+/* ── Extra-small screens (iPhone SE 320px) ── */
+@media (max-width: 374px) {
+  .layout-content {
+    padding-left: 8px;
+    padding-right: 8px;
   }
 }
 

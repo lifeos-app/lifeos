@@ -59,7 +59,6 @@
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-default);
-  min-height: unset;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -997,8 +996,9 @@
 }
 
 @media (max-width: 768px) {
-  .dash-grid { grid-template-columns: 1fr 1fr; }
-  .dash-card.full-width { grid-column: 1 / -1; }
+  /* Stack dashboard into single column on mobile */
+  .dash-grid { grid-template-columns: 1fr; gap: 12px; }
+  .dash-card.full-width { grid-column: 1; }
   .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .quick-actions { gap: 5px; }
   .qa-btn { padding: 7px 8px; font-size: 10px; }
@@ -1038,7 +1038,27 @@
   .inline-task-submit,
   .inline-task-cancel,
   .inline-task-priority { min-height: 44px; font-size: 13px; }
-  .card-action { min-height: 36px; font-size: 11px; }
+  .card-action { min-height: 44px; font-size: 11px; }
+
+  /* Card overflow prevention on mobile */
+  .dash-card { overflow-x: hidden; word-wrap: break-word; overflow-wrap: break-word; }
+  .dash-card h2, .card-top h2 { overflow-wrap: break-word; word-wrap: break-word; }
+
+  /* Ensure dashboard layouts stack vertically on mobile */
+  .dash-today-layout,
+  .dash-schedule-layout,
+  .dash-goals-layout,
+  .dash-habits-layout,
+  .dash-insights-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .dash-fin-net-hero .dash-fin-net-amount { font-size: 22px; }
+
+  /* Scale down large heading sizes */
+  .insights-header h2 { font-size: 13px; }
 }
 
 @media (max-width: 480px) {
@@ -1064,6 +1084,31 @@
   .week-num { font-size: 12px; }
   .task-txt { font-size: 12px; }
   .ev-title { font-size: 12px; }
+}
+
+/* ── iPhone SE 320px breakpoint ── */
+@media (max-width: 374px) {
+  .stats-row { grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 8px; }
+  .dash-name { font-size: 16px; }
+  .dash-greeting { font-size: 11px; }
+  .dash-date { font-size: 11px; }
+  .qa-btn { padding: 5px 6px; font-size: 9px; gap: 3px; }
+  .qa-btn svg { width: 12px; height: 12px; }
+  .stat-card { padding: 6px 8px; gap: 6px; }
+  .stat-icon { width: 26px; height: 26px; }
+  .stat-val { font-size: 13px; }
+  .stat-lbl { font-size: 8px; }
+  .dash-card { padding: 10px; border-radius: 10px; }
+  .card-top h2 { font-size: 11px; }
+  .insights-grid { grid-template-columns: 1fr; gap: 6px; }
+  .insight-card { padding: 8px 6px; }
+  .week-strip { padding: 3px; gap: 1px; border-radius: 8px; }
+  .week-cell { padding: 3px 0; }
+  .week-lbl { font-size: 7px; }
+  .week-num { font-size: 11px; }
+  .task-txt { font-size: 11px; }
+  .view-toggle { display: none; }
+  .dash-cmd span { font-size: 11px; }
 }
 
 /* ═══════════════════════════════════════════════════════════════

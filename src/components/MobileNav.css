@@ -10,9 +10,16 @@
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   backdrop-filter: blur(20px) saturate(180%);
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px));
+  padding: 6px 0 calc(8px + env(safe-area-inset-bottom, 0px));
   justify-content: space-around;
   align-items: center;
+}
+
+/* Full safe-area support for iPhone X+ */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mobile-nav {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  }
 }
 
 @media (max-width: 768px) {
@@ -130,8 +137,22 @@
   animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Enhanced safe area for iPhone X+ */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mn-sheet {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+}
+
 @media (max-width: 768px) {
   .mn-sheet { display: block; }
+}
+
+/* Smaller screens adjust the sheet grid */
+@media (max-width: 374px) {
+  .mn-sheet-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .mn-sheet-item { padding: 12px 4px; font-size: 11px; min-height: 72px; }
+  .mn-sheet-icon { width: 34px; height: 34px; border-radius: 10px; }
 }
 
 .mn-sheet-handle {

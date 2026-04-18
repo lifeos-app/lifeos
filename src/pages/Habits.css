@@ -627,6 +627,18 @@
   .habit-stat-val { font-size: 13px; }
 }
 
+/* ── iPhone SE 320px ── */
+@media (max-width: 374px) {
+  .habits-title { font-size: 15px; }
+  .habits-sub { font-size: 11px; }
+  .habits-add-btn { padding: 8px 10px; font-size: 11px; }
+  .habit-card { padding: 10px; border-radius: 10px; }
+  .habit-name { font-size: 12px; }
+  .habit-day-dot { width: 20px; height: 20px; }
+  .habit-streak-num { font-size: 16px; }
+  .habit-toggle { min-height: 44px; font-size: 11px; }
+}
+
 /* ── Desktop ── */
 @media (min-width: 1024px) {
   .habits-grid {
