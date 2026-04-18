@@ -1,9 +1,11 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import {
   Target, Flame, Calendar, DollarSign, Heart,
   BookOpen, CheckCircle2, Inbox, BarChart3, Sparkles, Users,
   Briefcase, Dumbbell, Apple, Moon, Brain, Scale, Shield, Swords,
+  Zap,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import './EmptyState.css';
 
 type EmptyVariant =
@@ -22,7 +24,19 @@ interface EmptyStateProps {
   icon?: ReactNode;
 }
 
-const VARIANTS: Record<EmptyVariant, { icon: ReactNode; title: string; description: string; color: string }> = {
+// ── Hermetic Quotes ──
+const HERMETIC_QUOTES = [
+  { text: 'As within, so without', principle: 'Correspondence' },
+  { text: 'Every journey begins with a single step', principle: 'Vibration' },
+  { text: 'The masterpiece is yet to come', principle: 'Mentalism' },
+  { text: 'What you seek is also seeking you', principle: 'Rhythm' },
+];
+
+function getRandomQuote() {
+  return HERMETIC_QUOTES[Math.floor(Math.random() * HERMETIC_QUOTES.length)];
+}
+
+const VARIANTS: Record<EmptyVariant, { icon: ReactNode; title: string; description: string; color: string; ctaLabel?: string }> = {
   tasks: {
     icon: <CheckCircle2 size={36} />,
     title: "No tasks yet",
@@ -30,16 +44,18 @@ const VARIANTS: Record<EmptyVariant, { icon: ReactNode; title: string; descripti
     color: '#39FF14',
   },
   goals: {
-    icon: <Target size={36} />,
-    title: "Set your first goal",
-    description: "What do you want to achieve? Goals give your tasks meaning and direction.",
+    icon: <Zap size={36} />,
+    title: "No goals yet",
+    description: "Every great achievement starts with a direction. Define what matters to you.",
     color: '#00D4FF',
+    ctaLabel: 'Set Your First Goal',
   },
   habits: {
-    icon: <Flame size={36} />,
-    title: "Build your first habit",
-    description: "Start with something small — consistency beats intensity every time.",
+    icon: <Target size={36} />,
+    title: "No habits yet",
+    description: "Start building your daily rhythm. Small consistent actions create extraordinary results.",
     color: '#F97316',
+    ctaLabel: 'Create First Habit',
   },
   schedule: {
     icon: <Calendar size={36} />,
@@ -49,15 +65,17 @@ const VARIANTS: Record<EmptyVariant, { icon: ReactNode; title: string; descripti
   },
   finances: {
     icon: <DollarSign size={36} />,
-    title: "Start tracking your money",
-    description: "Log your first income or expense to unlock financial insights.",
+    title: "No financial data yet",
+    description: "Understanding your money is the first step to mastering it. Track your first expense.",
     color: '#FACC15',
+    ctaLabel: 'Add First Expense',
   },
   health: {
     icon: <Heart size={36} />,
-    title: "Start your health journey",
-    description: "Log mood, sleep, water, and exercise to see how you're really doing.",
+    title: "No health data yet",
+    description: "Your body is your temple. Start tracking to see patterns emerge.",
     color: '#F43F5E',
+    ctaLabel: 'Log First Entry',
   },
   journal: {
     icon: <BookOpen size={36} />,
@@ -102,10 +120,11 @@ const VARIANTS: Record<EmptyVariant, { icon: ReactNode; title: string; descripti
     color: '#00D4FF',
   },
   dashboard: {
-    icon: <BarChart3 size={36} />,
+    icon: <Sparkles size={36} />,
     title: "Welcome to LifeOS",
-    description: "Add your first task, habit, or goal to get your command center running.",
-    color: '#39FF14',
+    description: "Your command center awaits. Add your first task, habit, or goal to begin your journey.",
+    color: '#00D4FF',
+    ctaLabel: 'Get Started',
   },
   work: {
     icon: <Briefcase size={36} />,
@@ -159,6 +178,7 @@ const VARIANTS: Record<EmptyVariant, { icon: ReactNode; title: string; descripti
 
 export function EmptyState({ variant = 'generic', title, description, action, icon }: EmptyStateProps) {
   const v = VARIANTS[variant];
+  const quote = useMemo(() => getRandomQuote(), []);
 
   return (
     <div className="empty-state">
@@ -174,9 +194,15 @@ export function EmptyState({ variant = 'generic', title, description, action, ic
       <p className="empty-state-desc">{description || v.description}</p>
       {action && (
         <button className="empty-state-cta" onClick={action.onClick} style={{ '--cta-color': v.color } as React.CSSProperties}>
-          {action.label}
+          {action.label || v.ctaLabel || 'Get Started'}
         </button>
       )}
+      {!action && v.ctaLabel && (
+        <div className="empty-state-hint">Try: {v.ctaLabel}</div>
+      )}
+      <p className="empty-state-quote">
+        "{quote.text}" <span className="empty-state-quote-principle">— {quote.principle}</span>
+      </p>
     </div>
   );
 }

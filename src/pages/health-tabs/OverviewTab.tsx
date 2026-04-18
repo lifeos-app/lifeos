@@ -76,7 +76,7 @@ export function OverviewTab({ metrics, exerciseLogs, meditationLogs, gratitudeEn
       {!hasAnyData && (
         <EmptyState
           variant="health"
-          action={{ label: 'Log today\'s mood', onClick: () => onUpdateMetrics({ mood_score: 3 }) }}
+          action={{ label: 'Log First Entry', onClick: () => onUpdateMetrics({ mood_score: 3 }) }}
         />
       )}
       {insights.length > 0 && <InsightsBanner insights={insights} />}

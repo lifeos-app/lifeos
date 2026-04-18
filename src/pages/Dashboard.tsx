@@ -298,7 +298,10 @@ export function Dashboard() {
         {fetchError && <ErrorCard message={fetchError} onRetry={fetchAll} />}
         {loading && tasks.length === 0 && <DashboardSkeleton />}
         {!loading && tasks.length === 0 && habits.length === 0 && goals.length === 0 && !profile?.onboarding_complete && (
-          <EmptyState variant="dashboard" />
+          <EmptyState
+            variant="dashboard"
+            action={{ label: 'Get Started', onClick: () => navigate('/habits') }}
+          />
         )}
 
         {/* ═══ TODAY TAB ═══ */}

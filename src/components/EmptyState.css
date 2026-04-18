@@ -7,6 +7,9 @@
   text-align: center;
   padding: 48px 24px;
   min-height: 240px;
+  background: rgba(15, 45, 74, 0.18);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 212, 255, 0.05);
 }
 
 .empty-state-visual {
@@ -52,7 +55,7 @@
 
 .empty-state-desc {
   font-size: 14px;
-  color: var(--text-secondary, #9CA3AF);
+  color: var(--text-secondary, #8BA4BE);
   max-width: 320px;
   line-height: 1.6;
   margin-bottom: 20px;
@@ -61,28 +64,58 @@
 .empty-state-cta {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  padding: 12px 24px;
-  background: rgba(0, 212, 255, 0.1);
-  border: 1px solid rgba(0, 212, 255, 0.2);
-  border-radius: 10px;
-  color: var(--cta-color, #00D4FF);
+  padding: 12px 28px;
+  background: var(--cta-color, #00D4FF);
+  border: none;
+  border-radius: 12px;
+  color: #050E1A;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   min-height: 44px;
   -webkit-tap-highlight-color: transparent;
   transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.15);
 }
 
 .empty-state-cta:hover {
-  background: rgba(0, 212, 255, 0.15);
-  border-color: rgba(0, 212, 255, 0.3);
-  box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+  filter: brightness(1.1);
+  box-shadow: 0 4px 28px rgba(0, 212, 255, 0.25);
+  transform: translateY(-1px);
 }
 
 .empty-state-cta:active {
   transform: scale(0.96);
+  box-shadow: 0 2px 12px rgba(0, 212, 255, 0.15);
+}
+
+/* Hint text when no action button is provided but a CTA label exists */
+.empty-state-hint {
+  font-size: 13px;
+  color: #8BA4BE;
+  margin-bottom: 16px;
+  opacity: 0.7;
+}
+
+/* Hermetic motivational quote */
+.empty-state-quote {
+  font-size: 13px;
+  font-style: italic;
+  color: #5A7A9A;
+  margin-top: 24px;
+  max-width: 280px;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+.empty-state-quote-principle {
+  font-style: normal;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  opacity: 0.6;
 }
 
 /* Entrance animation for the whole component */
@@ -122,4 +155,5 @@
   .empty-state-visual { width: 140px; height: 140px; margin-bottom: 28px; }
   .empty-state-title { font-size: 22px; }
   .empty-state-desc { font-size: 15px; max-width: 400px; }
+  .empty-state-quote { max-width: 340px; font-size: 14px; }
 }

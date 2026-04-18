@@ -1419,7 +1419,7 @@ export function Goals() {
         <EmptyState
           variant="goals"
           action={{
-            label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><Target size={14} /> Create Your First Objective</span>,
+            label: 'Set Your First Goal',
             onClick: () => { setCreateCategory('objective'); setCreateParent(null); setShowForm(true); },
           }}
         />

@@ -561,7 +561,7 @@ export function Finances() {
 
         {/* Empty state for first-time users */}
         {!loading && income.length === 0 && expenses.length === 0 && bills.length === 0 && transactions.length === 0 && (
-          <EmptyState variant="finances" action={{ label: '+ Add Income or Expense', onClick: () => setFormMode('income') }} />
+          <EmptyState variant="finances" action={{ label: 'Add First Expense', onClick: () => setFormMode('income') }} />
         )}
 
         {/* Summary Stats */}

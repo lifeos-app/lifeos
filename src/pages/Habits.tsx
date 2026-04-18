@@ -242,7 +242,7 @@ export function Habits() {
       ) : habits.length === 0 ? (
         <EmptyState
           variant="habits"
-          action={{ label: '+ Create Your First Habit', onClick: () => setShowForm(true) }}
+          action={{ label: 'Create First Habit', onClick: () => setShowForm(true) }}
         />
       ) : (
         <div className="habits-grid">
