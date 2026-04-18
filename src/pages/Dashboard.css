@@ -314,7 +314,7 @@
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border: var(--border-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: 16px;
   transition: all var(--transition-default);
   position: relative;
   overflow: hidden;
@@ -419,7 +419,7 @@
   align-items: center;
   justify-content: center;
   padding: 20px 16px;
-  border-radius: var(--radius-lg);
+  border-radius: 16px;
   transition: all var(--transition-default);
 }
 
@@ -470,7 +470,7 @@
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border: var(--border-subtle);
-  border-radius: var(--radius-xl);
+  border-radius: 16px;
   padding: 20px;
   transition: opacity 0.2s ease, transform 0.2s ease;
   position: relative;
@@ -1657,4 +1657,41 @@
   .quick-actions.has-overflow { mask-image: none; -webkit-mask-image: none; }
   .week-strip { padding: 8px 12px; }
   .week-cell { padding: 10px 8px; }
+}
+
+/* ══════════════════════════════════════════════════
+   New Widget Polish — Consistent card styling
+   ══════════════════════════════════════════════════ */
+
+/* Ensure all dash-card instances share consistent radius + padding */
+.dash-card {
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.dash-card h2,
+.dash-card .card-top h2 {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Streak Momentum — flame ladder bar animation */
+@keyframes streakBarFill {
+  from { width: 0; }
+}
+
+/* Daily Progress ring glow pulse (when complete) */
+@keyframes progressPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Financial Pulse — sparkline bar transition */
+.dash-card div[style*="border-radius: 2"] {
+  transition: height 0.3s ease;
+}
+
+/* Consistent gap between secondary column widgets */
+.dash-secondary-col > .dash-card + .dash-card {
+  margin-top: 8px;
 }

@@ -57,6 +57,10 @@ import {
   DashboardStreakWarnings,
   DashboardRealmInvite,
   DashboardCelestial,
+  DashboardStreakMomentum,
+  DashboardDailyProgress,
+  DashboardWeeklyInsight,
+  DashboardFinancialPulse,
 } from '../components/dashboard';
 import { HermeticInsightWidget } from '../components/HermeticInsightWidget';
 import { Brain } from 'lucide-react';
@@ -384,6 +388,18 @@ export function Dashboard() {
               </FeatureErrorBoundary>
             </div>
             <div className="dash-secondary-col">
+              <FeatureErrorBoundary feature="Daily Progress" compact>
+                <DashboardDailyProgress />
+              </FeatureErrorBoundary>
+              <FeatureErrorBoundary feature="Streak Momentum" compact>
+                <DashboardStreakMomentum />
+              </FeatureErrorBoundary>
+              <FeatureErrorBoundary feature="Financial Pulse" compact>
+                <DashboardFinancialPulse />
+              </FeatureErrorBoundary>
+              <FeatureErrorBoundary feature="Weekly Insight" compact>
+                <DashboardWeeklyInsight />
+              </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Realm Invite" compact>
                 <DashboardRealmInvite />
               </FeatureErrorBoundary>

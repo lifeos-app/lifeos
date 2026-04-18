@@ -123,15 +123,54 @@ RULES:
 - If the user has no events, quests, or habits, don't mention them. Focus on suggesting what they could do to get started with their day.`;
 }
 
-// ── TIME-BASED ICON ────────────────────────────────────────────────────────────
+// ── TIME-BASED STYLING ──────────────────────────────────────────────────────────
 
-function getTimeIcon() {
+type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
+
+function getTimeOfDay(): TimeOfDay {
   const h = new Date().getHours();
-  if (h < 6) return <Moon size={18} style={{ color: '#A78BFA' }} />;
-  if (h < 12) return <Sun size={18} style={{ color: '#FACC15' }} />;
-  if (h < 17) return <CloudSun size={18} style={{ color: '#F97316' }} />;
-  return <Moon size={18} style={{ color: '#A78BFA' }} />;
+  if (h < 6) return 'night';
+  if (h < 12) return 'morning';
+  if (h < 17) return 'afternoon';
+  return 'evening';
 }
+
+const TIME_STYLES: Record<TimeOfDay, {
+  icon: React.ReactNode;
+  gradient: string;
+  borderColor: string;
+  glowColor: string;
+  headerGradient: string;
+}> = {
+  morning: {
+    icon: <Sun size={18} style={{ color: '#FACC15' }} />,
+    gradient: 'linear-gradient(135deg, rgba(250,204,21,0.06) 0%, rgba(249,115,22,0.04) 50%, rgba(250,204,21,0.02) 100%)',
+    borderColor: 'rgba(250,204,21,0.18)',
+    glowColor: 'rgba(250,204,21,0.12)',
+    headerGradient: 'linear-gradient(90deg, transparent, rgba(250,204,21,0.4), rgba(249,115,22,0.3), transparent)',
+  },
+  afternoon: {
+    icon: <CloudSun size={18} style={{ color: '#F97316' }} />,
+    gradient: 'linear-gradient(135deg, rgba(249,115,22,0.06) 0%, rgba(234,179,8,0.04) 50%, rgba(249,115,22,0.02) 100%)',
+    borderColor: 'rgba(249,115,22,0.18)',
+    glowColor: 'rgba(249,115,22,0.12)',
+    headerGradient: 'linear-gradient(90deg, transparent, rgba(249,115,22,0.4), rgba(234,179,8,0.3), transparent)',
+  },
+  evening: {
+    icon: <Moon size={18} style={{ color: '#A78BFA' }} />,
+    gradient: 'linear-gradient(135deg, rgba(167,139,250,0.06) 0%, rgba(59,130,246,0.04) 50%, rgba(0,212,255,0.02) 100%)',
+    borderColor: 'rgba(167,139,250,0.18)',
+    glowColor: 'rgba(167,139,250,0.12)',
+    headerGradient: 'linear-gradient(90deg, transparent, rgba(167,139,250,0.4), rgba(59,130,246,0.3), transparent)',
+  },
+  night: {
+    icon: <Moon size={18} style={{ color: '#6366F1' }} />,
+    gradient: 'linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(139,92,246,0.04) 50%, rgba(99,102,241,0.02) 100%)',
+    borderColor: 'rgba(99,102,241,0.18)',
+    glowColor: 'rgba(99,102,241,0.12)',
+    headerGradient: 'linear-gradient(90deg, transparent, rgba(99,102,241,0.4), rgba(139,92,246,0.3), transparent)',
+  },
+};
 
 // ── COMPONENT ──────────────────────────────────────────────────────────────────
 
@@ -269,16 +308,20 @@ export function DashboardMorningBrief() {
     generateBrief();
   }, [generateBrief]);
 
+  const timeOfDay = getTimeOfDay();
+  const timeStyle = TIME_STYLES[timeOfDay];
+
   // ── LOADING SHIMMER ──
   if (loading) {
     return (
       <section className="dash-card" style={{
-        background: 'linear-gradient(135deg, rgba(124,92,252,0.08) 0%, rgba(0,212,255,0.05) 100%)',
-        border: '1px solid rgba(124,92,252,0.15)',
+        background: timeStyle.gradient,
+        border: `1px solid ${timeStyle.borderColor}`,
         position: 'relative',
         overflow: 'hidden',
         minHeight: 160,
         gridColumn: '1 / -1',
+        borderRadius: 16,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
           <div className="shimmer-line" style={{ width: 20, height: 20, borderRadius: '50%' }} />
@@ -332,6 +375,9 @@ export function DashboardMorningBrief() {
         gridColumn: '1 / -1',
         textAlign: 'center',
         padding: '24px 20px',
+        background: timeStyle.gradient,
+        border: `1px solid ${timeStyle.borderColor}`,
+        borderRadius: 16,
       }}>
         <p style={{ color: '#8BA4BE', fontSize: 13 }}>{error}</p>
         <button
@@ -361,14 +407,15 @@ export function DashboardMorningBrief() {
       className="dash-card morning-brief-card"
       style={{
         gridColumn: '1 / -1',
-        background: 'linear-gradient(135deg, rgba(124,92,252,0.08) 0%, rgba(0,212,255,0.05) 50%, rgba(124,92,252,0.04) 100%)',
-        border: '1px solid rgba(124,92,252,0.18)',
+        background: timeStyle.gradient,
+        border: `1px solid ${timeStyle.borderColor}`,
         padding: 0,
         overflow: 'hidden',
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(12px)',
         transition: 'all 0.5s cubic-bezier(0.4,0,0.2,1)',
         position: 'relative',
+        borderRadius: 16,
       }}
     >
       {/* Subtle glow effect */}
@@ -377,7 +424,7 @@ export function DashboardMorningBrief() {
         top: -40, right: -40,
         width: 120, height: 120,
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(124,92,252,0.12) 0%, transparent 70%)',
+        background: `radial-gradient(circle, ${timeStyle.glowColor} 0%, transparent 70%)`,
         pointerEvents: 'none',
       }} />
       <div style={{
@@ -385,7 +432,7 @@ export function DashboardMorningBrief() {
         bottom: -30, left: -30,
         width: 100, height: 100,
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(0,212,255,0.06) 0%, transparent 70%)',
         pointerEvents: 'none',
       }} />
 
@@ -405,7 +452,7 @@ export function DashboardMorningBrief() {
         onKeyDown={e => e.key === 'Enter' && setCollapsed(c => !c)}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0 }}>
-          {getTimeIcon()}
+          {timeStyle.icon}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#E8F0FE' }}>
@@ -578,7 +625,7 @@ export function DashboardMorningBrief() {
         left: '5%',
         right: '5%',
         height: 1,
-        background: 'linear-gradient(90deg, transparent, rgba(124,92,252,0.4), rgba(0,212,255,0.3), transparent)',
+        background: timeStyle.headerGradient,
         pointerEvents: 'none',
       }} />
 
@@ -586,9 +633,6 @@ export function DashboardMorningBrief() {
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
-        }
-        .morning-brief-card:hover {
-          border-color: rgba(124,92,252,0.28) !important;
         }
       `}</style>
     </section>

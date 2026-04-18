@@ -21,3 +21,7 @@ export { DashboardLifePulse } from './DashboardLifePulse';
 export { DashboardStreakWarnings } from './DashboardStreakWarnings';
 export { DashboardRealmInvite } from './DashboardRealmInvite';
 export { DashboardCelestial } from './DashboardCelestial';
+export { DashboardStreakMomentum } from './DashboardStreakMomentum';
+export { DashboardDailyProgress } from './DashboardDailyProgress';
+export { DashboardWeeklyInsight } from './DashboardWeeklyInsight';
+export { DashboardFinancialPulse } from './DashboardFinancialPulse';
