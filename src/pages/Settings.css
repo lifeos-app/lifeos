@@ -206,6 +206,113 @@
   .set-provider-grid { grid-template-columns: 1fr; }
 }
 
+/* ── Danger Zone ── */
+.set-danger-zone {
+  background: rgba(244, 63, 94, 0.03);
+  border: 1px solid rgba(244, 63, 94, 0.2);
+}
+.set-danger-zone:hover {
+  border-color: rgba(244, 63, 94, 0.35);
+}
+
+/* ── Profile Completion Card ── */
+.set-completion-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.set-completion-fill {
+  height: 100%;
+  background: var(--cyan);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+.set-completion-cta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px dashed rgba(0, 212, 255, 0.3);
+  background: transparent;
+  color: var(--cyan);
+  font-family: var(--font-body);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  width: 100%;
+  text-align: left;
+}
+.set-completion-cta:hover {
+  background: rgba(0, 212, 255, 0.06);
+  border-style: solid;
+}
+
+/* ── Account Age ── */
+.set-account-age {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(0, 212, 255, 0.04);
+  border: 1px solid rgba(0, 212, 255, 0.1);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+/* ── Light Theme ── */
+.lifeos-light {
+  --dark-deep: #F3F4F6;
+  --dark: #E5E7EB;
+  --dark-surface: #FFFFFF;
+  --dark-card: #F9FAFB;
+  --dark-border: #D1D5DB;
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-muted: #9CA3AF;
+  --cyan: #0891B2;
+  --cyan-light: #06B6D4;
+  background: var(--dark-deep) !important;
+  color: var(--text-primary) !important;
+}
+.lifeos-light input,
+.lifeos-light select,
+.lifeos-light textarea {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(209, 213, 219, 0.5) !important;
+  color: var(--text-primary) !important;
+}
+.lifeos-light .set-section {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(209, 213, 219, 0.3);
+}
+.lifeos-light .set-sidebar-nav {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(209, 213, 219, 0.3);
+}
+.lifeos-light .set-sidebar-tab,
+.lifeos-light .set-mobile-tab {
+  color: var(--text-muted);
+}
+.lifeos-light .set-sidebar-tab.active,
+.lifeos-light .set-mobile-tab.active {
+  color: var(--cyan);
+  background: rgba(8, 145, 178, 0.08);
+  border-color: rgba(8, 145, 178, 0.3);
+}
+.lifeos-light .set-delete-btn {
+  color: #DC2626;
+  border-color: rgba(220, 38, 38, 0.2);
+  background: rgba(220, 38, 38, 0.04);
+}
+.lifeos-light .set-signout-btn {
+  color: #C2410C;
+  border-color: rgba(194, 65, 12, 0.2);
+  background: rgba(194, 65, 12, 0.04);
+}
+
 .spin { animation: spin 0.8s linear infinite; }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
