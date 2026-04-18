@@ -8,7 +8,7 @@ import { recalcProgression } from '../lib/progression';
 import { showToast } from '../components/Toast';
 import { useGamificationContext } from '../lib/gamification/context';
 import { ConfirmDialog } from '../components/ConfirmDialog';
-import { Plus, Target, Calendar, ChevronDown, ChevronRight, X, Loader2, RefreshCw, Check, Pencil, TreePine, List, Layers, Zap, CheckSquare, Circle, CheckCircle2, Trash2, Info, Flag, AlertTriangle, Wallet, TrendingUp, TrendingDown, GripVertical, MoreHorizontal, Copy, Archive, ArrowRight, Users, Ban, Clock } from 'lucide-react';
+import { Plus, Target, Calendar, ChevronDown, ChevronRight, X, Loader2, RefreshCw, Check, Pencil, TreePine, List, Layers, Zap, CheckSquare, Circle, CheckCircle2, Trash2, Info, Flag, AlertTriangle, Wallet, TrendingUp, TrendingDown, GripVertical, MoreHorizontal, Copy, Archive, ArrowRight, Users, Ban, Clock, Sparkles } from 'lucide-react';
 import { Confetti } from '../components/Confetti';
 import { EmojiIcon } from '../lib/emoji-icon';
 import { MiniChart } from '../components/MiniChart';
@@ -120,6 +120,13 @@ export function Goals() {
   // Confirm dialog
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const [confirmMsg, setConfirmMsg] = useState({ title: '', message: '' });
+
+  // Quick Add
+  const [quickAddTitle, setQuickAddTitle] = useState('');
+
+  // Progress ring animated state (mount trigger)
+  const [ringsAnimated, setRingsAnimated] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setRingsAnimated(true), 100); return () => clearTimeout(t); }, [goals]);
 
   const confirmDelete = (title: string, message: string, action: () => void) => {
     setConfirmMsg({ title, message });
@@ -693,6 +700,100 @@ export function Goals() {
     return { totalBudget, taskExpenses, taskIncome, net: taskIncome - taskExpenses };
   }, [filteredGoals, filteredTasks, goals, allTasks, timeRange]);
 
+  // ── Motivational Goal State ──
+  const getGoalState = (g: GoalNode, pct: number): { state: 'on-track' | 'at-risk' | 'behind' | 'completed'; label: string } => {
+    if (pct >= 100) return { state: 'completed', label: 'Completed' };
+    if (!g.target_date || !g.created_at) return { state: 'on-track', label: 'On Track' };
+    const now = Date.now();
+    const start = new Date(g.created_at).getTime();
+    const end = new Date(g.target_date + 'T00:00:00').getTime();
+    const totalDuration = end - start;
+    if (totalDuration <= 0) {
+      // No meaningful duration — use progress alone
+      if (pct >= 80) return { state: 'on-track', label: 'On Track' };
+      if (pct >= 40) return { state: 'at-risk', label: 'At Risk' };
+      return { state: 'behind', label: 'Behind' };
+    }
+    const timeElapsed = Math.min(1, Math.max(0, (now - start) / totalDuration));
+    const progressRatio = pct / 100;
+    if (timeElapsed > 0.8 && progressRatio > 0.8) return { state: 'on-track', label: 'On Track' };
+    if (timeElapsed > 0.6 && progressRatio < 0.6) return { state: 'at-risk', label: 'At Risk' };
+    if (timeElapsed > 0.8 && progressRatio < 0.4) return { state: 'behind', label: 'Behind' };
+    // If we're ahead of schedule, still on track
+    if (progressRatio >= timeElapsed) return { state: 'on-track', label: 'On Track' };
+    if (timeElapsed > 0.6 && progressRatio < timeElapsed * 0.75) return { state: 'at-risk', label: 'At Risk' };
+    return { state: 'on-track', label: 'On Track' };
+  };
+
+  // ── Human-Readable Time Remaining ──
+  const getTimeRemaining = (targetDate: string | null): { text: string; urgency: 'ok' | 'warning' | 'overdue' } | null => {
+    if (!targetDate) return null;
+    const target = new Date(targetDate + 'T00:00:00').getTime();
+    const now = Date.now();
+    const diffMs = target - now;
+    const absDiffDays = Math.abs(Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+    if (diffMs < 0) {
+      if (absDiffDays === 0) return { text: 'Overdue today', urgency: 'overdue' };
+      if (absDiffDays <= 30) return { text: `Overdue by ${absDiffDays} day${absDiffDays !== 1 ? 's' : ''}`, urgency: 'overdue' };
+      return { text: `Overdue by ${Math.ceil(absDiffDays / 30)} month${Math.ceil(absDiffDays / 30) !== 1 ? 's' : ''}`, urgency: 'overdue' };
+    }
+    if (absDiffDays === 0) return { text: 'Due today', urgency: 'warning' };
+    if (absDiffDays === 1) return { text: '1 day left', urgency: 'warning' };
+    if (absDiffDays <= 14) return { text: `${absDiffDays} days left`, urgency: absDiffDays <= 3 ? 'warning' : 'ok' };
+    if (absDiffDays <= 45) return { text: `${Math.round(absDiffDays / 7)} weeks left`, urgency: 'ok' };
+    if (absDiffDays <= 365) return { text: `${Math.round(absDiffDays / 30)} months left`, urgency: 'ok' };
+    return { text: `${Math.round(absDiffDays / 365)} year${Math.round(absDiffDays / 365) !== 1 ? 's' : ''} left`, urgency: 'ok' };
+  };
+
+  // ── Quick Add Goal ──
+  const handleQuickAdd = async () => {
+    if (!quickAddTitle.trim()) return;
+    setSaving(true);
+    const newId = await useGoalsStore.getState().createGoal({
+      user_id: user?.id,
+      title: quickAddTitle.trim(),
+      icon: '🎯',
+      color: '#00D4FF',
+      status: 'active',
+      progress: 0,
+      sort_order: goals.length,
+      category: 'goal',
+      priority: 'medium',
+    } as Record<string, unknown>);
+    if (newId) {
+      showToast('Goal created!', '🎯', '#00D4FF');
+      setQuickAddTitle('');
+      fetchGoals();
+    }
+    setSaving(false);
+  };
+
+  // ── Popular Goals List ──
+  const POPULAR_GOALS = [
+    { title: 'Save $5,000', icon: '💰' },
+    { title: 'Read 12 books', icon: '📖' },
+    { title: 'Exercise 5x/week', icon: '💪' },
+    { title: 'Learn a new skill', icon: '🧠' },
+  ];
+
+  const handlePopularGoal = async (title: string, icon: string) => {
+    const newId = await useGoalsStore.getState().createGoal({
+      user_id: user?.id,
+      title,
+      icon,
+      color: '#00D4FF',
+      status: 'active',
+      progress: 0,
+      sort_order: goals.length,
+      category: 'goal',
+      priority: 'medium',
+    } as Record<string, unknown>);
+    if (newId) {
+      showToast('Goal created!', '🎯', '#00D4FF');
+      fetchGoals();
+    }
+  };
+
   // ── Progress Bar with Milestones ──
   const ProgressBar = ({ pct, color, size = 'normal' }: { pct: number; color: string; size?: 'normal' | 'small' }) => {
     const height = size === 'small' ? 4 : 6;
@@ -718,6 +819,40 @@ export function Goals() {
     );
   };
 
+  // ── Circular SVG Progress Ring ──
+  const ProgressRing = ({ pct, size = 42 }: { pct: number; size?: number }) => {
+    const strokeWidth = 3;
+    const radius = (size - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const offset = ringsAnimated ? circumference - (Math.min(pct, 100) / 100) * circumference : circumference;
+
+    // Color: cyan 0-49%, green 50-99%, gold 100%
+    const ringColor = pct >= 100 ? '#FACC15' : pct >= 50 ? '#39FF14' : '#00D4FF';
+
+    return (
+      <div className="gt-progress-ring" style={{ width: size, height: size }}>
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+          <circle
+            className="gt-progress-ring-bg"
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+          />
+          <circle
+            className="gt-progress-ring-fill"
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={ringColor}
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+          />
+        </svg>
+        <div className="gt-progress-ring-text">{Math.round(pct)}%</div>
+      </div>
+    );
+  };
+
   // ── Recursive Tree Renderer ──
   const renderTreeNode = (g: GoalNode, depth: number = 0, isLast: boolean = false, parentPath: boolean[] = []) => {
     const cat = g.category || 'goal';
@@ -731,7 +866,6 @@ export function Goals() {
     const hasExpandable = children.length > 0 || tasks.length > 0;
     const levelColor = LEVEL_COLORS[cat] || '#00D4FF';
     const priorityColor = g.priority ? PRIORITY_COLORS[g.priority] : null;
-    const countdown = getCountdown(g.target_date);
     const nextChildCategory = cat === 'objective' ? 'epic' : cat === 'epic' ? 'goal' : null;
     const statusInfo = STATUS_ICONS[g.status] || STATUS_ICONS.active;
     const isDragOver = dragOverId === g.id;
@@ -791,6 +925,9 @@ export function Goals() {
           </div>
 
           <div className="gt-card-inner">
+            {/* Progress Ring */}
+            <ProgressRing pct={pct} />
+
             {/* Status cycle button */}
             <button
               className="gt-status-btn"
@@ -831,6 +968,15 @@ export function Goals() {
                     {g.title}
                   </span>
                 )}
+                {/* Motivational State Badge */}
+                {(() => {
+                  const goalState = getGoalState(g, pct);
+                  return (
+                    <span className="gt-state-badge" data-state={goalState.state}>
+                      {goalState.label}
+                    </span>
+                  );
+                })()}
                 <span className={`gt-cat-badge cat-${cat}`}>
                   {cat === 'objective' ? '🎯' : cat === 'epic' ? '⚡' : '🏁'}
                   <span>{cat}</span>
@@ -839,18 +985,38 @@ export function Goals() {
 
               <ProgressBar pct={pct} color={g.color || levelColor} />
 
+              {/* Decomposition Preview: mini progress bar for sub-tasks */}
+              {tasks.length > 0 && (
+                <div className="gt-decomp-preview">
+                  <div className="gt-decomp-bar">
+                    <div
+                      className="gt-decomp-fill"
+                      style={{
+                        width: `${(doneTasks.length / tasks.length) * 100}%`,
+                        background: g.color || levelColor,
+                      }}
+                    />
+                  </div>
+                  <span className="gt-decomp-label">{doneTasks.length}/{tasks.length} milestones</span>
+                </div>
+              )}
+
               <div className="gt-meta">
-                <span className="gt-pct" style={{ color: g.color || levelColor }}>{pct}%</span>
                 {g.priority && (
                   <span className="gt-priority-label" style={{ color: priorityColor || undefined }}>
                     {g.priority.charAt(0).toUpperCase() + g.priority.slice(1)}
                   </span>
                 )}
-                {countdown && (
-                  <span className="gt-countdown" data-urgent={countdown.includes('overdue') || countdown.includes('today')}>
-                    <Calendar size={9} /> {countdown}
-                  </span>
-                )}
+                {/* Human-readable time remaining */}
+                {(() => {
+                  const tr = getTimeRemaining(g.target_date);
+                  if (!tr) return null;
+                  return (
+                    <span className={`gt-time-remaining time-${tr.urgency}`}>
+                      <Clock size={9} /> {tr.text}
+                    </span>
+                  );
+                })()}
                 {children.length > 0 && (
                   <span className="gt-child-count">
                     {children.length} {cat === 'objective' ? 'epic' : 'goal'}{children.length !== 1 ? 's' : ''}
@@ -1414,15 +1580,48 @@ export function Goals() {
       {/* Loading */}
       {viewMode === 'list' && loading && <GoalsSkeleton />}
 
+      {/* Quick Add Goal Input */}
+      {viewMode === 'list' && !loading && displayGoals.length > 0 && catFilter !== 'task' && (
+        <div className="goals-quick-add">
+          <span className="goals-quick-add-icon"><Plus size={18} /></span>
+          <input
+            className="goals-quick-add-input"
+            placeholder="Quick add a goal..."
+            value={quickAddTitle}
+            onChange={e => setQuickAddTitle(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') handleQuickAdd(); if (e.key === 'Escape') setQuickAddTitle(''); }}
+            disabled={saving}
+          />
+          <span className="goals-quick-add-hint">Press Enter</span>
+        </div>
+      )}
+
       {/* Empty state */}
       {viewMode === 'list' && !loading && displayGoals.length === 0 && catFilter !== 'task' && (
-        <EmptyState
-          variant="goals"
-          action={{
-            label: 'Set Your First Goal',
-            onClick: () => { setCreateCategory('objective'); setCreateParent(null); setShowForm(true); },
-          }}
-        />
+        <>
+          <EmptyState
+            variant="goals"
+            action={{
+              label: 'Set Your First Goal',
+              onClick: () => { setCreateCategory('objective'); setCreateParent(null); setShowForm(true); },
+            }}
+          />
+          <div className="goals-popular">
+            <div className="goals-popular-title">Popular goals to get started</div>
+            <div className="goals-popular-list">
+              {POPULAR_GOALS.map(pg => (
+                <button
+                  key={pg.title}
+                  className="goals-popular-chip"
+                  onClick={() => handlePopularGoal(pg.title, pg.icon)}
+                >
+                  <Sparkles size={12} style={{ opacity: 0.5 }} />
+                  {pg.title}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
       )}
 
       {/* List View - All category with tree */}

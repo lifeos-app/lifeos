@@ -951,6 +951,12 @@
   .gt-new-task-input { font-size: 13px; min-height: 44px; }
   .gt-new-task-submit { min-height: 44px; justify-content: center; }
 
+  .gt-progress-ring { width: 34px; height: 34px; }
+  .gt-progress-ring svg { width: 34px; height: 34px; }
+  .gt-progress-ring-text { font-size: 8px; }
+  .goals-quick-add { padding: 10px 12px; }
+  .goals-quick-add-hint { display: none; }
+
   /* Legacy */
   .goals-empty { padding: 40px 16px; }
 }
@@ -1025,6 +1031,206 @@
 .goals-partner-select:focus {
   outline: none;
   border-color: #A855F7;
+}
+
+/* ── Quick Add Input ── */
+.goals-quick-add {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.02);
+  border: 1px dashed rgba(0,212,255,0.15);
+  border-radius: var(--radius-lg);
+  margin-bottom: 16px;
+  transition: all var(--transition-fast);
+}
+.goals-quick-add:focus-within {
+  border-color: rgba(0,212,255,0.4);
+  background: rgba(255,255,255,0.04);
+  box-shadow: 0 0 16px rgba(0,212,255,0.06);
+}
+.goals-quick-add-icon {
+  color: var(--cyan);
+  opacity: 0.5;
+  flex-shrink: 0;
+  transition: opacity var(--transition-fast);
+}
+.goals-quick-add:focus-within .goals-quick-add-icon {
+  opacity: 1;
+}
+.goals-quick-add-input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  min-width: 0;
+}
+.goals-quick-add-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+.goals-quick-add-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.4;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Progress Ring ── */
+.gt-progress-ring {
+  position: relative;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+}
+.gt-progress-ring svg {
+  transform: rotate(-90deg);
+  width: 42px;
+  height: 42px;
+}
+.gt-progress-ring-bg {
+  fill: none;
+  stroke: rgba(255,255,255,0.06);
+  stroke-width: 3;
+}
+.gt-progress-ring-fill {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.6s ease;
+}
+.gt-progress-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ── Motivational State Badge ── */
+.gt-state-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 7px;
+  border-radius: var(--radius-sm);
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.gt-state-badge[data-state="on-track"] {
+  background: rgba(57,255,20,0.1);
+  color: #39FF14;
+}
+.gt-state-badge[data-state="at-risk"] {
+  background: rgba(249,115,22,0.1);
+  color: #F97316;
+}
+.gt-state-badge[data-state="behind"] {
+  background: rgba(244,63,94,0.1);
+  color: #F43F5E;
+}
+.gt-state-badge[data-state="completed"] {
+  background: rgba(250,204,21,0.1);
+  color: #FACC15;
+}
+
+/* ── Decomposition Preview ── */
+.gt-decomp-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+.gt-decomp-bar {
+  flex: 1;
+  height: 3px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.gt-decomp-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.gt-decomp-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Time Remaining ── */
+.gt-time-remaining {
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  background: rgba(255,255,255,0.03);
+  border-radius: var(--radius-xs);
+  white-space: nowrap;
+}
+.gt-time-remaining.time-ok { color: var(--text-muted); }
+.gt-time-remaining.time-warning { color: #F97316; background: rgba(249,115,22,0.06); font-weight: 600; }
+.gt-time-remaining.time-overdue { color: #F43F5E; background: rgba(244,63,94,0.08); font-weight: 600; }
+
+/* ── Popular Goals (Empty State Enhancement) ── */
+.goals-popular {
+  margin-top: 24px;
+  text-align: center;
+}
+.goals-popular-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+.goals-popular-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.goals-popular-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 14px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(26,58,92,0.3);
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.goals-popular-chip:hover {
+  background: rgba(0,212,255,0.08);
+  border-color: rgba(0,212,255,0.25);
+  color: var(--cyan);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.goals-popular-chip:active {
+  transform: translateY(0);
 }
 
 /* ── Desktop ── */
