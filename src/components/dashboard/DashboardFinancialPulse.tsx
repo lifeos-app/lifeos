@@ -49,7 +49,9 @@ function MiniSparkline({ data, color }: { data: number[]; color: string }) {
 }
 
 export function DashboardFinancialPulse() {
-  const { income, expenses } = useFinanceStore(s => ({ income: s.income, expenses: s.expenses }));
+  const financeData = useFinanceStore(s => ({ income: s.income ?? [], expenses: s.expenses ?? [] }));
+  const income = financeData.income;
+  const expenses = financeData.expenses;
 
   const somStr = useMemo(() => {
     const d = new Date();
