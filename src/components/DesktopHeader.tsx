@@ -45,7 +45,7 @@ export function DesktopHeader() {
   const [gamOpen, setGamOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [levelUpGlow, setLevelUpGlow] = useState(false);
-  const { notifications, unreadCount, markRead, markAllRead, dismiss, clearAll, history } = useNotifications();
+  const { notifications, unreadCount, markRead, markAllRead, dismiss, dismissAll, clearAll, history, highPriorityNotifications } = useNotifications();
 
   // Level-up glow
   useEffect(() => {

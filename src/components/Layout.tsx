@@ -15,6 +15,8 @@ import { EventOverlayProvider } from './EventOverlay';
 import { EventDrawerSkeleton } from './skeletons';
 import { OverlayPortal } from './OverlayPortal';
 import { FeatureErrorBoundary } from './FeatureErrorBoundary';
+import { SmartNotificationToast } from './SmartNotificationToast';
+import { useNotifications } from '../hooks/useNotifications';
 import './Layout.css';
 
 // Lazy load heavy overlay/modal components — not needed on initial render
@@ -38,6 +40,7 @@ function LayoutInner() {
     return window.innerWidth > 900;
   });
   const location = useLocation();
+  const { highPriorityNotifications, dismiss } = useNotifications();
 
   // ResizeObserver: auto-collapse/expand sidebar if user hasn't set a preference
   useEffect(() => {
@@ -131,6 +134,10 @@ function LayoutInner() {
     </OverlayPortal>
     <OverlayPortal tier="toast">
       <ToastContainer />
+      <SmartNotificationToast
+        highPriorityNotifications={highPriorityNotifications}
+        onDismiss={dismiss}
+      />
     </OverlayPortal>
     <OverlayPortal tier="celebration">
       <Suspense fallback={null}>

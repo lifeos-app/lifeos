@@ -15,9 +15,12 @@
 import { useState, useCallback, useRef, useEffect, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { Menu, MessageCircle } from 'lucide-react';
+import { Menu, MessageCircle, Bell } from 'lucide-react';
 import { useGamificationContext } from '../lib/gamification/context';
 import { GamificationModal } from './GamificationModal';
+import { useNotifications } from '../hooks/useNotifications';
+import { NotificationPanel } from './NotificationPanel';
+import { FeatureErrorBoundary } from './FeatureErrorBoundary';
 import './FullscreenPage.css';
 
 interface TabConfig {
@@ -69,7 +72,9 @@ export function FullscreenPage({
   const [entered, setEntered] = useState(false);
   const [gamOpen, setGamOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const gam = useGamificationContext();
+  const { notifications, unreadCount, markRead, markAllRead, dismiss, dismissAll, clearAll, history } = useNotifications();
 
   // ── Sidebar toggle ──
   const toggleSidebar = useCallback(() => {
@@ -113,6 +118,11 @@ export function FullscreenPage({
           </div>
           {headerExtra}
           <div className="fsp-header-right">
+            {/* Notification bell */}
+            <button className="fsp-icon-btn fsp-notif-btn" onClick={() => setNotifOpen(prev => !prev)} aria-label="Notifications">
+              <Bell size={16} />
+              {unreadCount > 0 && <span className="fsp-notif-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>}
+            </button>
             {!gam.loading && (
               <button className="fsp-level-badge" onClick={() => setGamOpen(true)} aria-label={`Level ${gam.level}, ${Math.round(gam.xpProgress * 100)}% to next level`}>
                 <div className="fsp-level-circle">{gam.level}</div>
@@ -168,6 +178,23 @@ export function FullscreenPage({
       )}
 
       <GamificationModal open={gamOpen} onClose={() => setGamOpen(false)} />
+
+      {/* Notification panel */}
+      {notifOpen && (
+        <FeatureErrorBoundary feature="Notifications" compact>
+          <NotificationPanel
+            notifications={notifications}
+            unreadCount={unreadCount}
+            onMarkRead={markRead}
+            onMarkAllRead={markAllRead}
+            onDismiss={dismiss}
+            onClearAll={clearAll}
+            history={history}
+            onClose={() => setNotifOpen(false)}
+            onNavigate={(route) => { navigate(route); setNotifOpen(false); }}
+          />
+        </FeatureErrorBoundary>
+      )}
     </div>
   );
 

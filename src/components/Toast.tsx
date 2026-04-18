@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Sparkles, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { EmojiIcon } from '../lib/emoji-icon';
 import './Toast.css';
 
@@ -8,12 +8,14 @@ interface ToastProps {
   icon?: string;
   color?: string;
   duration?: number;
+  expandable?: string; // Details shown on click
   action?: { label: string; onClick: () => void };
   onClose: () => void;
 }
 
-export function Toast({ message, icon = 'sparkles', color = '#39FF14', duration = 3000, action, onClose }: ToastProps) {
+export function Toast({ message, icon = 'sparkles', color = '#39FF14', duration = 5000, expandable, action, onClose }: ToastProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     // Trigger animation
@@ -29,37 +31,44 @@ export function Toast({ message, icon = 'sparkles', color = '#39FF14', duration 
   }, [duration, onClose]);
 
   return (
-    <div className={`toast ${isVisible ? 'toast-visible' : ''}`}>
+    <div
+      className={`toast ${isVisible ? 'toast-visible' : ''} ${expanded && expandable ? 'toast-expanded' : ''}`}
+      onClick={() => expandable && setExpanded(e => !e)}
+      style={expandable ? { cursor: 'pointer' } : undefined}
+    >
       <div className="toast-content">
         <span className="toast-icon" style={{ color }}>
-          <EmojiIcon emoji={icon} size={16} color={color} fallbackAsText />
+          <EmojiIcon emoji={icon} size={14} color={color} fallbackAsText />
         </span>
         <span className="toast-message">{message}</span>
         {action && (
           <button
             className="toast-action-btn"
-            onClick={() => { action.onClick(); setIsVisible(false); setTimeout(onClose, 300); }}
+            onClick={(e) => { e.stopPropagation(); action.onClick(); setIsVisible(false); setTimeout(onClose, 300); }}
             style={{ color, borderColor: `${color}40` }}
           >
             {action.label}
           </button>
         )}
-        <Sparkles size={14} className="toast-sparkle" style={{ color }} />
       </div>
-      <button className="toast-close" onClick={() => { setIsVisible(false); setTimeout(onClose, 300); }} aria-label="Dismiss notification">
-        <X size={14} />
+      {expandable && expanded && (
+        <div className="toast-details">{expandable}</div>
+      )}
+      <button className="toast-close" onClick={(e) => { e.stopPropagation(); setIsVisible(false); setTimeout(onClose, 300); }} aria-label="Dismiss notification">
+        <X size={12} />
       </button>
     </div>
   );
 }
 
-// Toast container for managing multiple toasts
+// Toast container for managing multiple toasts — MAX 1 at a time
 interface ToastMessage {
   id: string;
   message: string;
   icon?: string;
   color?: string;
   duration?: number;
+  expandable?: string;
   action?: { label: string; onClick: () => void };
 }
 
@@ -70,14 +79,14 @@ export function showToast(
   message: string,
   icon?: string,
   color?: string,
-  options?: { duration?: number; action?: { label: string; onClick: () => void } },
+  options?: { duration?: number; expandable?: string; action?: { label: string; onClick: () => void } },
 ) {
   const id = `toast-${toastId++}`;
   const toast: ToastMessage = { id, message, icon, color, ...options };
   toastListeners.forEach((listener) => listener(toast));
 }
 
-const MAX_VISIBLE_TOASTS = 3;
+const MAX_VISIBLE_TOASTS = 1;
 
 export function ToastContainer() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -85,12 +94,8 @@ export function ToastContainer() {
   useEffect(() => {
     const listener = (toast: ToastMessage) => {
       setToasts((prev) => {
-        const next = [...prev, toast];
-        // If over limit, drop the oldest ones
-        if (next.length > MAX_VISIBLE_TOASTS) {
-          return next.slice(next.length - MAX_VISIBLE_TOASTS);
-        }
-        return next;
+        // Replace current toast with the new one (max 1 visible)
+        return [toast];
       });
     };
     toastListeners.push(listener);
@@ -113,6 +118,7 @@ export function ToastContainer() {
           icon={toast.icon}
           color={toast.color}
           duration={toast.duration}
+          expandable={toast.expandable}
           action={toast.action}
           onClose={() => removeToast(toast.id)}
         />

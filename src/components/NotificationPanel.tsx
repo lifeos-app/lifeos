@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, ChevronRight, ChevronDown } from 'lucide-react';
-import type { Notification } from '../hooks/useNotifications';
+import type { Notification, NotificationPriority } from '../hooks/useNotifications';
 import './NotificationPanel.css';
 
 interface NotificationPanelProps {
@@ -15,6 +15,18 @@ interface NotificationPanelProps {
   onClose: () => void;
   onNavigate: (route: string) => void;
 }
+
+const PRIORITY_COLORS: Record<NotificationPriority, string> = {
+  high: '#EF4444',
+  medium: '#F97316',
+  low: '#6B7280',
+};
+
+const PRIORITY_LABELS: Record<NotificationPriority, string> = {
+  high: 'HIGH',
+  medium: 'MED',
+  low: 'LOW',
+};
 
 function relativeTime(date: Date): string {
   const now = Date.now();
@@ -90,7 +102,15 @@ export function NotificationPanel({
               >
                 <div className="notif-icon">{notif.icon}</div>
                 <div className="notif-text">
-                  <div className="notif-title">{notif.title}</div>
+                  <div className="notif-title">
+                    {notif.title}
+                    <span
+                      className="notif-priority-badge"
+                      style={{ background: `${PRIORITY_COLORS[notif.priority]}20`, color: PRIORITY_COLORS[notif.priority], borderColor: `${PRIORITY_COLORS[notif.priority]}30` }}
+                    >
+                      {PRIORITY_LABELS[notif.priority]}
+                    </span>
+                  </div>
                   <div className="notif-subtitle">{notif.subtitle}</div>
                 </div>
                 <span className="notif-time">{relativeTime(notif.timestamp)}</span>
@@ -114,7 +134,7 @@ export function NotificationPanel({
               <button className="notif-footer-btn" onClick={onMarkAllRead}>Mark all read</button>
             )}
             {notifications.length > 0 && (
-              <button className="notif-footer-btn notif-footer-btn--clear" onClick={onClearAll}>Clear all</button>
+              <button className="notif-footer-btn notif-footer-btn--clear" onClick={onClearAll}>Dismiss all</button>
             )}
           </div>
         )}

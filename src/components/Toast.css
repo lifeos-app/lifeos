@@ -10,22 +10,30 @@
 }
 
 .toast {
-  background: linear-gradient(135deg, rgba(10, 20, 35, 0.95), rgba(15, 30, 50, 0.95));
-  border: 1px solid rgba(57, 255, 20, 0.15);
-  border-radius: 10px;
-  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(10, 20, 35, 0.96), rgba(15, 30, 50, 0.96));
+  border: 1px solid rgba(57, 255, 20, 0.12);
+  border-radius: 8px;
+  padding: 0 12px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 12px rgba(57, 255, 20, 0.06);
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 8px rgba(57, 255, 20, 0.04);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  min-width: 240px;
-  max-width: 320px;
+  min-width: 200px;
+  max-width: 340px;
+  height: 48px;
   pointer-events: all;
   transform: translateX(400px);
   opacity: 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* Expanded state for detail reveal */
+.toast.toast-expanded {
+  height: auto;
+  min-height: 48px;
 }
 
 .toast.toast-visible {
@@ -36,55 +44,45 @@
 .toast-content {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex: 1;
+  min-width: 0;
+  padding: 12px 0;
 }
 
 .toast-icon {
-  font-size: 18px;
   line-height: 1;
-  animation: toast-bounce 0.6s ease-out;
-}
-
-@keyframes toast-bounce {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.2);
-  }
+  flex-shrink: 0;
 }
 
 .toast-message {
   color: var(--text-primary, #fff);
   font-size: 12px;
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 1.3;
   flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.toast-sparkle {
-  opacity: 0.7;
-  animation: toast-sparkle 2s ease-in-out infinite;
-}
-
-@keyframes toast-sparkle {
-  0%, 100% {
-    opacity: 0.7;
-    transform: rotate(0deg) scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: rotate(180deg) scale(1.1);
-  }
+/* Expandable detail text */
+.toast-details {
+  padding: 0 0 10px 22px;
+  font-size: 11px;
+  color: var(--text-secondary, #9CA3AF);
+  line-height: 1.35;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  margin-top: -4px;
+  padding-top: 6px;
 }
 
 .toast-action-btn {
-  padding: 4px 10px;
+  padding: 3px 8px;
   background: transparent;
   border: 1px solid;
-  border-radius: 6px;
-  font-size: 12px;
+  border-radius: 4px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -94,7 +92,6 @@
 
 .toast-action-btn:hover {
   background: rgba(255, 255, 255, 0.06);
-  transform: translateY(-1px);
 }
 
 .toast-close {
@@ -106,8 +103,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.6;
+  opacity: 0.4;
   transition: opacity 0.2s;
+  flex-shrink: 0;
 }
 
 .toast-close:hover {

@@ -20,7 +20,7 @@ export function MobileHeader({ onMenuToggle }: { onMenuToggle: () => void }) {
   const [levelUpGlow, setLevelUpGlow] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const scrollTimer = useRef<ReturnType<typeof setTimeout>>();
-  const { notifications, unreadCount, markRead, markAllRead, dismiss, clearAll, history } = useNotifications();
+  const { notifications, unreadCount, markRead, markAllRead, dismiss, dismissAll, clearAll, history, highPriorityNotifications } = useNotifications();
 
   // Scroll detection — pause animation while scrolling
   useEffect(() => {
