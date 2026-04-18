@@ -55,6 +55,7 @@ export function KMLogger() {
         description: `Vehicle: ${km}km cleaning run (${deduction.toFixed(2)} deduction)`,
         category_id: null,
         is_deductible: true,
+        travel_km: km,
       }).then(r => r.error),
       supabase.from('transactions').insert({
         id: txId,
