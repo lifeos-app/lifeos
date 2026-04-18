@@ -186,6 +186,14 @@ export default defineConfig(({ mode }) => {
           if (id.includes('/lib/social/')) {
             return 'social';
           }
+          // ── App: Gamification engine (XP, levels, quests — used by many pages) ──
+          if (id.includes('/lib/gamification/') && !id.includes('morning-brief')) {
+            return 'gamification-engine';
+          }
+          // ── App: Eager pages (Habits — high-traffic, keep separate from index) ──
+          if (id.includes('/pages/Habits.tsx') || id.includes('/pages/Habits.')) {
+            return 'page-habits';
+          }
         },
       },
     },

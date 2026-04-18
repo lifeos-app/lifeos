@@ -49,39 +49,115 @@ import { logger } from './utils/logger';
 import { useSyncOnReconnect } from './hooks/useSyncOnReconnect';
 import { WelcomeWizard } from './components/WelcomeWizard';
 import './components/WelcomeWizard.css';
+import { registerPreload } from './utils/preload';
 
 import './App.css';
 
-// Lazy load pages (with retry on chunk load failure)
-const Login = lazyRetry(() => import('./pages/Login').then(m => ({ default: m.Login })));
-const SetupHub = lazyRetry(() => import('./pages/SetupHub').then(m => ({ default: m.SetupHub })));
-const HealthOnboarding = lazyRetry(() => import('./pages/HealthOnboarding').then(m => ({ default: m.HealthOnboarding })));
-const FinanceOnboarding = lazyRetry(() => import('./pages/FinanceOnboarding').then(m => ({ default: m.FinanceOnboarding })));
-const LifeOnboarding = lazyRetry(() => import('./pages/LifeOnboarding').then(m => ({ default: m.LifeOnboarding })));
-const Layout = lazyRetry(() => import('./components/Layout').then(m => ({ default: m.Layout })));
-const Dashboard = lazyRetry(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
-const Schedule = lazyRetry(() => import('./pages/Schedule').then(m => ({ default: m.Schedule })));
-const Goals = lazyRetry(() => import('./pages/Goals').then(m => ({ default: m.Goals })));
-const Habits = lazyRetry(() => import('./pages/Habits').then(m => ({ default: m.Habits })));
-const Finances = lazyRetry(() => import('./pages/Finances').then(m => ({ default: m.Finances })));
-const Health = lazyRetry(() => import('./pages/Health').then(m => ({ default: m.Health })));
-const Journal = lazyRetry(() => import('./pages/Journal').then(m => ({ default: m.Journal })));
-const InboxPage = lazyRetry(() => import('./pages/InboxPage').then(m => ({ default: m.InboxPage })));
-const Settings = lazyRetry(() => import('./pages/Settings').then(m => ({ default: m.Settings })));
-const Review = lazyRetry(() => import('./pages/Review').then(m => ({ default: m.Review })));
-const WorkPage = lazyRetry(() => import('./pages/WorkPage').then(m => ({ default: m.WorkPage })));
-const SocialPage = lazyRetry(() => import('./pages/SocialPage').then(m => ({ default: m.SocialPage })));
-const ProfileSetupPage = lazyRetry(() => import('./pages/ProfileSetupPage').then(m => ({ default: m.ProfileSetupPage })));
-const Junction = lazyRetry(() => import('./pages/Junction').then(m => ({ default: m.Junction })));
+// ─── Eager imports: most-visited pages (Login, Habits) ───
+// Dashboard stays lazy — it's the "/" route so loads immediately anyway,
+// and keeping it lazy prevents the 479KB Dashboard code from bloating index.
+import { Login } from './pages/Login';
+import { Habits } from './pages/Habits';
 
-const EquipmentPage = lazyRetry(() => import('./pages/health-tabs/EquipmentTab').then(m => ({ default: m.EquipmentTab })));
-const CharacterHub = lazyRetry(() => import('./pages/CharacterHub').then(m => ({ default: m.CharacterHub })));
-const ReflectHub = lazyRetry(() => import('./pages/ReflectHub').then(m => ({ default: m.ReflectHub })));
-const Story = lazyRetry(() => import('./pages/Story').then(m => ({ default: m.Story })));
-const AssetDetail = lazyRetry(() => import('./pages/AssetDetail').then(m => ({ default: m.AssetDetail })));
-const Academy = lazyRetry(() => import('./pages/Academy'));
-const TeddysLessons = lazyRetry(() => import('./pages/TeddysLessons'));
-const Replicator = lazyRetry(() => import('./pages/Replicator'));
+// ─── Lazy imports: loaded on demand with retry on chunk failure ───
+// Preload factories are registered so Sidebar can preload on hover.
+const dashboardLoader = () => import('./pages/Dashboard').then(m => ({ default: m.Dashboard }));
+registerPreload('/', dashboardLoader);
+const Dashboard = lazyRetry(dashboardLoader);
+
+const setupHubLoader = () => import('./pages/SetupHub').then(m => ({ default: m.SetupHub }));
+registerPreload('/setup', setupHubLoader);
+const SetupHub = lazyRetry(setupHubLoader);
+
+const healthOnboardingLoader = () => import('./pages/HealthOnboarding').then(m => ({ default: m.HealthOnboarding }));
+const FinanceOnboardingLoader = () => import('./pages/FinanceOnboarding').then(m => ({ default: m.FinanceOnboarding }));
+const LifeOnboardingLoader = () => import('./pages/LifeOnboarding').then(m => ({ default: m.LifeOnboarding }));
+const HealthOnboarding = lazyRetry(healthOnboardingLoader);
+const FinanceOnboarding = lazyRetry(FinanceOnboardingLoader);
+const LifeOnboarding = lazyRetry(LifeOnboardingLoader);
+
+const layoutLoader = () => import('./components/Layout').then(m => ({ default: m.Layout }));
+const Layout = lazyRetry(layoutLoader);
+
+const scheduleLoader = () => import('./pages/Schedule').then(m => ({ default: m.Schedule }));
+registerPreload('/schedule', scheduleLoader);
+const Schedule = lazyRetry(scheduleLoader);
+
+const goalsLoader = () => import('./pages/Goals').then(m => ({ default: m.Goals }));
+registerPreload('/goals', goalsLoader);
+const Goals = lazyRetry(goalsLoader);
+
+const financesLoader = () => import('./pages/Finances').then(m => ({ default: m.Finances }));
+registerPreload('/finances', financesLoader);
+const Finances = lazyRetry(financesLoader);
+
+const healthLoader = () => import('./pages/Health').then(m => ({ default: m.Health }));
+registerPreload('/health', healthLoader);
+const Health = lazyRetry(healthLoader);
+
+const journalLoader = () => import('./pages/Journal').then(m => ({ default: m.Journal }));
+registerPreload('/reflect/journal', journalLoader);
+const Journal = lazyRetry(journalLoader);
+
+const inboxPageLoader = () => import('./pages/InboxPage').then(m => ({ default: m.InboxPage }));
+registerPreload('/reflect/inbox', inboxPageLoader);
+const InboxPage = lazyRetry(inboxPageLoader);
+
+const settingsLoader = () => import('./pages/Settings').then(m => ({ default: m.Settings }));
+registerPreload('/settings', settingsLoader);
+const Settings = lazyRetry(settingsLoader);
+
+const reviewLoader = () => import('./pages/Review').then(m => ({ default: m.Review }));
+registerPreload('/reflect/review', reviewLoader);
+const Review = lazyRetry(reviewLoader);
+
+const workPageLoader = () => import('./pages/WorkPage').then(m => ({ default: m.WorkPage }));
+registerPreload('/work', workPageLoader);
+const WorkPage = lazyRetry(workPageLoader);
+
+const socialPageLoader = () => import('./pages/SocialPage').then(m => ({ default: m.SocialPage }));
+registerPreload('/social', socialPageLoader);
+const SocialPage = lazyRetry(socialPageLoader);
+
+const profileSetupPageLoader = () => import('./pages/ProfileSetupPage').then(m => ({ default: m.ProfileSetupPage }));
+const ProfileSetupPage = lazyRetry(profileSetupPageLoader);
+
+const junctionLoader = () => import('./pages/Junction').then(m => ({ default: m.Junction }));
+registerPreload('/character/junction', junctionLoader);
+const Junction = lazyRetry(junctionLoader);
+
+const equipmentPageLoader = () => import('./pages/health-tabs/EquipmentTab').then(m => ({ default: m.EquipmentTab }));
+registerPreload('/character/equipment', equipmentPageLoader);
+const EquipmentPage = lazyRetry(equipmentPageLoader);
+
+const characterHubLoader = () => import('./pages/CharacterHub').then(m => ({ default: m.CharacterHub }));
+registerPreload('/character', characterHubLoader);
+const CharacterHub = lazyRetry(characterHubLoader);
+
+const reflectHubLoader = () => import('./pages/ReflectHub').then(m => ({ default: m.ReflectHub }));
+registerPreload('/reflect', reflectHubLoader);
+const ReflectHub = lazyRetry(reflectHubLoader);
+
+const storyLoader = () => import('./pages/Story').then(m => ({ default: m.Story }));
+registerPreload('/reflect/story', storyLoader);
+const Story = lazyRetry(storyLoader);
+
+const assetDetailLoader = () => import('./pages/AssetDetail').then(m => ({ default: m.AssetDetail }));
+registerPreload('/character/asset/:id', assetDetailLoader);
+const AssetDetail = lazyRetry(assetDetailLoader);
+
+const academyLoader = () => import('./pages/Academy');
+registerPreload('/academy', academyLoader);
+const Academy = lazyRetry(academyLoader);
+
+const teddysLessonsLoader = () => import('./pages/TeddysLessons');
+registerPreload('/lessons', teddysLessonsLoader);
+const TeddysLessons = lazyRetry(teddysLessonsLoader);
+
+const replicatorLoader = () => import('./pages/Replicator');
+registerPreload('/replicator', replicatorLoader);
+const Replicator = lazyRetry(replicatorLoader);
+
 const LazyFeedbackButton = lazyRetry(() => import('./components/FeedbackButton').then(m => ({ default: m.FeedbackButton })));
 const LazyFlipperCheckin = lazyRetry(() => import('./components/FlipperCheckin').then(m => ({ default: m.FlipperCheckin })));
 const LazyLifePulseModal = lazyRetry(() => import('./components/LifePulseModal').then(m => ({ default: m.LifePulseModal })));
@@ -250,7 +326,7 @@ function AppRoutes() {
 
   // 2. No user → show login (desktop users can choose "Use Offline" from Login page)
   if (!user && mode !== 'local') {
-    return <Suspense fallback={showSpinner}><Login /></Suspense>;
+    return <Login />;
   }
 
   // 2b. User exists but email not confirmed (synced mode only) → show confirmation notice
@@ -352,7 +428,7 @@ function AppRoutes() {
             <Route path="/" element={<PageErrorBoundary pageName="Dashboard"><Suspense fallback={<DashboardSkeleton />}><Dashboard /></Suspense></PageErrorBoundary>} />
             <Route path="/schedule" element={<PageErrorBoundary pageName="Schedule"><Suspense fallback={<ScheduleSkeleton />}><Schedule /></Suspense></PageErrorBoundary>} />
             <Route path="/goals" element={<PageErrorBoundary pageName="Goals"><Suspense fallback={<GoalsSkeleton />}><Goals /></Suspense></PageErrorBoundary>} />
-            <Route path="/habits" element={<PageErrorBoundary pageName="Habits"><Suspense fallback={<HabitsSkeleton />}><Habits /></Suspense></PageErrorBoundary>} />
+            <Route path="/habits" element={<PageErrorBoundary pageName="Habits"><Habits /></PageErrorBoundary>} />
             <Route path="/finances" element={<PageErrorBoundary pageName="Finances"><Suspense fallback={<FinancesSkeleton />}><Finances /></Suspense></PageErrorBoundary>} />
             <Route path="/health" element={<PageErrorBoundary pageName="Health"><Suspense fallback={<HealthSkeleton />}><Health /></Suspense></PageErrorBoundary>} />
             <Route path="/clients" element={<Navigate to="/finances?tab=work" replace />} />
@@ -385,7 +461,7 @@ function AppRoutes() {
             <Route path="/academy" element={<PageErrorBoundary pageName="Academy"><Suspense fallback={<PageSkeleton />}><Academy /></Suspense></PageErrorBoundary>} />
             <Route path="/lessons" element={<PageErrorBoundary pageName="TeddysLessons"><Suspense fallback={<PageSkeleton />}><TeddysLessons /></Suspense></PageErrorBoundary>} />
             <Route path="/replicator" element={<PageErrorBoundary pageName="Replicator"><Suspense fallback={<PageSkeleton />}><Replicator /></Suspense></PageErrorBoundary>} />
-            <Route path="/settings" element={<PageErrorBoundary pageName="Settings"><Settings /></PageErrorBoundary>} />
+            <Route path="/settings" element={<PageErrorBoundary pageName="Settings"><Suspense fallback={<PageSkeleton />}><Settings /></Suspense></PageErrorBoundary>} />
             <Route path="/work" element={<PageErrorBoundary pageName="Work"><Suspense fallback={<WorkSkeleton />}><WorkPage /></Suspense></PageErrorBoundary>} />
             <Route path="/work/*" element={<PageErrorBoundary pageName="Work"><Suspense fallback={<WorkSkeleton />}><WorkPage /></Suspense></PageErrorBoundary>} />
             <Route path="/social" element={<PageErrorBoundary pageName="Social"><Suspense fallback={<SocialSkeleton />}><SocialPage /></Suspense></PageErrorBoundary>} />

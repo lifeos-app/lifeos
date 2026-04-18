@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, lazy, Suspense, useCallback } from 'react';
 import { useLocation, useNavigate, NavLink } from 'react-router-dom';
 import { useUserStore } from '../stores/useUserStore';
 import { useSubscription } from '../hooks/useSubscription';
@@ -11,6 +11,7 @@ import { SetupList } from './SetupList';
 import { isTourComplete, type TourId } from './SpotlightTour';
 import { ProgressRing } from './ui/ProgressRing';
 import { getOverallPercent } from '../lib/onboarding-phases';
+import { preloadPage } from '../utils/preload';
 
 const ALL_TOUR_IDS: TourId[] = ['dashboard', 'goals', 'habits', 'schedule', 'finance', 'health', 'junction', 'gamification'];
 import './GamificationModal.css';
@@ -148,6 +149,7 @@ export const Sidebar = React.memo(function Sidebar({ expanded = true, onToggle, 
               className={`sb-link ${active ? 'active' : ''}`}
               title={item.label}
               aria-current={active ? 'page' : undefined}
+              onMouseEnter={() => preloadPage(item.to === '/' ? '/' : item.to)}
             >
               <div className="sb-icon-wrap" style={{ '--link-color': item.color } as React.CSSProperties}>
                 <Icon size={18} />
@@ -186,6 +188,7 @@ export const Sidebar = React.memo(function Sidebar({ expanded = true, onToggle, 
                     className={`sb-link ${active ? 'active' : ''}`}
                     title={page.label}
                     aria-current={active ? 'page' : undefined}
+                    onMouseEnter={() => preloadPage(page.path)}
                   >
                     <div className="sb-icon-wrap" style={{ '--link-color': '#00D4FF' } as React.CSSProperties}>
                       <span style={{ fontSize: 16, lineHeight: 1 }}>{page.icon}</span>
@@ -200,7 +203,7 @@ export const Sidebar = React.memo(function Sidebar({ expanded = true, onToggle, 
 
       {/* Footer */}
       <div className="sb-footer">
-        <NavLink to="/settings" className="sb-link sb-settings-link" title="Settings" aria-label="Settings">
+        <NavLink to="/settings" className="sb-link sb-settings-link" title="Settings" aria-label="Settings" onMouseEnter={() => preloadPage('/settings')}>
           <div className="sb-icon-wrap" style={{ '--link-color': '#64748B' } as React.CSSProperties}>
             <Settings size={18} />
           </div>
