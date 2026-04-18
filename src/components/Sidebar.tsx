@@ -34,12 +34,12 @@ const ICON_MAP: Record<string, LucideIcon> = {
   BookOpen, Users, Swords, Settings, BarChart3, GraduationCap, Music, Package,
 };
 
-const NAV_ITEMS = getNavFeatures('sidebar').map(f => ({
-  to: f.route,
-  icon: ICON_MAP[f.icon] || LayoutDashboard,
-  label: f.name,
-  color: f.color,
-}));
+/** Compute account age in days from user's created_at timestamp. */
+function getAccountAgeDays(createdAt?: string): number {
+  if (!createdAt) return Infinity; // Unknown → show all features
+  const ageMs = Date.now() - new Date(createdAt).getTime();
+  return Math.floor(ageMs / (1000 * 60 * 60 * 24));
+}
 
 interface SidebarProps {
   expanded?: boolean;
@@ -52,6 +52,19 @@ export const Sidebar = React.memo(function Sidebar({ expanded = true, onToggle, 
   const collapsed = forceFull ? false : !expanded;
   const [gamOpen, setGamOpen] = useState(false);
   const [socialUnread, setSocialUnread] = useState(0);
+  const userId = useUserStore(s => s.session?.user?.id);
+  const createdAt = useUserStore(s => s.session?.user?.created_at);
+
+  // Progressive disclosure: compute account age to filter nav items
+  const navItems = useMemo(() => {
+    const accountDays = getAccountAgeDays(createdAt);
+    return getNavFeatures('sidebar', accountDays).map(f => ({
+      to: f.route,
+      icon: ICON_MAP[f.icon] || LayoutDashboard,
+      label: f.name,
+      color: f.color,
+    }));
+  }, [createdAt]);
   const [upgrading, setUpgrading] = useState(false);
   const [tutorialListOpen, setTutorialListOpen] = useState(false);
   const [setupListOpen, setSetupListOpen] = useState(false);
@@ -125,7 +138,7 @@ export const Sidebar = React.memo(function Sidebar({ expanded = true, onToggle, 
 
       {/* Nav */}
       <nav className="sb-nav" aria-label="Primary navigation">
-        {NAV_ITEMS.map(item => {
+        {navItems.map(item => {
           const Icon = item.icon;
           const active = location.pathname === item.to || (item.to !== '/' && location.pathname.startsWith(item.to));
           return (

@@ -18,6 +18,12 @@ export interface FeatureModule {
   mobileNavGroup?: 'main' | 'more-life' | 'more-growth';
   sidebarOrder: number;
   mobileNavOrder: number;
+  /**
+   * Progressive disclosure: if set, this feature is hidden until the user
+   * has completed onboarding AND used the app for at least N days.
+   * 0 = always visible (default), 1 = show after onboarding, 3+ = delayed.
+   */
+  revealAfterDays?: number;
 }
 
 const FEATURES: FeatureModule[] = [
@@ -132,6 +138,7 @@ const FEATURES: FeatureModule[] = [
     mobileNavGroup: 'more-growth',
     sidebarOrder: 7,
     mobileNavOrder: 7,
+    revealAfterDays: 3, // Advanced: show after 3 days of use
   },
   {
     id: 'reflect',
@@ -160,6 +167,7 @@ const FEATURES: FeatureModule[] = [
     mobileNavGroup: 'more-growth',
     sidebarOrder: 9,
     mobileNavOrder: 9,
+    revealAfterDays: 5, // Advanced: show after 5 days
   },
   {
     id: 'lessons',
@@ -174,6 +182,7 @@ const FEATURES: FeatureModule[] = [
     mobileNavGroup: 'more-growth',
     sidebarOrder: 10,
     mobileNavOrder: 10,
+    revealAfterDays: 7, // Niche: show after 1 week
   },
   {
     id: 'replicator',
@@ -188,6 +197,7 @@ const FEATURES: FeatureModule[] = [
     mobileNavGroup: 'more-life',
     sidebarOrder: 11,
     mobileNavOrder: 11,
+    revealAfterDays: 5, // Advanced: show after 5 days
   },
   {
     id: 'settings',
@@ -206,24 +216,36 @@ const FEATURES: FeatureModule[] = [
 ];
 
 /** Get nav features for a given surface, sorted by appropriate order. */
-export function getNavFeatures(surface: 'sidebar' | 'mobile'): FeatureModule[] {
+export function getNavFeatures(surface: 'sidebar' | 'mobile', accountAgeDays?: number): FeatureModule[] {
   const key = surface === 'sidebar' ? 'showInSidebar' : 'showInMobileNav';
   const orderKey = surface === 'sidebar' ? 'sidebarOrder' : 'mobileNavOrder';
+  const days = accountAgeDays ?? Infinity; // If unknown, show all (for existing users)
   return FEATURES
     .filter(f => f.enabled && f[key])
+    .filter(f => {
+      // Progressive disclosure: hide features that require more account age
+      if (f.revealAfterDays && f.revealAfterDays > 0) {
+        return days >= f.revealAfterDays;
+      }
+      return true;
+    })
     .sort((a, b) => a[orderKey] - b[orderKey]);
 }
 
 /** Main tab bar items for mobile nav. */
-export function getMobileMainTabs(): FeatureModule[] {
+export function getMobileMainTabs(accountAgeDays?: number): FeatureModule[] {
+  const days = accountAgeDays ?? Infinity;
   return FEATURES
     .filter(f => f.enabled && f.showInMobileNav && f.mobileNavGroup === 'main')
+    .filter(f => !f.revealAfterDays || days >= f.revealAfterDays)
     .sort((a, b) => a.mobileNavOrder - b.mobileNavOrder);
 }
 
 /** "More" menu groups for mobile nav. */
-export function getMobileMoreGroups(): { life: FeatureModule[]; growth: FeatureModule[] } {
-  const more = FEATURES.filter(f => f.enabled && f.showInMobileNav && f.mobileNavGroup?.startsWith('more-'));
+export function getMobileMoreGroups(accountAgeDays?: number): { life: FeatureModule[]; growth: FeatureModule[] } {
+  const days = accountAgeDays ?? Infinity;
+  const more = FEATURES.filter(f => f.enabled && f.showInMobileNav && f.mobileNavGroup?.startsWith('more-'))
+    .filter(f => !f.revealAfterDays || days >= f.revealAfterDays);
   return {
     life: more.filter(f => f.mobileNavGroup === 'more-life').sort((a, b) => a.mobileNavOrder - b.mobileNavOrder),
     growth: more.filter(f => f.mobileNavGroup === 'more-growth').sort((a, b) => a.mobileNavOrder - b.mobileNavOrder),

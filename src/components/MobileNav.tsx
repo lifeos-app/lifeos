@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useUserStore } from '../stores/useUserStore';
 import { getUnreadCount, subscribeToInbox } from '../lib/social/messaging';
@@ -33,47 +33,63 @@ interface MoreGroup {
   items: TabWithBadge[];
 }
 
-const MAIN_TABS: Tab[] = getMobileMainTabs().map(f => ({
-  to: f.route,
-  icon: ICON_MAP[f.icon] || LayoutDashboard,
-  label: f.id === 'dashboard' ? 'Home' : f.name,
-  color: f.color,
-}));
-
-const moreGroups = getMobileMoreGroups();
-const MORE_GROUPS: MoreGroup[] = [
-  {
-    label: 'Life',
-    items: moreGroups.life.map(f => ({
-      to: f.route,
-      icon: ICON_MAP[f.icon] || LayoutDashboard,
-      label: f.name,
-      color: f.color,
-      ...(f.id === 'social' ? { badgeKey: 'social' } : {}),
-    })),
-  },
-  {
-    label: 'Growth',
-    items: moreGroups.growth.map(f => ({
-      to: f.route,
-      icon: ICON_MAP[f.icon] || LayoutDashboard,
-      label: f.name,
-      color: f.color,
-    })),
-  },
-];
-
-// Flat list for isActive checks
-const ALL_MORE_ITEMS: TabWithBadge[] = [
-  ...MORE_GROUPS.flatMap(g => g.items),
-  { to: '__logout__', icon: LogOut, label: 'Log Out', color: '#EF4444' },
-];
+/** Compute account age in days from user's created_at timestamp. */
+function getAccountAgeDays(createdAt?: string): number {
+  if (!createdAt) return Infinity;
+  const ageMs = Date.now() - new Date(createdAt).getTime();
+  return Math.floor(ageMs / (1000 * 60 * 60 * 24));
+}
 
 export function MobileNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const user = useUserStore(s => s.user);
   const signOut = useUserStore(s => s.signOut);
+  const createdAt = useUserStore(s => s.session?.user?.created_at);
+
+  // Progressive disclosure: compute account age to filter nav items
+  const mainTabs = useMemo(() => {
+    const accountDays = getAccountAgeDays(createdAt);
+    return getMobileMainTabs(accountDays).map(f => ({
+      to: f.route,
+      icon: ICON_MAP[f.icon] || LayoutDashboard,
+      label: f.id === 'dashboard' ? 'Home' : f.name,
+      color: f.color,
+    }));
+  }, [createdAt]);
+
+  const moreGroups = useMemo(() => {
+    const accountDays = getAccountAgeDays(createdAt);
+    return getMobileMoreGroups(accountDays);
+  }, [createdAt]);
+
+  const MORE_GROUPS: MoreGroup[] = useMemo(() => [
+    {
+      label: 'Life',
+      items: moreGroups.life.map(f => ({
+        to: f.route,
+        icon: ICON_MAP[f.icon] || LayoutDashboard,
+        label: f.name,
+        color: f.color,
+        ...(f.id === 'social' ? { badgeKey: 'social' } : {}),
+      })),
+    },
+    {
+      label: 'Growth',
+      items: moreGroups.growth.map(f => ({
+        to: f.route,
+        icon: ICON_MAP[f.icon] || LayoutDashboard,
+        label: f.name,
+        color: f.color,
+      })),
+    },
+  ], [moreGroups]);
+
+  // Flat list for isActive checks
+  const ALL_MORE_ITEMS: TabWithBadge[] = useMemo(() => [
+    ...MORE_GROUPS.flatMap(g => g.items),
+    { to: '__logout__', icon: LogOut, label: 'Log Out', color: '#EF4444' },
+  ], [MORE_GROUPS]);
   const [showMore, setShowMore] = useState(false);
   const [socialUnread, setSocialUnread] = useState(0);
 
@@ -159,7 +175,7 @@ export function MobileNav() {
         onTouchMove={handleNavTouchMove}
         onTouchEnd={handleNavTouchEnd}
       >
-        {MAIN_TABS.map(tab => {
+        {mainTabs.map(tab => {
           const Icon = tab.icon;
           const active = isActive(tab.to);
           return (
