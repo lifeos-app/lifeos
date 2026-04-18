@@ -58,6 +58,7 @@ import {
   DashboardRealmInvite,
   DashboardCelestial,
 } from '../components/dashboard';
+import { HermeticInsightWidget } from '../components/HermeticInsightWidget';
 import { Brain } from 'lucide-react';
 import { AgentNudgeBar } from '../components/agent';
 import { useAgentStore } from '../stores/useAgentStore';
@@ -394,6 +395,9 @@ export function Dashboard() {
               </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Celestial" compact>
                 <DashboardCelestial />
+              </FeatureErrorBoundary>
+              <FeatureErrorBoundary feature="Hermetic Insight" compact>
+                <HermeticInsightWidget />
               </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Life Pulse" compact>
                 <DashboardLifePulse />

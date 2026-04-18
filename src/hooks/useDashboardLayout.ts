@@ -30,6 +30,7 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: 'journal', label: 'Journal', icon: '📖', visible: true },
   { id: 'goals', label: 'Goals', icon: '🎯', visible: true },
   { id: 'celestial', label: 'Celestial', icon: '🌙', visible: true },
+  { id: 'hermetic-insight', label: 'Hermetic Insight', icon: '✨', visible: true },
   { id: 'realm', label: 'The Realm', icon: '🏰', visible: true },
 ];
 
