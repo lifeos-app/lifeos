@@ -243,6 +243,7 @@ export function MobileNav() {
                           className={`mn-sheet-item ${active ? 'active' : ''}`}
                           onClick={() => { navigate(item.to); setShowMore(false); }}
                           style={{ '--item-color': item.color } as React.CSSProperties}
+                          aria-current={active ? 'page' : undefined}
                         >
                           <div className="mn-sheet-icon" style={{ position: 'relative' }}>
                             <Icon size={22} />
@@ -272,6 +273,7 @@ export function MobileNav() {
                     className="mn-sheet-item"
                     onClick={() => { setShowMore(false); signOut(); }}
                     style={{ '--item-color': '#EF4444' } as React.CSSProperties}
+                    aria-label="Log Out"
                   >
                     <div className="mn-sheet-icon"><LogOut size={22} /></div>
                     <span>Log Out</span>

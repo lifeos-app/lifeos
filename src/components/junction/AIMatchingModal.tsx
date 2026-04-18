@@ -64,7 +64,7 @@ export function AIMatchingModal({
   return createPortal(
     <div className="jnc-ai-overlay" onClick={onClose}>
       <div className="jnc-ai-modal" onClick={e => e.stopPropagation()}>
-        <button className="jnc-ai-close" onClick={onClose}><X size={16} /></button>
+        <button className="jnc-ai-close" onClick={onClose} aria-label="Close AI matching"><X size={16} /></button>
 
         {!isComplete ? (
           <>

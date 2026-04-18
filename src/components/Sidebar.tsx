@@ -108,7 +108,7 @@ export const Sidebar = React.memo(function Sidebar({ expanded = true, onToggle, 
    * ───────────────────────────────────────────────────────────────── */
 
   return (
-    <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`} aria-label="Main navigation">
+    <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`} role="navigation" aria-label="Main navigation">
       {/* Logo + collapse */}
       <div className="sb-top">
         <button className="sb-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, display: 'flex', alignItems: 'center', gap: 8 }} aria-label="Go to dashboard">
@@ -124,7 +124,7 @@ export const Sidebar = React.memo(function Sidebar({ expanded = true, onToggle, 
 
       {/* XP Bar — click to open full stats */}
       {!gam.loading && (
-        <div className="sb-xp-bar" style={{ padding: '0 12px 8px', cursor: 'pointer' }} onClick={() => setGamOpen(true)} title="View Player Stats">
+        <div className="sb-xp-bar" style={{ padding: '0 12px 8px', cursor: 'pointer' }} onClick={() => setGamOpen(true)} title="View Player Stats" role="button" tabIndex={0} aria-label="View Player Stats" onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setGamOpen(true); } }}>
           <XPBar
             compact
             level={gam.level}
@@ -137,7 +137,7 @@ export const Sidebar = React.memo(function Sidebar({ expanded = true, onToggle, 
       )}
 
       {/* Nav */}
-      <nav className="sb-nav" aria-label="Primary navigation">
+      <nav className="sb-nav" aria-label="Page navigation">
         {navItems.map(item => {
           const Icon = item.icon;
           const active = location.pathname === item.to || (item.to !== '/' && location.pathname.startsWith(item.to));
@@ -147,6 +147,7 @@ export const Sidebar = React.memo(function Sidebar({ expanded = true, onToggle, 
               to={item.to}
               className={`sb-link ${active ? 'active' : ''}`}
               title={item.label}
+              aria-current={active ? 'page' : undefined}
             >
               <div className="sb-icon-wrap" style={{ '--link-color': item.color } as React.CSSProperties}>
                 <Icon size={18} />
@@ -184,6 +185,7 @@ export const Sidebar = React.memo(function Sidebar({ expanded = true, onToggle, 
                     to={page.path}
                     className={`sb-link ${active ? 'active' : ''}`}
                     title={page.label}
+                    aria-current={active ? 'page' : undefined}
                   >
                     <div className="sb-icon-wrap" style={{ '--link-color': '#00D4FF' } as React.CSSProperties}>
                       <span style={{ fontSize: 16, lineHeight: 1 }}>{page.icon}</span>
@@ -198,7 +200,7 @@ export const Sidebar = React.memo(function Sidebar({ expanded = true, onToggle, 
 
       {/* Footer */}
       <div className="sb-footer">
-        <NavLink to="/settings" className="sb-link sb-settings-link" title="Settings">
+        <NavLink to="/settings" className="sb-link sb-settings-link" title="Settings" aria-label="Settings">
           <div className="sb-icon-wrap" style={{ '--link-color': '#64748B' } as React.CSSProperties}>
             <Settings size={18} />
           </div>
@@ -208,6 +210,7 @@ export const Sidebar = React.memo(function Sidebar({ expanded = true, onToggle, 
           className="sb-link sb-tutorials-btn"
           onClick={() => setTutorialListOpen(true)}
           title={`Tutorials (${tutorialProgress.done}/${tutorialProgress.total})`}
+          aria-label={`Tutorials (${tutorialProgress.done}/${tutorialProgress.total})`}
         >
           <div className="sb-icon-wrap" style={{ '--link-color': '#D4AF37' } as React.CSSProperties}>
             <GraduationCap size={18} />
@@ -242,6 +245,7 @@ export const Sidebar = React.memo(function Sidebar({ expanded = true, onToggle, 
               className="sb-link sb-setup-btn"
               onClick={() => setSetupListOpen(true)}
               title={`Life Setup (${setupPercent}%)`}
+              aria-label={`Life Setup (${setupPercent}%)`}
             >
               <div className="sb-icon-wrap" style={{ '--link-color': '#00D4FF' } as React.CSSProperties}>
                 <Sparkles size={18} />

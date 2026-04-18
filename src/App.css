@@ -5,3 +5,49 @@
   padding: 0;
   text-align: left;
 }
+
+/* ── WCAG 2.1 AA Accessibility ─────────────────────────────────── */
+
+/* Skip-to-content link: visually hidden, visible on keyboard focus */
+.skip-to-content {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 10000;
+  padding: 8px 16px;
+  background: #00D4FF;
+  color: #0A0E1A;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 0 0 8px 0;
+  transition: none;
+}
+
+.skip-to-content:focus {
+  left: 0;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Focus-visible: keyboard-only focus ring (cyan) — not shown on mouse click */
+*:focus {
+  outline: none;
+}
+
+*:focus-visible {
+  outline: 2px solid #00D4FF;
+  outline-offset: 2px;
+}
+
+/* Ensure focus ring is visible on dark backgrounds for common interactive elements */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #00D4FF;
+  outline-offset: 2px;
+}

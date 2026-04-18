@@ -105,7 +105,7 @@ export function Login() {
           <span>or continue with email</span>
         </div>
 
-        <form onSubmit={handleSubmit} className="login-form" aria-label={isSignUp ? 'Sign up form' : 'Sign in form'}>
+        <form onSubmit={handleSubmit} className="login-form" aria-label={isSignUp ? 'Sign up form' : 'Sign in form'} aria-describedby={error ? 'login-error' : undefined}>
           {isSignUp && (
             <div className="login-field">
               <label htmlFor="login-name" className="sr-only">Your name</label>
@@ -132,6 +132,9 @@ export function Login() {
               required
               className="login-input"
               autoComplete="email"
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck="false"
             />
           </div>
           <div className="login-field">
@@ -168,8 +171,8 @@ export function Login() {
               Forgot password?
             </button>
           )}
-          {error && <p className="login-error" role="alert">{error}</p>}
-          {success && <p className="login-success" role="status">{success}</p>}
+          {error && <p id="login-error" className="login-error" role="alert">{error}</p>}
+          {success && <p id="login-success" className="login-success" role="status">{success}</p>}
           <button type="submit" className="login-btn" disabled={loading}>
             {loading ? 'Please wait...' : isSignUp ? 'Sign Up' : 'Sign In'}
           </button>

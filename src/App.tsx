@@ -50,6 +50,8 @@ import { useSyncOnReconnect } from './hooks/useSyncOnReconnect';
 import { WelcomeWizard } from './components/WelcomeWizard';
 import './components/WelcomeWizard.css';
 
+import './App.css';
+
 // Lazy load pages (with retry on chunk load failure)
 const Login = lazyRetry(() => import('./pages/Login').then(m => ({ default: m.Login })));
 const SetupHub = lazyRetry(() => import('./pages/SetupHub').then(m => ({ default: m.SetupHub })));
@@ -411,6 +413,7 @@ function App() {
 
   return (
     <Router {...(isDesktop ? {} : { basename: "/app" })}>
+      <a className="skip-to-content" href="#main-content">Skip to main content</a>
       {!isDesktop && <UpdateBanner />}
       <ConnectionBanner />
       <WhatsNew />

@@ -9,7 +9,7 @@
  * glassmorphic card, cyan #00D4FF accents, Poppins font.
  */
 
-import { useState, useEffect, useCallback, type ReactNode } from 'react';
+import { useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
 import { supabase } from '../lib/data-access';
 import { useUserStore } from '../stores/useUserStore';
 import type { UserProfile } from '../stores/useUserStore';
@@ -301,6 +301,42 @@ export function WelcomeWizard({ userId, onComplete, onSkip }: WelcomeWizardProps
 
   // Focus management for inputs
   const [inputFocus, setInputFocus] = useState<Record<string, boolean>>({});
+
+  // Focus trap ref for the wizard overlay
+  const wizardRef = useRef<HTMLDivElement>(null);
+
+  // Focus trap: keep focus within wizard when open
+  useEffect(() => {
+    const container = wizardRef.current;
+    if (!container) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return;
+
+      const focusable = container.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    container.addEventListener('keydown', handleKeyDown);
+    return () => container.removeEventListener('keydown', handleKeyDown);
+  }, [step]); // Re-attach when step changes to get new focusable elements
 
   const updateData = useCallback(<K extends keyof WizardData>(key: K, value: WizardData[K]) => {
     setData(prev => ({ ...prev, [key]: value }));
@@ -892,7 +928,14 @@ export function WelcomeWizard({ userId, onComplete, onSkip }: WelcomeWizardProps
   // ── Main Render ──
 
   return (
-    <div className="login-page" style={{ fontFamily: 'Poppins, system-ui, sans-serif' }}>
+    <div
+      className="login-page"
+      style={{ fontFamily: 'Poppins, system-ui, sans-serif' }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Onboarding wizard"
+      ref={wizardRef}
+    >
       {/* Animated gradient mesh background — reuse Login.css classes */}
       <div className="login-mesh" aria-hidden="true">
         <div className="login-mesh-orb" />

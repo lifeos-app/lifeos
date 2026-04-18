@@ -297,7 +297,7 @@ export function NLPDecomposer({ onClose, onCreated }: NLPDecomposerProps) {
             <h2>AI Goal Planner</h2>
           </div>
           {step !== 'creating' && (
-            <button className="nlp-close" onClick={onClose}><X size={18} /></button>
+            <button className="nlp-close" onClick={onClose} aria-label="Close AI goal planner"><X size={18} /></button>
           )}
         </div>
 

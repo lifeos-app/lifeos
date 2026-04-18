@@ -73,7 +73,7 @@ export function SmartSchedulePanel({ slots, maxHoursPerDay, onApply, onClose }: 
             <h2>Smart Schedule</h2>
             <span className="ssp-count">{slots.length} tasks</span>
           </div>
-          {!applying && <button className="ssp-close" onClick={onClose}><X size={18} /></button>}
+          {!applying && <button className="ssp-close" onClick={onClose} aria-label="Close smart schedule"><X size={18} /></button>}
         </div>
 
         {/* Conflicts warning */}

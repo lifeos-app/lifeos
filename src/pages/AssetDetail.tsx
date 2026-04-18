@@ -132,7 +132,7 @@ export function AssetDetail() {
             <p className="ad-type-label" style={{ color }}>{asset.asset_type}</p>
           </div>
         </div>
-        <button className="ad-delete-btn" onClick={handleDelete}><Trash2 size={16} /></button>
+        <button className="ad-delete-btn" onClick={handleDelete} aria-label="Delete asset"><Trash2 size={16} /></button>
       </div>
 
       {/* Quick Stats */}

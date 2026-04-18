@@ -40,10 +40,10 @@ export function ChatHeader({
         <button className="ai-chat-btn" onClick={onClearChat} title="Clear chat" aria-label="Clear chat">
           <RotateCcw size={14} />
         </button>
-        <button className="ai-chat-btn" onClick={onNavigateSettings} title="AI Settings">
+        <button className="ai-chat-btn" onClick={onNavigateSettings} title="AI Settings" aria-label="AI Settings">
           <SettingsIcon size={14} />
         </button>
-        <button className="ai-chat-btn" onClick={onClose} title="Close (Esc)">
+        <button className="ai-chat-btn" onClick={onClose} title="Close (Esc)" aria-label="Close chat">
           <X size={14} />
         </button>
       </div>

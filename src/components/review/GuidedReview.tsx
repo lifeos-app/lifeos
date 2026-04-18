@@ -336,7 +336,7 @@ export function GuidedReview({ weekStart, weekEnd, onComplete, onCancel }: Guide
 
       {/* Header */}
       <div className="gr-header">
-        <button className="gr-cancel" onClick={onCancel}><X size={16} /></button>
+        <button className="gr-cancel" onClick={onCancel} aria-label="Close guided review"><X size={16} /></button>
         <span className="gr-step-label">{STEP_LABELS[step]}</span>
         <span className="gr-step-count">{activeIndex + 1}/{activeSteps.length}</span>
       </div>
