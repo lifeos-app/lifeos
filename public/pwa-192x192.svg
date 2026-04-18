@@ -1,0 +1,6 @@
+<svg width="192" height="192" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" fill="#050E1A" rx="40"/>
+  <circle cx="96" cy="96" r="72" fill="none" stroke="#00D4FF" stroke-width="4" opacity="0.3"/>
+  <circle cx="96" cy="96" r="56" fill="rgba(0,212,255,0.1)"/>
+  <text x="96" y="116" font-family="'SF Pro Display', system-ui, -apple-system, sans-serif" font-size="72" font-weight="700" text-anchor="middle" fill="#00D4FF">L</text>
+</svg>

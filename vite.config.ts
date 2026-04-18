@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { VitePWA } from 'vite-plugin-pwa'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { writeFileSync, readdirSync, existsSync } from 'fs'
 import { resolve } from 'path'
@@ -96,6 +97,84 @@ export default defineConfig(({ mode }) => {
     react(),
     academyServePlugin(),
     versionJsonPlugin(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      workbox: {
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api/, /^\/auth/, /^\/realtime/, /^\/functions/],
+        runtimeCaching: [
+          {
+            // Supabase API calls: network-first with 30s timeout, then cache fallback
+            urlPattern: /^https:\/\/[a-z0-9-]+\.supabase\.co\/rest\/v1\//,
+            handler: 'NetworkFirst',
+            options: {
+              networkTimeoutSeconds: 30,
+              cacheName: 'supabase-api-cache',
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60, // 1 hour
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            // Supabase auth endpoints: network-only (never cache auth)
+            urlPattern: /^https:\/\/[a-z0-9-]+\.supabase\.co\/auth\//,
+            handler: 'NetworkOnly',
+          },
+          {
+            // Supabase storage: cache-first for uploaded files/images
+            urlPattern: /^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\//,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'supabase-storage-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            // OpenRouter AI API: network-only (no caching of AI responses)
+            urlPattern: /^https:\/\/openrouter\.ai\//,
+            handler: 'NetworkOnly',
+          },
+        ],
+      },
+      manifest: {
+        name: 'LifeOS',
+        short_name: 'LifeOS',
+        description: 'Your holistic personal operating system',
+        theme_color: '#050E1A',
+        background_color: '#050E1A',
+        display: 'standalone',
+        start_url: '/',
+        icons: [
+          {
+            src: 'pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+          },
+          {
+            src: 'pwa-512x512-maskable.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
+      },
+    }),
     visualizer({
       filename: './dist/stats.html',
       open: false,
