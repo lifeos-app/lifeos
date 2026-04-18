@@ -1,0 +1,122 @@
+.bhs-card {
+  padding: 18px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bhs-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.bhs-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bhs-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(57,255,20,0.1);
+  border: 1px solid rgba(57,255,20,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #39FF14;
+}
+
+.bhs-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Gauge */
+.bhs-gauge-wrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin-bottom: 8px;
+}
+
+.bhs-gauge-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.bhs-score {
+  font-size: 32px;
+  font-weight: 800;
+  font-family: 'Orbitron', monospace;
+  line-height: 1;
+}
+
+.bhs-max {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  font-family: 'Orbitron', monospace;
+}
+
+/* Label */
+.bhs-label {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 14px;
+}
+
+/* Breakdown */
+.bhs-breakdown {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bhs-breakdown-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 36px;
+  align-items: center;
+  gap: 8px;
+}
+
+.bhs-bd-label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bhs-bd-bar-track {
+  height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.bhs-bd-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+.bhs-bd-value {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  text-align: right;
+  font-family: 'Orbitron', monospace;
+}

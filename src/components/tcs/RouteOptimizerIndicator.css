@@ -1,0 +1,163 @@
+.route-optimizer {
+  padding: 18px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+}
+
+.ro-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.ro-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ro-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(0,212,255,0.1);
+  border: 1px solid rgba(0,212,255,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00D4FF;
+}
+
+.ro-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.ro-week-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  font-family: 'Orbitron', monospace;
+}
+
+/* Stats grid */
+.ro-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.ro-stat {
+  padding: 12px 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.ro-stat-icon {
+  color: #00D4FF;
+  flex-shrink: 0;
+}
+
+.ro-stat-icon.fuel {
+  color: #F97316;
+}
+
+.ro-stat-icon-text {
+  color: #39FF14;
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.ro-stat-content {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.ro-stat-value {
+  font-size: 18px;
+  font-weight: 800;
+  font-family: 'Orbitron', monospace;
+  color: #fff;
+}
+
+.ro-stat-unit {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  font-weight: 600;
+}
+
+.ro-stat-label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Efficiency tip */
+.ro-tip {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(250,204,21,0.05);
+  border: 1px solid rgba(250,204,21,0.15);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.ro-tip-icon-wrap {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: rgba(250,204,21,0.1);
+  border: 1px solid rgba(250,204,21,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #FACC15;
+}
+
+.ro-tip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ro-tip-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #FACC15;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ro-tip-text {
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.5;
+}
+
+/* Formula */
+.ro-formula {
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 6px;
+}
+
+.ro-formula-text {
+  font-size: 10px;
+  color: rgba(255,255,255,0.3);
+  font-family: 'Orbitron', monospace;
+}

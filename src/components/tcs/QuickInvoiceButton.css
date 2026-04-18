@@ -1,0 +1,226 @@
+/* QuickInvoiceButton — trigger + modal */
+.qib-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #00D4FF, #0088AA);
+  border: none;
+  border-radius: 10px;
+  color: #000;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 20px rgba(0,212,255,0.2);
+  width: 100%;
+  justify-content: center;
+}
+
+.qib-trigger:hover {
+  box-shadow: 0 0 30px rgba(0,212,255,0.35);
+  transform: translateY(-1px);
+}
+
+/* Overlay */
+.qib-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5,14,26,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  backdrop-filter: blur(4px);
+  padding: 20px;
+}
+
+/* Modal */
+.qib-modal {
+  width: 100%;
+  max-width: 400px;
+  background: #0A1A2E;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+
+/* Header */
+.qib-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.qib-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qib-icon-wrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(0,212,255,0.1);
+  border: 1px solid rgba(0,212,255,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00D4FF;
+}
+
+.qib-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.qib-close {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: rgba(255,255,255,0.5);
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.qib-close:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.1);
+}
+
+/* Fields */
+.qib-field {
+  margin-bottom: 14px;
+}
+
+.qib-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+.qib-input,
+.qib-select {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.qib-input:focus,
+.qib-select:focus {
+  border-color: #00D4FF;
+}
+
+.qib-input::placeholder {
+  color: rgba(255,255,255,0.25);
+}
+
+.qib-select option {
+  background: #0A1A2E;
+  color: #fff;
+}
+
+/* Error */
+.qib-error {
+  padding: 8px 12px;
+  background: rgba(244,63,94,0.05);
+  border: 1px solid rgba(244,63,94,0.2);
+  border-radius: 8px;
+  color: #F43F5E;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+/* Success */
+.qib-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 30px 0;
+}
+
+.qib-success-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(57,255,20,0.1);
+  border: 2px solid #39FF14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #39FF14;
+}
+
+.qib-success-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #39FF14;
+}
+
+/* Actions */
+.qib-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.qib-cancel {
+  flex: 1;
+  padding: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: rgba(255,255,255,0.5);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.qib-cancel:hover {
+  color: #fff;
+}
+
+.qib-submit {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  background: #00D4FF;
+  border: none;
+  border-radius: 8px;
+  color: #000;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.qib-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.qib-submit:not(:disabled):hover {
+  box-shadow: 0 0 20px rgba(0,212,255,0.3);
+}

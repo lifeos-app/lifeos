@@ -3,7 +3,8 @@
 // - Today's jobs with full detail (venue address, checklist, time, status)
 // - Quick actions: complete jobs, navigate to venue
 // - Job history (recent completed jobs)
-// - Revenue summary
+// - Revenue summary with monthly target
+// - Route optimizer, contract status, invoice, health score
 // - Only visible when a business system is connected
 
 import { useMemo } from 'react'
@@ -15,6 +16,13 @@ import {
 import { useSystemBus, useSystemTasks, useSystemSchedule, useSystemFinance } from '../lib/systems/context'
 import { TCSTodayWidget } from '../components/systems/TCSTodayWidget'
 import { TCSRevenueWidget } from '../components/systems/TCSRevenueWidget'
+import {
+  MonthlyRevenueCard,
+  RouteOptimizerIndicator,
+  ContractStatusCards,
+  QuickInvoiceButton,
+  BusinessHealthScore,
+} from '../components/tcs'
 import type { ScheduleEvent } from '../lib/systems/types'
 import { localDateStr, formatDate, startOfWeek } from '../utils/date'
 
@@ -198,7 +206,7 @@ export function WorkPage() {
               Work
             </h1>
             <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
-              Example Cleaning Business
+              Teddy's Cleaning Systems
             </p>
           </div>
         </div>
@@ -249,11 +257,28 @@ export function WorkPage() {
         />
       </div>
 
-      {/* Main Content Grid */}
+      {/* Quick Invoice Button */}
+      <div style={{ marginBottom: 24 }}>
+        <QuickInvoiceButton />
+      </div>
+
+      {/* Business Health Score + Monthly Revenue */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
         gap: 20,
+        marginBottom: 20,
+      }}>
+        <MonthlyRevenueCard />
+        <BusinessHealthScore />
+      </div>
+
+      {/* Main Content Grid — Today's Jobs + Revenue */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+        gap: 20,
+        marginBottom: 20,
       }}>
         {/* Today's Jobs */}
         <div style={{
@@ -276,9 +301,20 @@ export function WorkPage() {
         </div>
       </div>
 
+      {/* Route Optimizer + Contract Status */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+        gap: 20,
+        marginBottom: 20,
+      }}>
+        <RouteOptimizerIndicator />
+        <ContractStatusCards />
+      </div>
+
       {/* Job History */}
       {pastJobs.length > 0 && (
-        <div style={{ marginTop: 24 }}>
+        <div style={{ marginTop: 4 }}>
           <div style={{
             display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14,
           }}>

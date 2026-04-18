@@ -11,6 +11,7 @@ import {
   TrendingUp, Banknote, CalendarCheck,
 } from 'lucide-react';
 import { KMLogger, VehicleLogbook, InvoiceTracker, TCSGrowthOverview } from '../tcs';
+import { MonthlyRevenueCard, RouteOptimizerIndicator, ContractStatusCards, QuickInvoiceButton, BusinessHealthScore } from '../tcs';
 
 export const WorkTab = React.memo(function WorkTab() {
   const ctx = useFinances();
@@ -77,6 +78,21 @@ export const WorkTab = React.memo(function WorkTab() {
       <VehicleLogbook />
       <InvoiceTracker />
       <TCSGrowthOverview />
+
+      {/* ── Quick Invoice ── */}
+      <QuickInvoiceButton />
+
+      {/* ── Revenue + Health Score ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <MonthlyRevenueCard />
+        <BusinessHealthScore />
+      </div>
+
+      {/* ── Route + Contracts ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <RouteOptimizerIndicator />
+        <ContractStatusCards />
+      </div>
 
       {/* ── Projected Monthly Income ── */}
       {businessFinancials.length > 0 && (
