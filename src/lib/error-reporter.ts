@@ -14,6 +14,15 @@ interface ErrorReport {
 let reportQueue: ErrorReport[] = [];
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 
+// Lazy import of toast dispatcher to avoid circular deps.
+// The component registers itself; we just call the function.
+let _showAsyncErrorToast: ((message: string) => void) | null = null;
+
+/** Called by AsyncErrorToast component to register the toast dispatcher */
+export function registerAsyncErrorToastDispatcher(fn: (message: string) => void) {
+  _showAsyncErrorToast = fn;
+}
+
 /** Report an error to the error_logs table */
 export function reportError(report: ErrorReport) {
   reportQueue.push({
@@ -64,7 +73,7 @@ export function installGlobalErrorHandlers() {
     });
   });
 
-  // Unhandled promise rejections
+  // Unhandled promise rejections — show as toast (not crash)
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason;
 
@@ -76,10 +85,18 @@ export function installGlobalErrorHandlers() {
       return;
     }
 
+    const message = reason?.message || String(reason) || 'Unhandled promise rejection';
+
+    // Report to error logs (existing behavior)
     reportError({
-      error_message: reason?.message || String(reason) || 'Unhandled promise rejection',
+      error_message: message,
       error_stack: reason?.stack,
       metadata: { type: 'unhandledrejection' },
     });
+
+    // Also show a subtle toast instead of letting it crash silently
+    if (_showAsyncErrorToast) {
+      _showAsyncErrorToast(message);
+    }
   });
 }

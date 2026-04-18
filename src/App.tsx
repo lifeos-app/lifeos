@@ -27,6 +27,10 @@ import { ConnectionBanner } from './components/ConnectionBanner';
 import { WhatsNew } from './components/WhatsNew';
 import { PageErrorBoundary } from './components/PageErrorBoundary';
 import { GlobalLoadingSpinner } from './components/GlobalLoadingSpinner';
+import { AppErrorBoundary } from './components/AppErrorBoundary';
+import { ChunkLoadErrorBoundary } from './components/ChunkLoadErrorBoundary';
+import { CrashRecoveryBanner } from './components/CrashRecoveryBanner';
+import { AsyncErrorToast } from './components/AsyncErrorToast';
 import {
   DashboardSkeleton, ScheduleSkeleton, HealthSkeleton, FinancesSkeleton,
   HabitsSkeleton, GoalsSkeleton, JournalSkeleton, JunctionSkeleton,
@@ -488,21 +492,27 @@ function App() {
   if (!oauthReady) return <GlobalLoadingSpinner />;
 
   return (
-    <Router {...(isDesktop ? {} : { basename: "/app" })}>
-      <a className="skip-to-content" href="#main-content">Skip to main content</a>
-      {!isDesktop && <UpdateBanner />}
-      <ConnectionBanner />
-      <WhatsNew />
-      <ErrorBoundary>
-        <Suspense fallback={<GlobalLoadingSpinner />}>
-          <SystemBusProvider>
-            <GamificationProvider>
-              <AppRoutes />
-            </GamificationProvider>
-          </SystemBusProvider>
-        </Suspense>
-      </ErrorBoundary>
-    </Router>
+    <AppErrorBoundary>
+      <ChunkLoadErrorBoundary>
+        <Router {...(isDesktop ? {} : { basename: "/app" })}>
+          <a className="skip-to-content" href="#main-content">Skip to main content</a>
+          {!isDesktop && <UpdateBanner />}
+          <ConnectionBanner />
+          <WhatsNew />
+          <CrashRecoveryBanner />
+          <ErrorBoundary>
+            <Suspense fallback={<GlobalLoadingSpinner />}>
+              <SystemBusProvider>
+                <GamificationProvider>
+                  <AppRoutes />
+                </GamificationProvider>
+              </SystemBusProvider>
+            </Suspense>
+          </ErrorBoundary>
+          <AsyncErrorToast />
+        </Router>
+      </ChunkLoadErrorBoundary>
+    </AppErrorBoundary>
   );
 }
 
