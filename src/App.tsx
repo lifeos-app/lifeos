@@ -162,6 +162,10 @@ const replicatorLoader = () => import('./pages/Replicator');
 registerPreload('/replicator', replicatorLoader);
 const Replicator = lazyRetry(replicatorLoader);
 
+const sageLoader = () => import('./pages/Sage').then(m => ({ default: m.Sage }));
+registerPreload('/sage', sageLoader);
+const Sage = lazyRetry(sageLoader);
+
 const LazyFeedbackButton = lazyRetry(() => import('./components/FeedbackButton').then(m => ({ default: m.FeedbackButton })));
 const LazyFlipperCheckin = lazyRetry(() => import('./components/FlipperCheckin').then(m => ({ default: m.FlipperCheckin })));
 const LazyLifePulseModal = lazyRetry(() => import('./components/LifePulseModal').then(m => ({ default: m.LifePulseModal })));
@@ -465,6 +469,7 @@ function AppRoutes() {
             <Route path="/academy" element={<PageErrorBoundary pageName="Academy"><Suspense fallback={<PageSkeleton />}><Academy /></Suspense></PageErrorBoundary>} />
             <Route path="/lessons" element={<PageErrorBoundary pageName="TeddysLessons"><Suspense fallback={<PageSkeleton />}><TeddysLessons /></Suspense></PageErrorBoundary>} />
             <Route path="/replicator" element={<PageErrorBoundary pageName="Replicator"><Suspense fallback={<PageSkeleton />}><Replicator /></Suspense></PageErrorBoundary>} />
+            <Route path="/sage" element={<PageErrorBoundary pageName="Sage"><Suspense fallback={<PageSkeleton />}><Sage /></Suspense></PageErrorBoundary>} />
             <Route path="/settings" element={<PageErrorBoundary pageName="Settings"><Suspense fallback={<PageSkeleton />}><Settings /></Suspense></PageErrorBoundary>} />
             <Route path="/work" element={<PageErrorBoundary pageName="Work"><Suspense fallback={<WorkSkeleton />}><WorkPage /></Suspense></PageErrorBoundary>} />
             <Route path="/work/*" element={<PageErrorBoundary pageName="Work"><Suspense fallback={<WorkSkeleton />}><WorkPage /></Suspense></PageErrorBoundary>} />

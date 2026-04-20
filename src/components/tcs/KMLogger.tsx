@@ -2,18 +2,17 @@
  * KMLogger — Quick-tap km logging for Teddy's Cleaning Systems
  *
  * One-tap buttons for preset distances with ATO deduction auto-calculation.
- * Writes directly to Supabase (expenses + transactions) and invalidates cache.
+ * Uses useFinanceStore.addExpense() for offline-first writes (expenses + transactions).
  */
 
 import { useState, useCallback } from 'react';
 import { Car, Plus, Check, Route } from 'lucide-react';
-import { supabase } from '../../lib/data-access';
 import { TCS_CONFIG, calcDeduction, ROUTE_KM } from '../../lib/tcs-config';
 import { useFinanceStore } from '../../stores/useFinanceStore';
 import { useScheduleStore } from '../../stores/useScheduleStore';
 import { useUserStore } from '../../stores/useUserStore';
 import { useGamificationContext } from '../../lib/gamification/context';
-import { genId, todayStr, fmtCurrency } from '../../utils/date';
+import { todayStr, fmtCurrency } from '../../utils/date';
 import './KMLogger.css';
 
 function today() { return todayStr(); }
@@ -42,53 +41,29 @@ export function KMLogger() {
     setError('');
 
     const deduction = calcDeduction(km);
-    const expId = genId();
-    const txId = genId();
     const dateStr = today();
 
-    const [expErr, txErr] = await Promise.all([
-      supabase.from('expenses').insert({
-        id: expId,
+    try {
+      await useFinanceStore.getState().addExpense({
         user_id: user?.id,
         amount: deduction,
         date: dateStr,
         description: `Vehicle: ${km}km cleaning run (${deduction.toFixed(2)} deduction)`,
         category_id: null,
         is_deductible: true,
-        travel_km: km,
-      }).then(r => r.error),
-      supabase.from('transactions').insert({
-        id: txId,
-        user_id: user?.id,
-        type: 'expense',
-        amount: deduction,
-        title: `Vehicle: ${km}km`,
-        date: dateStr,
-        recurring: false,
-        notes: JSON.stringify({
-          km,
-          ato_rate: 0.85,
-          deduction: calcDeduction(km),
-          travel: true,
-        }),
-      }).then(r => r.error),
-    ]);
+      });
 
-    if (expErr || txErr) {
-      setError((expErr || txErr)!.message);
+      // Award XP via gamification context
+      try {
+        await awardXP('financial_entry', { description: `Vehicle: ${km}km` });
+      } catch {
+        // Non-critical
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to log km');
       setLogging(false);
       return;
     }
-
-    // Award XP via gamification context
-    try {
-      await awardXP('financial_entry', { description: `Vehicle: ${km}km` });
-    } catch {
-      // Non-critical — don't block if gamification fails
-    }
-
-    // Refresh finance store cache
-    useFinanceStore.getState().invalidate();
 
     setLogging(false);
     setConfirmation(`Logged ${km}km - ${fmtCurrency(deduction)} deduction`);

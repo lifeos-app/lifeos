@@ -1,8 +1,19 @@
 // LifeOS Gamification — XP Calculation Engine
 // Every action earns XP with streaks, combos, time bonuses
+//
+// Architecture: All reads/writes go through local-db (IndexedDB) first.
+// Supabase sync happens in the background via syncNow().
+// This ensures gamification works offline.
 
-import type { SupabaseClient } from '@supabase/supabase-js';
+import {
+  localGetAll,
+  localInsert,
+  localGet,
+  type TableName,
+} from '../local-db';
 import { getLevelFromXP, getTitleForLevel } from './levels';
+import { syncNow } from '../sync-engine';
+import { logger } from '../../utils/logger';
 
 // ── ACTION TYPES & BASE XP ──
 export type ActionType =
@@ -213,9 +224,9 @@ export function calculateXP(
   };
 }
 
-// ── AWARD XP (writes to database) ──
+// ── AWARD XP (writes to local-db first, syncs in background) ──
 export async function awardXP(
-  supabase: SupabaseClient,
+  _supabase: unknown, // kept for API compat, no longer used directly
   userId: string,
   action: ActionType,
   metadata: XPActionMetadata = {}
@@ -227,38 +238,49 @@ export async function awardXP(
   previousLevel: number;
   breakdown: string[];
 }> {
-  // 1. Get current user_xp row
-  const { data: userXP } = await supabase
-    .from('user_xp')
-    .select('*')
-    .eq('user_id', userId)
-    .maybeSingle();
+  // 1. Get current user_xp from local-db
+  let userXP: any = null;
+  try {
+    userXP = await localGet<any>('user_xp', userId);
+  } catch (e) {
+    logger.warn('[xp-engine] Could not read user_xp from local-db, initializing fresh:', e);
+  }
 
   const currentTotal = userXP?.total_xp || 0;
   const currentLevel = userXP?.level || 1;
 
-  // 2. Check if first action today
+  // 2. Check if first action today by reading xp_events from local-db
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
-  const { count: todayCount } = await supabase
-    .from('xp_events')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .gte('created_at', todayStart.toISOString());
 
-  const isFirstOfDay = (todayCount ?? 0) === 0;
+  let isFirstOfDay = true;
+  try {
+    const allEvents = await localGetAll<any>('xp_events');
+    const userEvents = allEvents.filter(e => e.user_id === userId && !e.deleted_at);
+    const todayEvents = userEvents.filter(e =>
+      e.created_at && new Date(e.created_at) >= todayStart
+    );
+    isFirstOfDay = todayEvents.length === 0;
+  } catch (e) {
+    logger.warn('[xp-engine] Could not read xp_events for first-of-day check:', e);
+  }
 
-  // 3. Get session action types (last 2 hours)
+  // 3. Get session action types (last 2 hours) from local-db
   const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
-  const { data: recentEvents } = await supabase
-    .from('xp_events')
-    .select('action_type')
-    .eq('user_id', userId)
-    .gte('created_at', twoHoursAgo);
+  const sessionActionTypes = new Set<ActionType>();
 
-  const sessionActionTypes = new Set<ActionType>(
-    (recentEvents || []).map((e: { action_type: string }) => e.action_type as ActionType)
-  );
+  try {
+    const allEvents = await localGetAll<any>('xp_events');
+    const userEvents = allEvents.filter(e => e.user_id === userId && !e.deleted_at);
+    const recentEvents = userEvents.filter(e =>
+      e.created_at && e.created_at >= twoHoursAgo
+    );
+    for (const e of recentEvents) {
+      if (e.action_type) sessionActionTypes.add(e.action_type as ActionType);
+    }
+  } catch (e) {
+    logger.warn('[xp-engine] Could not read recent xp_events for session combo:', e);
+  }
 
   // 4. Calculate XP
   const now = new Date();
@@ -268,39 +290,49 @@ export async function awardXP(
     sessionActionTypes,
   });
 
-  // 5. Insert XP event
-  await supabase.from('xp_events').insert({
-    user_id: userId,
-    action_type: action,
-    xp_amount: calc.totalXP,
-    multiplier: calc.streakMultiplier * calc.comboMultiplier,
-    description: metadata.description || calc.breakdown.join(' | '),
-  });
+  // 5. Insert XP event to local-db
+  try {
+    await localInsert('xp_events', {
+      user_id: userId,
+      action_type: action,
+      xp_amount: calc.totalXP,
+      multiplier: calc.streakMultiplier * calc.comboMultiplier,
+      description: metadata.description || calc.breakdown.join(' | '),
+    });
+  } catch (e) {
+    logger.error('[xp-engine] Failed to insert XP event to local-db:', e);
+  }
 
-  // 6. Update user_xp total
+  // 6. Update user_xp in local-db
   const newTotal = currentTotal + calc.totalXP;
   const newLevel = getLevelFromXP(newTotal);
   const newTitle = getTitleForLevel(newLevel);
 
-  if (userXP) {
-    await supabase
-      .from('user_xp')
-      .update({
+  try {
+    if (userXP) {
+      // Update existing record (keyPath is user_id)
+      await localUpdate('user_xp', userId, {
         total_xp: newTotal,
         level: newLevel,
         title: newTitle,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('user_id', userId);
-  } else {
-    await supabase.from('user_xp').insert({
-      user_id: userId,
-      total_xp: newTotal,
-      level: newLevel,
-      title: newTitle,
-      stats: { productivity: 0, consistency: 0, health: 0, finance: 0, knowledge: 0, social: 0 },
-    });
+        updated_at: now.toISOString(),
+      });
+    } else {
+      // Insert new user_xp record
+      await localInsert('user_xp', {
+        user_id: userId,
+        total_xp: newTotal,
+        level: newLevel,
+        title: newTitle,
+        stats: { productivity: 0, consistency: 0, health: 0, finance: 0, knowledge: 0, social: 0 },
+      });
+    }
+  } catch (e) {
+    logger.error('[xp-engine] Failed to update user_xp in local-db:', e);
   }
+
+  // 7. Trigger background sync (debounced)
+  syncNow(userId).catch(() => { /* non-blocking */ });
 
   return {
     xpAwarded: calc.totalXP,
@@ -323,19 +355,25 @@ export interface UserStats {
 }
 
 export async function recalcUserStats(
-  supabase: SupabaseClient,
+  _supabase: unknown, // kept for API compat, no longer used directly
   userId: string
 ): Promise<UserStats> {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  // Get XP events from last 30 days
-  const { data: events } = await supabase
-    .from('xp_events')
-    .select('action_type, xp_amount')
-    .eq('user_id', userId)
-    .gte('created_at', thirtyDaysAgo);
+  // Get XP events from last 30 days via local-db
+  let events: any[] = [];
+  try {
+    const allEvents = await localGetAll<any>('xp_events');
+    events = allEvents.filter(e =>
+      e.user_id === userId &&
+      e.created_at >= thirtyDaysAgo &&
+      !e.deleted_at
+    );
+  } catch (e) {
+    logger.warn('[xp-engine] Could not read xp_events for stat recalc:', e);
+  }
 
-  if (!events || events.length === 0) {
+  if (events.length === 0) {
     return { productivity: 0, consistency: 0, health: 0, finance: 0, knowledge: 0, social: 0 };
   }
 
@@ -343,7 +381,7 @@ export async function recalcUserStats(
   const totals: Record<string, number> = {};
   for (const e of events) {
     const cat = actionToCategory(e.action_type);
-    totals[cat] = (totals[cat] || 0) + e.xp_amount;
+    totals[cat] = (totals[cat] || 0) + (e.xp_amount || 0);
   }
 
   // Normalize to 0-100 (max possible: ~5000 XP/category in 30 days for active user)
@@ -359,11 +397,21 @@ export async function recalcUserStats(
     social: normalize(totals['social'] || 0),
   };
 
-  // Update in DB
-  await supabase
-    .from('user_xp')
-    .update({ stats, updated_at: new Date().toISOString() })
-    .eq('user_id', userId);
+  // Update in local-db
+  try {
+    const existing = await localGet<any>('user_xp', userId);
+    if (existing) {
+      await localUpdate('user_xp', userId, {
+        stats,
+        updated_at: new Date().toISOString(),
+      });
+    }
+  } catch (e) {
+    logger.warn('[xp-engine] Could not update stats in user_xp:', e);
+  }
+
+  // Trigger background sync
+  syncNow(userId).catch(() => { /* non-blocking */ });
 
   return stats;
 }

@@ -158,17 +158,17 @@ export function useGroceryLists() {
     const total = list.items?.reduce((sum, item) => sum + (item.actual_cost || item.estimated_cost || 0), 0) || 0;
 
     if (total > 0) {
-      const { data: expense } = await supabase.from('expenses').insert({
+      const { useFinanceStore } = await import('../stores/useFinanceStore');
+      const expenseRecord = await useFinanceStore.getState().addExpense({
         user_id: user.user.id,
         amount: total,
         description: `Groceries — ${list.store || list.name}`,
         date: new Date().toISOString().split('T')[0],
-        payment_method: 'card',
-      }).select().single();
+      });
 
-      if (expense) {
+      if (expenseRecord) {
         await supabase.from('grocery_lists').update({
-          expense_id: expense.id,
+          expense_id: expenseRecord.id,
           actual_total: total,
           is_active: false,
           completed_at: new Date().toISOString(),

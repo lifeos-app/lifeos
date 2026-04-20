@@ -586,45 +586,38 @@ export async function agentExecuteAction(userId: string, action: AgentAction): P
       }
 
       case 'log_income': {
-        const { supabase } = await import('./supabase');
-        const { localInsert } = await import('./local-db');
+        const { useFinanceStore } = await import('../stores/useFinanceStore');
         const amount = Number(action.payload.amount);
         const source = String(action.payload.source || '');
         const date = String(action.payload.date || new Date().toISOString().split('T')[0]);
-        const entry = {
+        const description = source || 'Income';
+        const result = await useFinanceStore.getState().addIncome({
           user_id: userId,
           amount,
           date,
-          description: source || 'Income',
+          description,
           source,
           is_recurring: false,
-          is_deleted: false
-        };
-        const { data, error } = await supabase.from('income').insert(entry).select().single();
-        if (error) return { success: false, message: `Failed to log income: ${error.message}` };
-        if (data) await localInsert('income', { ...data, synced: true });
+        });
+        if (!result) return { success: false, message: `Failed to log income` };
         window.dispatchEvent(new Event('lifeos-refresh'));
         return { success: true, message: `Logged income: $${amount}${source ? ' from ' + source : ''}` };
       }
 
       case 'log_expense': {
-        const { supabase } = await import('./supabase');
-        const { localInsert } = await import('./local-db');
+        const { useFinanceStore } = await import('../stores/useFinanceStore');
         const amount = Number(action.payload.amount);
         const description = String(action.payload.description || action.payload.category || 'Expense');
         const date = String(action.payload.date || new Date().toISOString().split('T')[0]);
-        const entry = {
+        const result = await useFinanceStore.getState().addExpense({
           user_id: userId,
           amount,
           date,
           description,
           category_id: null,
           is_deductible: false,
-          is_deleted: false
-        };
-        const { data, error } = await supabase.from('expenses').insert(entry).select().single();
-        if (error) return { success: false, message: `Failed to log expense: ${error.message}` };
-        if (data) await localInsert('expenses', { ...data, synced: true });
+        });
+        if (!result) return { success: false, message: `Failed to log expense` };
         window.dispatchEvent(new Event('lifeos-refresh'));
         return { success: true, message: `Logged expense: $${amount} — ${description}` };
       }

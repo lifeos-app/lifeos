@@ -169,17 +169,44 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
   addIncome: async (data) => {
     try {
+      const incomeId = genId();
+      const txId = genId();
+      const userId = getEffectiveUserId();
+      const now = new Date().toISOString();
+      const date = data.date || now.split('T')[0];
+
+      // Create income record
       const newRecord = await localInsert<IncomeEntry>('income', {
-        id: genId(),
-        user_id: getEffectiveUserId(),
+        id: incomeId,
+        user_id: userId,
         amount: data.amount || 0,
-        date: data.date || new Date().toISOString().split('T')[0],
+        date,
         is_deleted: false,
         is_recurring: false,
-        created_at: new Date().toISOString(),
+        created_at: now,
         ...data,
       });
-      set(s => ({ income: [newRecord, ...s.income] }));
+
+      // Create matching transaction record (single source of truth for computed values)
+      const txRecord = await localInsert<Transaction>('transactions', {
+        id: txId,
+        user_id: userId,
+        type: 'income',
+        amount: data.amount || 0,
+        title: (data as Record<string, unknown>).description as string || (data as Record<string, unknown>).source as string || 'Income',
+        date,
+        business_id: (data as Record<string, unknown>).business_id as string || null,
+        client_id: data.client_id || null,
+        recurring: data.is_recurring || false,
+        notes: null,
+        created_at: now,
+        updated_at: now,
+      });
+
+      set(s => ({
+        income: [newRecord, ...s.income],
+        transactions: [txRecord, ...s.transactions],
+      }));
       if (isOnline()) syncNow(useUserStore.getState().user?.id).catch(e => logger.warn('[finance] sync failed:', e));
       return newRecord;
     } catch (err) {
@@ -202,29 +229,66 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
   deleteIncome: async (id) => {
     const prev = get().income;
-    set(s => ({ income: s.income.filter(i => i.id !== id) }));
+    const prevTx = get().transactions;
+    // Find the corresponding transaction (matching date, amount, type=income)
+    const incomeRecord = prev.find(i => i.id === id);
+    const matchingTx = incomeRecord
+      ? prevTx.find(t => t.type === 'income' && t.amount === incomeRecord.amount && t.date === incomeRecord.date && t.title === (incomeRecord.description || incomeRecord.source))
+      : null;
+    set(s => ({
+      income: s.income.filter(i => i.id !== id),
+      transactions: matchingTx ? s.transactions.filter(t => t.id !== matchingTx.id) : s.transactions,
+    }));
     try {
       await localDelete('income', id);
+      if (matchingTx) await localDelete('transactions', matchingTx.id);
       if (isOnline()) syncNow(useUserStore.getState().user?.id).catch(e => logger.warn('[finance] sync failed:', e));
     } catch (err) {
       logger.error('[finance] deleteIncome error:', err);
-      set({ income: prev });
+      set({ income: prev, transactions: prevTx });
     }
   },
 
   addExpense: async (data) => {
     try {
+      const expenseId = genId();
+      const txId = genId();
+      const userId = getEffectiveUserId();
+      const now = new Date().toISOString();
+      const date = data.date || now.split('T')[0];
+
+      // Create expense record
       const newRecord = await localInsert<ExpenseEntry>('expenses', {
-        id: genId(),
-        user_id: getEffectiveUserId(),
+        id: expenseId,
+        user_id: userId,
         amount: data.amount || 0,
-        date: data.date || new Date().toISOString().split('T')[0],
+        date,
         is_deleted: false,
         is_recurring: false,
-        created_at: new Date().toISOString(),
+        created_at: now,
         ...data,
       });
-      set(s => ({ expenses: [newRecord, ...s.expenses] }));
+
+      // Create matching transaction record (single source of truth for computed values)
+      const txRecord = await localInsert<Transaction>('transactions', {
+        id: txId,
+        user_id: userId,
+        type: 'expense',
+        amount: data.amount || 0,
+        title: (data as Record<string, unknown>).description as string || 'Expense',
+        date,
+        category_id: (data as Record<string, unknown>).category_id as string || null,
+        business_id: (data as Record<string, unknown>).business_id as string || null,
+        recurring: data.is_recurring || false,
+        notes: null,
+        created_at: now,
+        updated_at: now,
+      });
+
+      set(s => ({
+        expenses: [newRecord, ...s.expenses],
+        transactions: [txRecord, ...s.transactions],
+      }));
       if (isOnline()) syncNow(useUserStore.getState().user?.id).catch(e => logger.warn('[finance] sync failed:', e));
       return newRecord;
     } catch (err) {
@@ -247,13 +311,23 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
 
   deleteExpense: async (id) => {
     const prev = get().expenses;
-    set(s => ({ expenses: s.expenses.filter(e => e.id !== id) }));
+    const prevTx = get().transactions;
+    // Find the corresponding transaction (matching date, amount, type=expense)
+    const expenseRecord = prev.find(e => e.id === id);
+    const matchingTx = expenseRecord
+      ? prevTx.find(t => t.type === 'expense' && t.amount === expenseRecord.amount && t.date === expenseRecord.date && t.title === expenseRecord.description)
+      : null;
+    set(s => ({
+      expenses: s.expenses.filter(e => e.id !== id),
+      transactions: matchingTx ? s.transactions.filter(t => t.id !== matchingTx.id) : s.transactions,
+    }));
     try {
       await localDelete('expenses', id);
+      if (matchingTx) await localDelete('transactions', matchingTx.id);
       if (isOnline()) syncNow(useUserStore.getState().user?.id).catch(e => logger.warn('[finance] sync failed:', e));
     } catch (err) {
       logger.error('[finance] deleteExpense error:', err);
-      set({ expenses: prev });
+      set({ expenses: prev, transactions: prevTx });
     }
   },
 

@@ -79,63 +79,56 @@ async function distributeActivityData(event: LiveEvent) {
   const userId = event.user_id;
   const promises: Promise<unknown>[] = [];
 
-  // 1. Auto-log income
+  // 1. Auto-log income + transaction (via finance store for offline-first)
   if (meta.expected_income || meta.actual_income) {
     const amount = (meta.actual_income || meta.expected_income) as number;
+    const date = event.start_time.slice(0, 10);
     promises.push(
-      Promise.resolve(supabase.from('income').insert({
-        user_id: userId,
-        amount,
-        description: `${event.title}`,
-        source: 'Cleaning',
-        business_id: meta.business_id || null,
-        client_id: meta.client_id || null,
-        date: event.start_time.slice(0, 10),
-        is_recurring: false,
-        is_deleted: false,
-      }).then(({ error }) => {
-        if (error) logger.warn('Income distribution failed:', error.message);
-        else logger.log(`✅ Income distributed: $${amount}`);
-      }))
-    );
-
-    // Also write to transactions
-    promises.push(
-      Promise.resolve(supabase.from('transactions').insert({
-        user_id: userId,
-        type: 'income',
-        amount,
-        title: event.title,
-        date: event.start_time.slice(0, 10),
-        business_id: meta.business_id || null,
-        client_id: meta.client_id || null,
-        recurring: false,
-        notes: JSON.stringify({ source: 'live_activity', event_id: event.id }),
-      }).then(({ error }) => {
-        if (error) logger.warn('Transaction insert failed:', error.message);
-      }))
+      (async () => {
+        try {
+          const { useFinanceStore } = await import('./useFinanceStore');
+          await useFinanceStore.getState().addIncome({
+            user_id: userId,
+            amount,
+            date,
+            description: `${event.title}`,
+            source: 'Cleaning',
+            business_id: meta.business_id || undefined,
+            client_id: meta.client_id || undefined,
+            is_recurring: false,
+          });
+          logger.log(`✅ Income distributed: $${amount}`);
+        } catch (err: any) {
+          logger.warn('Income distribution failed:', err?.message || err);
+        }
+      })()
     );
   }
 
-  // 2. Auto-log mileage expense (ATO 88¢/km)
+  // 2. Auto-log mileage expense + transaction (ATO 88c/km, via finance store)
   if (meta.odometer_start && meta.odometer_end) {
     const km = (meta.odometer_end as number) - (meta.odometer_start as number);
     if (km > 0) {
       const mileageAmount = km * ATO_RATE_PER_KM;
+      const date = event.start_time.slice(0, 10);
       promises.push(
-        Promise.resolve(supabase.from('expenses').insert({
-          user_id: userId,
-          amount: parseFloat(mileageAmount.toFixed(2)),
-          description: `Mileage: ${km}km (${event.title})`,
-          date: event.start_time.slice(0, 10),
-          is_deductible: true,
-          is_recurring: false,
-          is_deleted: false,
-          travel_km: km,
-        }).then(({ error }) => {
-          if (error) logger.warn('Mileage distribution failed:', error.message);
-          else logger.log(`✅ Mileage distributed: ${km}km = $${mileageAmount.toFixed(2)}`);
-        }))
+        (async () => {
+          try {
+            const { useFinanceStore } = await import('./useFinanceStore');
+            await useFinanceStore.getState().addExpense({
+              user_id: userId,
+              amount: parseFloat(mileageAmount.toFixed(2)),
+              date,
+              description: `Mileage: ${km}km (${event.title})`,
+              category_id: null,
+              is_deductible: true,
+              is_recurring: false,
+            });
+            logger.log(`✅ Mileage distributed: ${km}km = $${mileageAmount.toFixed(2)}`);
+          } catch (err: any) {
+            logger.warn('Mileage distribution failed:', err?.message || err);
+          }
+        })()
       );
     }
   }

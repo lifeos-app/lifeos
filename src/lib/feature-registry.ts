@@ -200,6 +200,21 @@ const FEATURES: FeatureModule[] = [
     revealAfterDays: 5, // Advanced: show after 5 days
   },
   {
+    id: 'sage',
+    name: 'Holy Sage',
+    route: '/sage',
+    icon: 'Sparkles',
+    color: '#C084FC',
+    enabled: true,
+    requiresAuth: true,
+    showInSidebar: true,
+    showInMobileNav: true,
+    mobileNavGroup: 'more-growth',
+    sidebarOrder: 12,
+    mobileNavOrder: 12,
+    revealAfterDays: 0, // Always visible — the oracle is for everyone
+  },
+  {
     id: 'settings',
     name: 'Settings',
     route: '/settings',

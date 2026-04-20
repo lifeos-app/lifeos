@@ -1,7 +1,17 @@
 // LifeOS Gamification — Achievement / Badge System
 // 60+ achievements across 7 categories
+//
+// Architecture: All reads/writes go through local-db (IndexedDB) first.
+// Supabase sync happens in the background via syncNow().
 
-import type { SupabaseClient } from '@supabase/supabase-js';
+import {
+  localGetAll,
+  localInsert,
+  localUpdate,
+  localGet,
+} from '../local-db';
+import { syncNow } from '../sync-engine';
+import { logger } from '../../utils/logger';
 
 export type AchievementRarity = 'common' | 'rare' | 'epic' | 'legendary';
 
@@ -930,20 +940,26 @@ export function getAchievement(id: string): Achievement | undefined {
 
 // ── CHECK ALL ACHIEVEMENTS ──
 export async function checkAchievements(
-  supabase: SupabaseClient,
+  _supabase: unknown, // kept for API compat, no longer used directly
   userId: string
 ): Promise<Achievement[]> {
-  // Get user's existing unlocked achievements
-  const { data: existing } = await supabase
-    .from('achievements')
-    .select('achievement_id')
-    .eq('user_id', userId)
-    .not('unlocked_at', 'is', null);
+  // Get user's existing unlocked achievements from local-db
+  let existingAchievements: any[] = [];
+  try {
+    const allAchievements = await localGetAll<any>('achievements');
+    existingAchievements = allAchievements.filter(a => a.user_id === userId);
+  } catch (e) {
+    logger.warn('[achievements] Could not read achievements from local-db:', e);
+  }
 
-  const unlockedIds = new Set((existing || []).map((a: { achievement_id: string }) => a.achievement_id));
+  const unlockedIds = new Set(
+    existingAchievements
+      .filter(a => a.unlocked_at)
+      .map(a => a.achievement_id)
+  );
 
-  // Get user stats for evaluation
-  const stats = await gatherAchievementStats(supabase, userId);
+  // Get user stats for evaluation from local-db
+  const stats = await gatherAchievementStats(userId);
 
   const newlyUnlocked: Achievement[] = [];
 
@@ -952,23 +968,43 @@ export async function checkAchievements(
 
     const { unlocked, progress } = evaluateCondition(achievement, stats);
 
-    // Upsert progress
-    await supabase.from('achievements').upsert({
-      user_id: userId,
-      achievement_id: achievement.id,
-      progress: Math.min(progress, achievement.target || 1),
-      unlocked_at: unlocked ? new Date().toISOString() : null,
-    }, { onConflict: 'user_id,achievement_id' });
+    // Upsert achievement progress via local-db
+    const localId = `${userId}_${achievement.id}`;
+    const maxProgress = achievement.target || 1;
+
+    try {
+      const existing = await localGet<any>('achievements', localId);
+      if (existing) {
+        await localUpdate('achievements', localId, {
+          progress: Math.min(progress, maxProgress),
+          unlocked_at: unlocked ? new Date().toISOString() : existing.unlocked_at,
+          updated_at: new Date().toISOString(),
+        });
+      } else {
+        await localInsert('achievements', {
+          id: localId,
+          user_id: userId,
+          achievement_id: achievement.id,
+          progress: Math.min(progress, maxProgress),
+          unlocked_at: unlocked ? new Date().toISOString() : null,
+        });
+      }
+    } catch (e) {
+      logger.warn('[achievements] Failed to upsert achievement to local-db:', e);
+    }
 
     if (unlocked) {
       newlyUnlocked.push(achievement);
     }
   }
 
+  // Trigger background sync
+  syncNow(userId).catch(() => { /* non-blocking */ });
+
   return newlyUnlocked;
 }
 
-// ── STAT GATHERING ──
+// ── STAT GATHERING (local-db first) ──
 interface AchievementStats {
   totalActions: number;
   longestStreak: number;
@@ -1014,48 +1050,58 @@ interface AchievementStats {
 }
 
 async function gatherAchievementStats(
-  supabase: SupabaseClient,
   userId: string
 ): Promise<AchievementStats> {
-  // Parallel queries for efficiency
+  // Read all data from local-db instead of supabase
+  // Parallel reads for efficiency
   const [
-    xpEventsRes,
-    tasksRes,
-    goalsRes,
-    habitsRes,
-    incomeRes,
-    expensesRes,
-    journalRes,
-    healthRes,
-    eventsRes,
-    userXPRes,
-    feedbackRes,
-    lessonProgressRes,
+    xpEvents,
+    tasks,
+    goals,
+    habits,
+    income,
+    expenses,
+    journalEntries,
+    health,
+    events,
+    userXP,
+    lessonProgress,
   ] = await Promise.all([
-    supabase.from('xp_events').select('action_type, created_at, multiplier', { count: 'exact' }).eq('user_id', userId),
-    supabase.from('tasks').select('id, status, completed_at', { count: 'exact' }).eq('is_deleted', false),
-    supabase.from('goals').select('id, category, progress', { count: 'exact' }).eq('is_deleted', false),
-    supabase.from('habits').select('id', { count: 'exact' }).eq('is_deleted', false),
-    supabase.from('income').select('id, amount, source', { count: 'exact' }).eq('is_deleted', false),
-    supabase.from('expenses').select('id', { count: 'exact' }).eq('is_deleted', false),
-    supabase.from('journal_entries').select('id, date', { count: 'exact' }).eq('is_deleted', false),
-    supabase.from('health_metrics').select('id, date, water_glasses, sleep_hours, mood_score, weight_kg, created_at').limit(500),
-    supabase.from('schedule_events').select('id', { count: 'exact' }).eq('is_deleted', false),
-    supabase.from('user_xp').select('level, total_xp').eq('user_id', userId).maybeSingle(),
-    supabase.from('feedback').select('id', { count: 'exact' }).eq('user_id', userId),
-    supabase.from('lesson_progress').select('lesson_id, steps_completed, last_practiced_at, status').eq('user_id', userId).eq('is_deleted', 0),
+    localGetAll<any>('xp_events').catch(() => []),
+    localGetAll<any>('tasks').catch(() => []),
+    localGetAll<any>('goals').catch(() => []),
+    localGetAll<any>('habits').catch(() => []),
+    localGetAll<any>('income').catch(() => []),
+    localGetAll<any>('expenses').catch(() => []),
+    localGetAll<any>('journal_entries').catch(() => []),
+    localGetAll<any>('health_metrics').catch(() => []),
+    localGetAll<any>('events').catch(() => []),
+    localGet<any>('user_xp', userId).catch(() => null),
+    localGetAll<any>('lesson_progress').catch(() => []),
   ]);
 
-  const xpEvents = xpEventsRes.data || [];
-  const tasks = tasksRes.data || [];
-  const goals = goalsRes.data || [];
-  const health = healthRes.data || [];
+  // Filter by user_id (localGetAll already filters by effective user,
+  // but we do it again for safety and to handle edge cases)
+  const filterByUser = (records: any[]) => records.filter(r => !r.user_id || r.user_id === userId);
+  const filterActive = (records: any[]) => records.filter(r => !r.is_deleted && !r.deleted_at);
 
-  const doneTasks = tasks.filter((t: { status: string }) => t.status === 'done');
-  const doneGoals = goals.filter((g: { progress?: number }) => (g.progress || 0) >= 1);
+  const userXPEvents = filterByUser(xpEvents);
+  const userTasks = filterActive(filterByUser(tasks));
+  const userGoals = filterActive(filterByUser(goals));
+  const userHabits = filterActive(filterByUser(habits));
+  const userIncome = filterActive(filterByUser(income));
+  const userExpenses = filterActive(filterByUser(expenses));
+  const userJournal = filterActive(filterByUser(journalEntries));
+  const userHealth = filterActive(filterByUser(health));
+  const userEvents = filterActive(filterByUser(events));
+  const userLessons = filterByUser(lessonProgress);
+
+  // Derived stats
+  const doneTasks = userTasks.filter((t: any) => t.status === 'done');
+  const doneGoals = userGoals.filter((g: any) => (g.progress || 0) >= 1);
 
   // Calculate days active from xp_events
-  const activeDays = new Set(xpEvents.map((e: { created_at?: string }) => e.created_at?.split('T')[0]));
+  const activeDays = new Set(userXPEvents.map((e: any) => e.created_at?.split('T')[0]).filter(Boolean));
 
   // Tasks per day for max
   const tasksByDay: Record<string, number> = {};
@@ -1072,49 +1118,49 @@ async function gatherAchievementStats(
   const tasksToday = tasksByDay[today] || 0;
 
   // Income sources
-  const sources = new Set((incomeRes.data || []).map((i: { source?: string }) => i.source).filter(Boolean));
+  const sources = new Set(userIncome.map((i: any) => i.source).filter(Boolean));
 
   // Total income
-  const totalIncome = (incomeRes.data || []).reduce((s: number, i: { amount?: number }) => s + (i.amount || 0), 0);
+  const totalIncome = userIncome.reduce((s: number, i: any) => s + (i.amount || 0), 0);
 
   // Health stats
-  const waterDays = health.filter((h: { water_glasses?: number }) => h.water_glasses && h.water_glasses >= 8).length;
-  const goodSleepDays = health.filter((h: { sleep_hours?: number }) => h.sleep_hours && h.sleep_hours >= 7).length;
-  const moodDays = health.filter((h: { mood_score?: number }) => h.mood_score != null).length;
-  const weightDays = health.filter((h: { weight_kg?: number }) => h.weight_kg != null).length;
+  const waterDays = userHealth.filter((h: any) => h.water_glasses && h.water_glasses >= 8).length;
+  const goodSleepDays = userHealth.filter((h: any) => h.sleep_hours && h.sleep_hours >= 7).length;
+  const moodDays = userHealth.filter((h: any) => h.mood_score != null).length;
+  const weightDays = userHealth.filter((h: any) => h.weight_kg != null).length;
 
   // Early bird actions (before 6am)
-  const earlyActions = xpEvents.filter((e: { created_at?: string; multiplier?: number; action_type?: string }) => {
+  const earlyActions = userXPEvents.filter((e: any) => {
     const hour = new Date(e.created_at).getHours();
     return hour < 6;
   });
 
   // Night owl
-  const nightActions = xpEvents.filter((e: { created_at?: string; multiplier?: number; action_type?: string }) => {
+  const nightActions = userXPEvents.filter((e: any) => {
     const hour = new Date(e.created_at).getHours();
     return hour >= 0 && hour < 4;
   });
 
   // Mega combo check
-  const megaCombo = xpEvents.some((e: { multiplier?: number }) => (e.multiplier || 0) >= 2);
+  const megaCombo = userXPEvents.some((e: any) => (e.multiplier || 0) >= 2);
 
   // Longest streak (simplified — based on consecutive active days)
   const sortedDays = [...activeDays].sort();
   let longest = 0;
-  let current = 0;
+  let currentStreak = 0;
   for (let i = 0; i < sortedDays.length; i++) {
-    if (i === 0) { current = 1; }
+    if (i === 0) { currentStreak = 1; }
     else {
       const prev = new Date(sortedDays[i - 1]);
       const cur = new Date(sortedDays[i]);
       const diff = (cur.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24);
-      current = diff <= 1 ? current + 1 : 1;
+      currentStreak = diff <= 1 ? currentStreak + 1 : 1;
     }
-    if (current > longest) longest = current;
+    if (currentStreak > longest) longest = currentStreak;
   }
 
   // Journal streak
-  const journalDates = (journalRes.data || []).map((j: { date: string }) => j.date).sort().reverse();
+  const journalDates = userJournal.map((j: any) => j.date).sort().reverse();
   let jStreak = 0;
   for (let i = 0; i < 365; i++) {
     const d = new Date();
@@ -1135,24 +1181,57 @@ async function gatherAchievementStats(
     else if (i > 0) break;
   }
 
+  // Lesson stats
+  const lessonStepsCompleted = userLessons.reduce((sum: number, r: any) => {
+    const steps = Array.isArray(r.steps_completed) ? r.steps_completed : (typeof r.steps_completed === 'string' ? JSON.parse(r.steps_completed) : []);
+    return sum + steps.length;
+  }, 0);
+  const pianoStepsCompleted = userLessons.filter((r: any) => r.lesson_id === 'piano-academy').reduce((sum: number, r: any) => {
+    const steps = Array.isArray(r.steps_completed) ? r.steps_completed : (typeof r.steps_completed === 'string' ? JSON.parse(r.steps_completed) : []);
+    return sum + steps.length;
+  }, 0);
+  const codeStepsCompleted = userLessons.filter((r: any) => r.lesson_id === 'learning-to-code').reduce((sum: number, r: any) => {
+    const steps = Array.isArray(r.steps_completed) ? r.steps_completed : (typeof r.steps_completed === 'string' ? JSON.parse(r.steps_completed) : []);
+    return sum + steps.length;
+  }, 0);
+  const lessonStreak = (() => {
+    const practiceDates = userLessons.map((r: any) => r.last_practiced_at).filter(Boolean).sort().reverse();
+    const uniqueDays = [...new Set(practiceDates.map((d: string) => d.split('T')[0]))].sort().reverse();
+    let streak = 0;
+    for (let i = 0; i < 365; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const ds = d.toISOString().split('T')[0];
+      if (uniqueDays.includes(ds)) streak++;
+      else if (i > 0) break;
+    }
+    return streak;
+  })();
+  const lessonCategoriesCompleted = new Set(
+    userLessons.filter((r: any) => {
+      const steps = Array.isArray(r.steps_completed) ? r.steps_completed : (typeof r.steps_completed === 'string' ? JSON.parse(r.steps_completed) : []);
+      return steps.length > 0;
+    }).map((r: any) => r.lesson_id)
+  ).size;
+
   return {
-    totalActions: xpEvents.length,
+    totalActions: userXPEvents.length,
     longestStreak: longest,
     currentStreak: cStreak,
     tasksCompleted: doneTasks.length,
-    goalsCompleted: doneGoals.filter((g: { category?: string }) => !g.category || g.category === 'goal').length,
-    epicsCompleted: doneGoals.filter((g: { category?: string }) => g.category === 'epic').length,
-    objectivesCompleted: doneGoals.filter((g: { category?: string }) => g.category === 'objective').length,
-    habitsCreated: habitsRes.count || 0,
-    incomeLogged: incomeRes.count || 0,
-    expensesLogged: expensesRes.count || 0,
-    journalEntries: journalRes.count || 0,
+    goalsCompleted: doneGoals.filter((g: any) => !g.category || g.category === 'goal').length,
+    epicsCompleted: doneGoals.filter((g: any) => g.category === 'epic').length,
+    objectivesCompleted: doneGoals.filter((g: any) => g.category === 'objective').length,
+    habitsCreated: userHabits.length,
+    incomeLogged: userIncome.length,
+    expensesLogged: userExpenses.length,
+    journalEntries: userJournal.length,
     journalStreak: jStreak,
-    aiMessages: xpEvents.filter((e: { action_type?: string }) => e.action_type === 'ai_message').length,
-    healthLogs: health.length,
+    aiMessages: userXPEvents.filter((e: any) => e.action_type === 'ai_message').length,
+    healthLogs: userHealth.length,
     systemsConnected: 0, // Would need a systems table query
-    eventsCreated: eventsRes.count || 0,
-    level: userXPRes.data?.level || 1,
+    eventsCreated: userEvents.length,
+    level: userXP?.level || 1,
     daysActive: activeDays.size,
     tasksToday,
     maxTasksInDay,
@@ -1163,47 +1242,20 @@ async function gatherAchievementStats(
     goodSleepDays,
     moodLogs: moodDays,
     weightLogs: weightDays,
-    feedbackSubmitted: (feedbackRes.count || 0) > 0,
+    feedbackSubmitted: false, // Cannot easily detect from local-db alone
     pagesVisited: new Set(), // Tracked client-side
     allModulesSetup: false,  // Complex check done client-side
     nightOwlAction: nightActions.length > 0,
     megaComboTriggered: megaCombo,
     allHabitsOneDay: false,  // Complex, tracked via habit engine
-    perfectHabitWeek: false, // Complex, tracked via habit engine
-    inboxZero: false,        // Tracked client-side
+    perfectHabitWeek: false, // complex, tracked via habit engine
+    inboxZero: false,        // tracked client-side
     // Lesson / Academy stats
-    lessonStepsCompleted: (lessonProgressRes.data || []).reduce((sum: number, r: { steps_completed?: string | string[] }) => {
-      const steps = Array.isArray(r.steps_completed) ? r.steps_completed : (typeof r.steps_completed === 'string' ? JSON.parse(r.steps_completed) : []);
-      return sum + steps.length;
-    }, 0),
-    pianoStepsCompleted: (lessonProgressRes.data || []).filter((r: { lesson_id: string }) => r.lesson_id === 'piano-academy').reduce((sum: number, r: { steps_completed?: string | string[] }) => {
-      const steps = Array.isArray(r.steps_completed) ? r.steps_completed : (typeof r.steps_completed === 'string' ? JSON.parse(r.steps_completed) : []);
-      return sum + steps.length;
-    }, 0),
-    codeStepsCompleted: (lessonProgressRes.data || []).filter((r: { lesson_id: string }) => r.lesson_id === 'learning-to-code').reduce((sum: number, r: { steps_completed?: string | string[] }) => {
-      const steps = Array.isArray(r.steps_completed) ? r.steps_completed : (typeof r.steps_completed === 'string' ? JSON.parse(r.steps_completed) : []);
-      return sum + steps.length;
-    }, 0),
-    lessonStreak: (() => {
-      const practiceDates = (lessonProgressRes.data || []).map((r: { last_practiced_at: string | null }) => r.last_practiced_at).filter(Boolean).sort().reverse() as string[];
-      // Deduplicate by day
-      const uniqueDays = [...new Set(practiceDates.map((d: string) => d.split('T')[0]))].sort().reverse();
-      let streak = 0;
-      for (let i = 0; i < 365; i++) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        const ds = d.toISOString().split('T')[0];
-        if (uniqueDays.includes(ds)) streak++;
-        else if (i > 0) break;
-      }
-      return streak;
-    })(),
-    lessonCategoriesCompleted: new Set(
-      (lessonProgressRes.data || []).filter((r: { steps_completed?: string | string[] }) => {
-        const steps = Array.isArray(r.steps_completed) ? r.steps_completed : (typeof r.steps_completed === 'string' ? JSON.parse(r.steps_completed) : []);
-        return steps.length > 0;
-      }).map((r: { lesson_id: string }) => r.lesson_id)
-    ).size,
+    lessonStepsCompleted,
+    pianoStepsCompleted,
+    codeStepsCompleted,
+    lessonStreak,
+    lessonCategoriesCompleted,
   };
 }
 

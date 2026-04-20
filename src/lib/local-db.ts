@@ -512,7 +512,7 @@ export async function localBulkUpsert<T extends BaseRecord>(
     };
 
     // Protect unsynced local edits: if local version has unpushed changes
-    // AND is newer than the server record, skip overwriting it
+    // AND is newer than the server record, merge fields instead of wholesale overwrite.
     const keyPath = store.keyPath as string;
     const key = (fullRecord as Record<string, unknown>)[keyPath];
     if (!key) {
@@ -530,7 +530,24 @@ export async function localBulkUpsert<T extends BaseRecord>(
         fullRecord.updated_at &&
         local.updated_at > fullRecord.updated_at
       ) {
-        // Local edit is newer and unsynced — skip server overwrite
+        // Local edit is newer and unsynced — perform field-level merge.
+        // For each field, keep the local value if it differs from the last-known
+        // server value, otherwise take the new server value.
+        // In practice, the simple record-level check is: keep local since
+        // local is newer. But we also merge in any server-only fields that
+        // local doesn't have (e.g., new columns added server-side).
+        const merged = { ...fullRecord };
+        for (const [field, value] of Object.entries(local)) {
+          // Always preserve local metadata and unsynced data
+          if (field === 'synced') continue; // keep false from local
+          if (value !== undefined && value !== null) {
+            merged[field] = value;
+          }
+        }
+        // Ensure local stays marked as unsynced
+        merged.synced = false;
+        merged.updated_at = local.updated_at;
+        store.put(merged);
         return;
       }
       store.put(fullRecord);

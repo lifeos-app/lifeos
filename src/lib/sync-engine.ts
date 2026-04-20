@@ -17,6 +17,8 @@
 import { db as supabase, getEnvironment } from './data-access';
 import { useUserStore } from '../stores/useUserStore';
 import { logger } from '../utils/logger';
+import { getTabCoordinator, initTabCoordinator } from './tab-coordinator';
+import type { TableName } from './local-db';
 
 // ── Cloud Sync for Electron ──
 // In Electron, `db` routes to local SQLite. When a cloud session exists
@@ -95,6 +97,10 @@ const SYNC_TABLES: TableName[] = [
   'achievements',
   'inventory_items',
   'pet_profiles',
+  'assets',
+  'asset_maintenance',
+  'asset_bills',
+  'asset_documents',
 
   // Tier 1: Depend on Tier 0
   'goals',         // FK → businesses
@@ -107,11 +113,10 @@ const SYNC_TABLES: TableName[] = [
   'events',        // FK → expense_categories (maps to schedule_events)
   'habit_logs',    // FK → habits
   'transactions',  // FK → businesses, clients, tasks, events
-  // assets tables are local-only (no Supabase tables yet)
 ];
 
 // Tables that were previously synced but no longer are — clean up their retry queue entries
-const REMOVED_SYNC_TABLES = ['assets', 'asset_maintenance', 'asset_bills', 'asset_documents'];
+const REMOVED_SYNC_TABLES: string[] = [];
 
 // Supabase table name mapping (local → remote, if different)
 const TABLE_MAP: Record<string, string> = {
@@ -158,6 +163,10 @@ const STATIC_COLUMNS: Record<string, Set<string>> = {
   categories: new Set(['id','user_id','name','color','icon','parent_id','domain','sort_order','created_at','updated_at','is_deleted','sync_status']),
   projects: new Set(['id','user_id','title','description','status','color','icon','goal_id','start_date','target_date','created_at','updated_at','is_deleted','sync_status']),
   notes: new Set(['id','user_id','title','content','category_id','is_pinned','created_at','updated_at','is_deleted','sync_status']),
+  assets: new Set(['id','user_id','name','description','category','purchase_date','purchase_price','current_value','location','condition','notes','tags','image_url','warranty_expiry','created_at','updated_at','is_deleted','sync_status']),
+  asset_maintenance: new Set(['id','user_id','asset_id','title','description','date','cost','provider','status','next_date','notes','created_at','updated_at','is_deleted','sync_status']),
+  asset_bills: new Set(['id','user_id','asset_id','title','amount','due_date','is_recurring','recurrence_rule','status','paid_date','payment_url','notes','created_at','updated_at','is_deleted','sync_status']),
+  asset_documents: new Set(['id','user_id','asset_id','title','type','file_url','file_size','mime_type','notes','created_at','updated_at','is_deleted','sync_status']),
 };
 
 // ── Runtime Schema Cache ──
@@ -785,7 +794,7 @@ async function pullFromSupabase(userId: string): Promise<number> {
     'user_xp', 'businesses', 'clients', 'expense_categories', 'categories',
     'budgets', 'journal_entries', 'health_metrics', 'workouts', 'workout_exercises',
     'income', 'expenses', 'bills', 'xp_events', 'achievements', 'inventory_items', 'pet_profiles',
-    'parts_inventory',
+    'parts_inventory', 'assets', 'asset_maintenance', 'asset_bills', 'asset_documents',
   ];
   // Tier 1: depend on tier 0
   const tier1: TableName[] = ['goals', 'habits', 'projects', 'notes'];
@@ -922,6 +931,9 @@ async function _doSync(userId?: string): Promise<SyncStatus> {
 
     // Trigger UI refresh
     window.dispatchEvent(new Event('lifeos-refresh'));
+
+    // Broadcast sync completion to other tabs via BroadcastChannel
+    getTabCoordinator().broadcastSyncComplete();
   } catch (e: unknown) {
     error = e.message || 'Unknown sync error';
     logger.error('[sync] Sync failed:', e);
@@ -952,11 +964,19 @@ let _autoSyncInterval: number | null = null;
 
 /**
  * Start background auto-sync (every 5 minutes when online + authed).
+ * Only the leader tab runs periodic sync to avoid race conditions
+ * when multiple tabs are open.
  */
 export function startAutoSync() {
   if (_autoSyncInterval) return;
   
   _autoSyncInterval = window.setInterval(async () => {
+    // Only the leader tab runs periodic sync
+    const coordinator = getTabCoordinator();
+    if (!coordinator.isLeader) {
+      return;
+    }
+
     // Only sync if online
     if (!navigator.onLine) return;
 
@@ -967,7 +987,7 @@ export function startAutoSync() {
     await syncNowImmediate(session.user.id);
   }, 5 * 60 * 1000); // 5 minutes
   
-  logger.log('[sync] Auto-sync enabled (every 5 min)');
+  logger.log('[sync] Auto-sync enabled (every 5 min, leader-only)');
 }
 
 /**
@@ -1004,6 +1024,21 @@ export function initSyncEngine() {
   // Start background auto-sync
   startAutoSync();
   
+  // Initialize tab coordinator for multi-tab coordination
+  initTabCoordinator((table?: TableName) => {
+    // Invalidate caches when another tab writes or sync completes.
+    // Dispatch the same 'lifeos-refresh' event that stores listen to.
+    // If a specific table is provided, we could be more targeted, but
+    // for now a broad refresh is safe and consistent.
+    logger.log(`[sync] Tab coordinator invalidation (table=${table || 'all'}) — dispatching lifeos-refresh`);
+    window.dispatchEvent(new Event('lifeos-refresh'));
+  });
+
+  // Register cleanup on tab close
+  window.addEventListener('beforeunload', () => {
+    getTabCoordinator().dispose();
+  });
+
   logger.log('[sync] Sync engine initialized');
 }
 
@@ -1049,6 +1084,15 @@ export async function waitForInitialSync(): Promise<void> {
   }
 }
 
+/**
+ * Broadcast a local write event to other tabs.
+ * Stores should call this after localInsert/localUpdate/localDelete
+ * so other tabs invalidate their caches.
+ */
+export function broadcastLocalWrite(table: TableName, recordId?: string): void {
+  getTabCoordinator().broadcastLocalWrite(table, recordId);
+}
+
 // Expose to window for debugging
 if (typeof window !== 'undefined') {
   (window as unknown as Record<string, unknown>).syncEngine = {
@@ -1058,5 +1102,6 @@ if (typeof window !== 'undefined') {
     stopAuto: stopAutoSync,
     getRetryQueue: getRetryQueueStatus,
     clearRetryQueue,
+    isLeader: () => getTabCoordinator().isLeader,
   };
 }

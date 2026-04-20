@@ -122,36 +122,18 @@ export async function executeActions(actions: IntentAction[]): Promise<{
           break;
         }
         case 'expense': {
-          const expBusinessId = data.business_id as string | null;
-          const travelKm = data.travel_km as number | null;
-          const travelOdo = data.travel_odometer as number | null;
-          const expPayment = data.payment_method as string | null;
-          const expRecurring = data.is_recurring as boolean;
-          const expRecRule = data.recurrence_rule as string | null;
-
-          const expenseInsert: Record<string, unknown> = {
-            user_id: data.user_id, amount: data.amount, description: data.description,
-            category_id: data.category_id || null, date: data.date,
-            is_deductible: data.is_deductible || false, is_recurring: expRecurring || false,
-            payment_method: data.payment_method || null,
-            travel_km: data.travel_km || null,
-            is_deleted: false, sync_status: 'synced',
-          };
-          const { error: expErr } = await supabase.from('expenses').insert(expenseInsert);
-          if (expErr) throw expErr;
-
-          const travelMeta = travelKm ? { km: travelKm, odometer: travelOdo || null } : null;
-          const txNotes = JSON.stringify({
-            payment_method: expPayment || 'card', travel: travelMeta,
-            recurrence: expRecurring ? expRecRule : null,
+          const { useFinanceStore } = await import('../../stores/useFinanceStore');
+          const result = await useFinanceStore.getState().addExpense({
+            user_id: data.user_id as string,
+            amount: data.amount as number,
+            date: data.date as string,
+            description: data.description as string,
+            category_id: (data.category_id as string) || null,
+            is_deductible: (data.is_deductible as boolean) || false,
+            is_recurring: (data.is_recurring as boolean) || false,
+            business_id: (data.business_id as string) || null,
           });
-          await supabase.from('transactions').insert({
-            user_id: data.user_id, type: 'expense', amount: data.amount,
-            title: data.description || 'Expense', date: data.date,
-            category_id: data.category_id || null, business_id: expBusinessId || null,
-            recurring: expRecurring, notes: txNotes,
-          }).then(r => { if (r.error) logger.warn('tx insert failed:', r.error.message); });
-
+          if (!result) throw new Error('Failed to create expense');
           successes.push(`✅ Expense: ${action.summary}`);
           await createCompanionEvent({
             userId: data.user_id as string,
@@ -161,27 +143,17 @@ export async function executeActions(actions: IntentAction[]): Promise<{
           break;
         }
         case 'income': {
-          const incClientId = data.client_id as string | null;
-          const incRecurring = data.is_recurring as boolean;
-          const incRecRule = data.recurrence_rule as string | null;
-
-          const incomeInsert: Record<string, unknown> = {
-            user_id: data.user_id, amount: data.amount, description: data.description,
-            source: data.source || 'manual', date: data.date,
-            client_id: incClientId || null, category_id: data.category_id || null,
-            is_recurring: incRecurring || false, recurrence_rule: incRecRule || null,
-            is_deleted: false, sync_status: 'synced',
-          };
-          const { error: incErr } = await supabase.from('income').insert(incomeInsert);
-          if (incErr) throw incErr;
-
-          await supabase.from('transactions').insert({
-            user_id: data.user_id, type: 'income', amount: data.amount,
-            title: data.description || data.source || 'Income', date: data.date,
-            client_id: incClientId || null, recurring: incRecurring,
-            notes: JSON.stringify({ recurrence: incRecurring ? incRecRule : null }),
-          }).then(r => { if (r.error) logger.warn('tx insert failed:', r.error.message); });
-
+          const { useFinanceStore } = await import('../../stores/useFinanceStore');
+          const result = await useFinanceStore.getState().addIncome({
+            user_id: data.user_id as string,
+            amount: data.amount as number,
+            date: data.date as string,
+            description: data.description as string,
+            source: (data.source as string) || 'manual',
+            client_id: (data.client_id as string) || null,
+            is_recurring: (data.is_recurring as boolean) || false,
+          });
+          if (!result) throw new Error('Failed to create income');
           successes.push(`✅ Income: ${action.summary}`);
           await createCompanionEvent({
             userId: data.user_id as string,
@@ -290,8 +262,8 @@ export async function executeActions(actions: IntentAction[]): Promise<{
           const id = data.id as string;
           const updates = sanitizeData(data.updates as Record<string, unknown> || {});
           if (!id || !UUID_REGEX.test(id)) throw new Error('Invalid expense ID');
-          const { error } = await supabase.from('expenses').update({ ...updates, updated_at: new Date().toISOString() }).eq('id', id);
-          if (error) throw error;
+          const { useFinanceStore } = await import('../../stores/useFinanceStore');
+          await useFinanceStore.getState().updateExpense(id, updates);
           successes.push(`✏️ Expense updated: ${action.summary}`);
           break;
         }
@@ -325,8 +297,8 @@ export async function executeActions(actions: IntentAction[]): Promise<{
         case 'delete_expense': {
           const id = data.id as string;
           if (!id || !UUID_REGEX.test(id)) throw new Error('Invalid expense ID');
-          const { error } = await supabase.from('expenses').update({ is_deleted: true, updated_at: new Date().toISOString() }).eq('id', id);
-          if (error) throw error;
+          const { useFinanceStore } = await import('../../stores/useFinanceStore');
+          await useFinanceStore.getState().deleteExpense(id);
           successes.push(`🗑️ Expense removed: ${action.summary}`);
           break;
         }

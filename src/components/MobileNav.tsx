@@ -14,7 +14,7 @@ import './MobileNav.css';
 /** Map icon name strings from the feature registry to Lucide components. */
 const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard, Calendar, Target, Flame, Wallet, Heart,
-  BookOpen, Users, Swords, Settings, BarChart3, GraduationCap,
+  BookOpen, Users, Swords, Settings, BarChart3, GraduationCap, Sparkles,
 };
 
 interface Tab {

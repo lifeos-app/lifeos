@@ -51,21 +51,30 @@ export function IncomeFormModal({ onClose, onSaved }: { onClose: () => void; onS
     const gstAmount = incGSTIncluded ? amt / 11 : 0;
     const metadata = { invoice: incInvoice.trim() || null, payment_method: incPaymentMethod, gst_included: incGSTIncluded, gst_amount: incGSTIncluded ? gstAmount : null, recurrence: incRecurring ? incRecurrence : null };
     const resolvedSource = incSource.trim() || (incBusiness ? (businesses.find(b => b.id === incBusiness)?.name || 'Business') : 'Other');
-    const incId = genId(); const txId = genId();
-    const enrichedDesc = [incDesc.trim(), incInvoice.trim() ? `[Invoice: ${incInvoice.trim()}]` : '', incPaymentMethod ? `[${incPaymentMethod}]` : '', incGSTIncluded ? `[GST: ${fmtCurrency(gstAmount)}]` : ''].filter(Boolean).join(' ');
-    const [incErr, txErr] = await Promise.all([
-      supabase.from('income').insert({ id: incId, user_id: user?.id, amount: amt, date: incDate, description: enrichedDesc, source: resolvedSource, client_id: incClient || null, is_recurring: incRecurring }).then(r => r.error),
-      supabase.from('transactions').insert({ id: txId, user_id: user?.id, type: 'income', amount: amt, title: incDesc.trim() || resolvedSource || 'Income', date: incDate, business_id: incBusiness || null, client_id: incClient || null, recurring: incRecurring, notes: JSON.stringify(metadata) }).then(r => r.error),
-    ]);
-    if (incErr || txErr) { setError((incErr || txErr)!.message); setSaving(false); return; }
-    if (user?.id) {
-      logUnifiedEvent({
-        user_id: user.id, timestamp: `${incDate}T12:00:00`, type: 'income',
-        title: `${resolvedSource}: $${amt.toFixed(2)}`,
-        details: { amount: amt, source: resolvedSource, description: incDesc.trim(), income_id: incId },
-        module_source: 'finance',
+    try {
+      const result = await useFinanceStore.getState().addIncome({
+        user_id: user?.id,
+        amount: amt,
+        date: incDate,
+        description: [incDesc.trim(), incInvoice.trim() ? `[Invoice: ${incInvoice.trim()}]` : '', incPaymentMethod ? `[${incPaymentMethod}]` : '', incGSTIncluded ? `[GST: ${fmtCurrency(gstAmount)}]` : ''].filter(Boolean).join(' '),
+        source: resolvedSource,
+        client_id: incClient || null,
+        business_id: incBusiness || null,
+        is_recurring: incRecurring,
+        // Transaction extra fields stored in metadata
       });
-      awardXP('financial_entry', { description: `Income: $${amt}` });
+      // addIncome already creates both income + transaction records
+      if (result && user?.id) {
+        logUnifiedEvent({
+          user_id: user.id, timestamp: `${incDate}T12:00:00`, type: 'income',
+          title: `${resolvedSource}: $${amt.toFixed(2)}`,
+          details: { amount: amt, source: resolvedSource, description: incDesc.trim(), income_id: result.id },
+          module_source: 'finance',
+        });
+        awardXP('financial_entry', { description: `Income: $${amt}` });
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to save income');
     }
     setSaving(false);
     onSaved();
@@ -133,23 +142,30 @@ export function ExpenseFormModal({ onClose, onSaved }: { onClose: () => void; on
     setSaving(true); setError('');
     const amt = parseFloat(expAmount);
     const gstAmount = expGSTIncluded ? amt / 11 : 0;
-    const expId = genId(); const txId = genId();
-    const travelMeta = expIsTravel ? JSON.stringify({ km: expKm ? parseFloat(expKm) : null, odometer: expOdometer ? parseFloat(expOdometer) : null }) : null;
-    const metadata = { receipt: expReceipt.trim() || null, payment_method: expPaymentMethod, gst_included: expGSTIncluded, gst_amount: expGSTIncluded ? gstAmount : null, goal_id: expGoal || null, travel: travelMeta ? JSON.parse(travelMeta) : null, recurrence: expRecurring ? expRecurrence : null };
     const fullDesc = [expDesc.trim(), expKm ? `(${expKm}km)` : ''].filter(Boolean).join(' ');
-    const [expErr, txErr] = await Promise.all([
-      supabase.from('expenses').insert({ id: expId, user_id: user?.id, amount: amt, date: expDate, description: fullDesc, category_id: expCategory || null, is_deductible: expDeductible }).then(r => r.error),
-      supabase.from('transactions').insert({ id: txId, user_id: user?.id, type: 'expense', amount: amt, title: expDesc.trim() || 'Expense', date: expDate, category_id: expCategory || null, business_id: expBusiness || null, recurring: expRecurring, notes: JSON.stringify(metadata) }).then(r => r.error),
-    ]);
-    if (expErr || txErr) { setError((expErr || txErr)!.message); setSaving(false); return; }
-    if (user?.id) {
-      logUnifiedEvent({
-        user_id: user.id, timestamp: `${expDate}T12:00:00`, type: 'expense',
-        title: `${expDesc.trim() || 'Expense'}: $${amt.toFixed(2)}`,
-        details: { amount: amt, description: fullDesc, category_id: expCategory || null, expense_id: expId },
-        module_source: 'finance',
+    try {
+      const result = await useFinanceStore.getState().addExpense({
+        user_id: user?.id,
+        amount: amt,
+        date: expDate,
+        description: fullDesc,
+        category_id: expCategory || null,
+        is_deductible: expDeductible,
+        is_recurring: expRecurring,
+        business_id: expBusiness || null,
       });
-      awardXP('financial_entry', { description: `Expense: ${expDesc.trim() || 'Expense'}` });
+      // addExpense already creates both expense + transaction records
+      if (result && user?.id) {
+        logUnifiedEvent({
+          user_id: user.id, timestamp: `${expDate}T12:00:00`, type: 'expense',
+          title: `${expDesc.trim() || 'Expense'}: $${amt.toFixed(2)}`,
+          details: { amount: amt, description: fullDesc, category_id: expCategory || null, expense_id: result.id },
+          module_source: 'finance',
+        });
+        awardXP('financial_entry', { description: `Expense: ${expDesc.trim() || 'Expense'}` });
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to save expense');
     }
     setSaving(false);
     onSaved();
@@ -524,29 +540,36 @@ export function QuickAddModal({ initialType = 'expense', onClose, onSaved }: {
     if (!quickAmount || parseFloat(quickAmount) <= 0) { setError('Enter valid amount'); return; }
     setSaving(true); setError('');
     const amt = parseFloat(quickAmount);
-    const txId = genId();
-    if (quickType === 'income') {
-      const incId = genId();
-      const [incErr, txErr] = await Promise.all([
-        supabase.from('income').insert({ id: incId, user_id: user?.id, amount: amt, date: quickDate, description: quickDesc.trim() || 'Income', source: 'Other', is_recurring: false }).then(r => r.error),
-        supabase.from('transactions').insert({ id: txId, user_id: user?.id, type: 'income', amount: amt, title: quickDesc.trim() || 'Income', date: quickDate }).then(r => r.error),
-      ]);
-      if (incErr || txErr) { setError((incErr || txErr)!.message); setSaving(false); return; }
-      if (user?.id) {
-        logUnifiedEvent({ user_id: user.id, timestamp: `${quickDate}T12:00:00`, type: 'income', title: `${quickDesc.trim() || 'Income'}: $${amt.toFixed(2)}`, details: { amount: amt, description: quickDesc.trim() }, module_source: 'finance' });
-        awardXP('financial_entry', { description: `Income: $${amt}` });
+    try {
+      if (quickType === 'income') {
+        const result = await useFinanceStore.getState().addIncome({
+          user_id: user?.id,
+          amount: amt,
+          date: quickDate,
+          description: quickDesc.trim() || 'Income',
+          source: 'Other',
+          is_recurring: false,
+        });
+        if (result && user?.id) {
+          logUnifiedEvent({ user_id: user.id, timestamp: `${quickDate}T12:00:00`, type: 'income', title: `${quickDesc.trim() || 'Income'}: $${amt.toFixed(2)}`, details: { amount: amt, description: quickDesc.trim() }, module_source: 'finance' });
+          awardXP('financial_entry', { description: `Income: $${amt}` });
+        }
+      } else {
+        const result = await useFinanceStore.getState().addExpense({
+          user_id: user?.id,
+          amount: amt,
+          date: quickDate,
+          description: quickDesc.trim() || 'Expense',
+          category_id: quickCategory || null,
+          is_deductible: false,
+        });
+        if (result && user?.id) {
+          logUnifiedEvent({ user_id: user.id, timestamp: `${quickDate}T12:00:00`, type: 'expense', title: `${quickDesc.trim() || 'Expense'}: $${amt.toFixed(2)}`, details: { amount: amt, description: quickDesc.trim(), category_id: quickCategory }, module_source: 'finance' });
+          awardXP('financial_entry', { description: `Expense: ${quickDesc.trim() || 'Expense'}` });
+        }
       }
-    } else {
-      const expId = genId();
-      const [expErr, txErr] = await Promise.all([
-        supabase.from('expenses').insert({ id: expId, user_id: user?.id, amount: amt, date: quickDate, description: quickDesc.trim() || 'Expense', category_id: quickCategory || null, is_deductible: false }).then(r => r.error),
-        supabase.from('transactions').insert({ id: txId, user_id: user?.id, type: 'expense', amount: amt, title: quickDesc.trim() || 'Expense', date: quickDate, category_id: quickCategory || null }).then(r => r.error),
-      ]);
-      if (expErr || txErr) { setError((expErr || txErr)!.message); setSaving(false); return; }
-      if (user?.id) {
-        logUnifiedEvent({ user_id: user.id, timestamp: `${quickDate}T12:00:00`, type: 'expense', title: `${quickDesc.trim() || 'Expense'}: $${amt.toFixed(2)}`, details: { amount: amt, description: quickDesc.trim(), category_id: quickCategory }, module_source: 'finance' });
-        awardXP('financial_entry', { description: `Expense: ${quickDesc.trim() || 'Expense'}` });
-      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to save transaction');
     }
     setSaving(false);
     onSaved();

@@ -2,16 +2,15 @@
  * QuickInvoiceButton — Creates an invoice via a simple form modal.
  *
  * Client dropdown from finance store clients, amount, date, description.
- * Saves to income table with source='invoice' for tracking.
+ * Uses useFinanceStore.addIncome() for offline-first writes (income + transactions).
  */
 
 import { useState, useCallback } from 'react'
 import { FileText, X, Check, Loader2, Plus } from 'lucide-react'
-import { supabase } from '../../lib/data-access'
 import { useFinanceStore } from '../../stores/useFinanceStore'
 import { useUserStore } from '../../stores/useUserStore'
 import { useGamificationContext } from '../../lib/gamification/context'
-import { genId, todayStr, fmtCurrency } from '../../utils/date'
+import { todayStr, fmtCurrency } from '../../utils/date'
 import './QuickInvoiceButton.css'
 
 interface InvoiceForm {
@@ -65,11 +64,9 @@ export function QuickInvoiceButton() {
 
     try {
       const client = clients.find(c => c.id === form.clientId)
-      const id = genId()
 
-      // Insert into income table with source='invoice'
-      const { error: insertErr } = await supabase.from('income').insert({
-        id,
+      // Use finance store for offline-first writes (income + transaction)
+      const result = await useFinanceStore.getState().addIncome({
         user_id: user?.id,
         amount,
         date: form.date,
@@ -77,32 +74,14 @@ export function QuickInvoiceButton() {
         description: form.description || `Invoice — ${client?.name || 'Client'}`,
         client_id: form.clientId,
         is_recurring: false,
-        is_deleted: false,
       })
 
-      if (insertErr) throw insertErr
-
-      // Also insert a transaction record
-      const txId = genId()
-      await supabase.from('transactions').insert({
-        id: txId,
-        user_id: user?.id,
-        type: 'income',
-        amount,
-        date: form.date,
-        title: `Invoice — ${client?.name || 'Client'}`,
-        client_id: form.clientId,
-        recurring: false,
-        notes: JSON.stringify({ type: 'invoice', description: form.description }),
-      })
+      if (!result) throw new Error('Failed to save invoice')
 
       // Award XP (non-critical)
       try {
         await awardXP('financial_entry', { description: `Invoice: $${amount}` })
       } catch { /* non-critical */ }
-
-      // Refresh finance store
-      useFinanceStore.getState().invalidate()
 
       setSuccess(true)
       setTimeout(() => {

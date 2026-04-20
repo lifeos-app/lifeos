@@ -404,6 +404,19 @@ if (isJetson) {
   app.commandLine.appendSwitch('use-angle', 'swiftshader');
   app.commandLine.appendSwitch('disable-features', 'VaapiVideoDecoder,VaapiVideoEncoder,VaapiVideoDecodeLinuxGL');
   app.commandLine.appendSwitch('enable-features', 'SharedArrayBuffer');
+  // Jetson /dev/shm has limited permissions and stale IPC files from NVIDIA services.
+  // Tell Chromium to use /tmp instead — prevents FATAL shared memory errors.
+  app.commandLine.appendSwitch('disable-dev-shm-usage');
+  // CRITICAL: The env TMPDIR may be set to /mnt/data/tmp/scratch, which overrides
+  // Chromium's --disable-dev-shm-usage redirect from /dev/shm → /tmp. If TMPDIR
+  // points to a path where shared memory creation fails, the renderer crashes with
+  // exitCode 133 (SIGTRAP / GPU watchdog). Force TMPDIR to /tmp for the entire process.
+  if (process.env.TMPDIR && process.env.TMPDIR !== '/tmp') {
+    console.log(`[jetson] Overriding TMPDIR from ${process.env.TMPDIR} to /tmp for Chromium shared memory compatibility`);
+    process.env.TMPDIR = '/tmp';
+    process.env.TEMP = '/tmp';
+    process.env.TMP = '/tmp';
+  }
 }
 
 app.whenReady().then(async () => {

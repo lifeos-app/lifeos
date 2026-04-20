@@ -1,7 +1,12 @@
 // LifeOS Gamification Hook — provides all gamification state + actions
+// Reads from local-db first, falls back to supabase on empty.
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/data-access';
 import { useUserStore } from '../stores/useUserStore';
+import {
+  localGetAll,
+  localGet,
+} from '../lib/local-db';
 import {
   awardXP as doAwardXP,
   recalcUserStats,
@@ -91,49 +96,123 @@ export function useGamification(): GamificationState & GamificationActions {
 
   const userIdRef = useRef<string | null>(null);
 
-  // ── FETCH ALL DATA ──
+  // ── FETCH ALL DATA (local-db first, supabase fallback) ──
   const fetchAll = useCallback(async () => {
     if (!user?.id) return;
     userIdRef.current = user.id;
 
     try {
-      // Check if gamification tables exist by trying a simple query
-      const testQuery = await supabase.from('user_xp').select('user_id').limit(0);
-      if (testQuery.error) {
-        // Tables don't exist yet — silently use defaults, no spam
-        logger.info('[Gamification] Tables not yet created — using defaults');
-        setState(prev => ({ ...prev, loading: false }));
-        return;
-      }
-
-      // Parallel fetches — each wrapped to handle individual failures
-      const [userXPRes, achievementsRes, recentXPRes] = await Promise.all([
-        supabase.from('user_xp').select('*').eq('user_id', user.id).maybeSingle().then(r => r, () => ({ data: null, error: null })),
-        supabase.from('achievements').select('*').eq('user_id', user.id).then(r => r, () => ({ data: [], error: null })),
-        supabase.from('xp_events').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20).then(r => r, () => ({ data: [], error: null })),
+      // Read from local-db first
+      const [xpDataLocal, achievementsLocal, xpEventsLocal] = await Promise.all([
+        localGet<any>('user_xp', user.id).catch(() => null),
+        localGetAll<any>('achievements').catch(() => []),
+        localGetAll<any>('xp_events').catch(() => []),
       ]);
 
-      const xpData = userXPRes.data;
+      // Filter achievements and xp_events by user
+      const achData = (achievementsLocal || []).filter(a => a.user_id === user.id);
+      const recentData = ((xpEventsLocal || [])
+        .filter(e => e.user_id === user.id && !e.deleted_at)
+        .sort((a: any, b: any) => (b.created_at || '').localeCompare(a.created_at || ''))
+        .slice(0, 20)
+      );
+
+      let xpData = xpDataLocal;
+      let hasLocalData = !!xpData;
+
+      // Fallback to supabase if local-db is empty (first-time usage)
+      if (!hasLocalData) {
+        try {
+          const testQuery = await supabase.from('user_xp').select('user_id').limit(0);
+          if (testQuery.error) {
+            // Tables don't exist yet — silently use defaults
+            logger.info('[Gamification] Tables not yet created — using defaults');
+            setState(prev => ({ ...prev, loading: false }));
+            return;
+          }
+
+          const [userXPRes, achievementsRes, recentXPRes] = await Promise.all([
+            supabase.from('user_xp').select('*').eq('user_id', user.id).maybeSingle().then(r => r, () => ({ data: null, error: null })),
+            supabase.from('achievements').select('*').eq('user_id', user.id).then(r => r, () => ({ data: [], error: null })),
+            supabase.from('xp_events').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20).then(r => r, () => ({ data: [], error: null })),
+          ]);
+
+          xpData = userXPRes.data;
+          const achDataFallback = Array.isArray(achievementsRes.data) ? achievementsRes.data : [];
+          const recentDataFallback = Array.isArray(recentXPRes.data) ? recentXPRes.data : [];
+
+          if (xpData || achDataFallback.length > 0) {
+            hasLocalData = true;
+          }
+
+          // Use fallback data if available
+          const totalXP = xpData?.total_xp || 0;
+          const info = getLevelInfo(totalXP);
+
+          // Generate quests (non-blocking)
+          const [dailyQ, weeklyQ, epicQ] = await Promise.all([
+            generateDailyQuests(supabase, user.id).catch(() => []),
+            generateWeeklyQuests(supabase, user.id).catch(() => []),
+            generateEpicQuests(supabase, user.id).catch(() => []),
+          ]);
+
+          const quests = await getActiveQuests(supabase, user.id).catch(() => ({
+            daily: Array.isArray(dailyQ) ? dailyQ : [],
+            weekly: Array.isArray(weeklyQ) ? weeklyQ : [],
+            epic: Array.isArray(epicQ) ? epicQ : [],
+          }));
+
+          const unlockedCount = achDataFallback.filter((a: { unlocked_at?: string }) => a.unlocked_at).length;
+
+          setState({
+            level: info.level,
+            xp: totalXP,
+            xpProgress: getLevelProgress(totalXP),
+            xpToNext: info.xpToNext,
+            title: info.title,
+            stats: (xpData?.stats as UserStats) || DEFAULT_STATS,
+            levelInfo: info,
+            achievements: achDataFallback.map((a: any) => ({
+              achievementId: a.achievement_id,
+              unlockedAt: a.unlocked_at,
+              progress: a.progress,
+            })),
+            unlockedCount,
+            dailyQuests: Array.isArray(quests.daily) ? quests.daily : [],
+            weeklyQuests: Array.isArray(quests.weekly) ? quests.weekly : [],
+            epicQuests: Array.isArray(quests.epic) ? quests.epic : [],
+            recentXP: recentDataFallback.map((e: any) => ({
+              action: e.action_type,
+              amount: e.xp_amount,
+              description: e.description,
+              createdAt: e.created_at,
+            })),
+            loading: false,
+          });
+          return;
+        } catch (err) {
+          logger.error('[Gamification] Error fetching from supabase fallback:', err);
+        }
+      }
+
+      // Use local-db data
       const totalXP = xpData?.total_xp || 0;
       const info = getLevelInfo(totalXP);
 
-      // Generate quests if needed (non-blocking)
+      // Generate quests (non-blocking) — these still use supabase for now
       const [dailyQ, weeklyQ, epicQ] = await Promise.all([
         generateDailyQuests(supabase, user.id).catch(() => []),
         generateWeeklyQuests(supabase, user.id).catch(() => []),
         generateEpicQuests(supabase, user.id).catch(() => []),
       ]);
 
-      // Also get current active state (may be updated)
       const quests = await getActiveQuests(supabase, user.id).catch(() => ({
         daily: Array.isArray(dailyQ) ? dailyQ : [],
         weekly: Array.isArray(weeklyQ) ? weeklyQ : [],
         epic: Array.isArray(epicQ) ? epicQ : [],
       }));
 
-      const achData = Array.isArray(achievementsRes.data) ? achievementsRes.data : [];
-      const recentData = Array.isArray(recentXPRes.data) ? recentXPRes.data : [];
-      const unlockedCount = achData.filter((a: { unlocked_at?: string }) => a.unlocked_at).length;
+      const unlockedCount = achData.filter((a: any) => a.unlocked_at).length;
 
       setState({
         level: info.level,
@@ -143,7 +222,7 @@ export function useGamification(): GamificationState & GamificationActions {
         title: info.title,
         stats: (xpData?.stats as UserStats) || DEFAULT_STATS,
         levelInfo: info,
-        achievements: achData.map((a: { code: string; unlocked_at?: string; xp_reward: number }) => ({
+        achievements: achData.map((a: any) => ({
           achievementId: a.achievement_id,
           unlockedAt: a.unlocked_at,
           progress: a.progress,
@@ -152,7 +231,7 @@ export function useGamification(): GamificationState & GamificationActions {
         dailyQuests: Array.isArray(quests.daily) ? quests.daily : [],
         weeklyQuests: Array.isArray(quests.weekly) ? quests.weekly : [],
         epicQuests: Array.isArray(quests.epic) ? quests.epic : [],
-        recentXP: recentData.map((e: { action_type: string; xp_amount: number; created_at: string }) => ({
+        recentXP: recentData.map((e: any) => ({
           action: e.action_type,
           amount: e.xp_amount,
           description: e.description,
@@ -178,13 +257,13 @@ export function useGamification(): GamificationState & GamificationActions {
       };
     }
 
-    // Award XP
+    // Award XP — xp-engine now writes to local-db
     const result = await doAwardXP(supabase, user.id, action, metadata);
 
     // Update quest progress
     const completedQuests = await updateQuestProgress(supabase, user.id, action);
 
-    // Check achievements on every XP award
+    // Check achievements — achievements now reads from local-db
     let unlockedAchievements: Achievement[] = [];
     unlockedAchievements = await doCheckAchievements(supabase, user.id);
 

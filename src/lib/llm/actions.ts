@@ -288,46 +288,48 @@ async function execCreateEvent(
 async function execLogIncome(
   params: Record<string, unknown>,
   userId: string,
-  supabase: SupabaseClient
+  _supabase: SupabaseClient
 ): Promise<string> {
+  const { useFinanceStore } = await import('../../stores/useFinanceStore');
   const amount = Number(params.amount ?? 0);
   const description = String(params.description ?? 'Income');
   const date = String(params.date ?? new Date().toISOString().split('T')[0]);
   const source = params.source ? String(params.source) : 'manual';
 
-  const { error } = await supabase.from('transactions').insert({
-    user_id:     userId,
-    type:        'income',
+  const result = await useFinanceStore.getState().addIncome({
+    user_id: userId,
     amount,
-    description,
     date,
+    description,
     source,
+    is_recurring: false,
   });
 
-  if (error) throw new Error(error.message);
+  if (!result) throw new Error('Failed to log income');
   return `💰 Income logged: $${amount.toFixed(2)} — ${description}`;
 }
 
 async function execLogExpense(
   params: Record<string, unknown>,
   userId: string,
-  supabase: SupabaseClient
+  _supabase: SupabaseClient
 ): Promise<string> {
+  const { useFinanceStore } = await import('../../stores/useFinanceStore');
   const amount = Number(params.amount ?? 0);
   const description = String(params.description ?? 'Expense');
   const date = String(params.date ?? new Date().toISOString().split('T')[0]);
   const category = params.category ? String(params.category) : null;
 
-  const { error } = await supabase.from('transactions').insert({
-    user_id:     userId,
-    type:        'expense',
+  const result = await useFinanceStore.getState().addExpense({
+    user_id: userId,
     amount,
-    description,
     date,
+    description,
     category_id: category,
+    is_deductible: false,
   });
 
-  if (error) throw new Error(error.message);
+  if (!result) throw new Error('Failed to log expense');
   return `💸 Expense logged: $${amount.toFixed(2)} — ${description}`;
 }
 

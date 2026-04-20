@@ -1,7 +1,7 @@
 /**
  * JobCompleteButton — One-tap job completion for TCS
  *
- * Marks a schedule event as 'completed', auto-creates an income entry + transaction,
+ * Marks a schedule event as 'completed', auto-creates an income entry (addIncome also creates transaction),
  * awards XP, and provides visual feedback. Uses venue rate from TCS_CONFIG.
  */
 
@@ -13,7 +13,7 @@ import { useScheduleStore } from '../../stores/useScheduleStore';
 import { useFinanceStore } from '../../stores/useFinanceStore';
 import { useUserStore } from '../../stores/useUserStore';
 import { useGamificationContext } from '../../lib/gamification/context';
-import { genId, todayStr, fmtCurrency } from '../../utils/date';
+import { todayStr, fmtCurrency } from '../../utils/date';
 import './JobCompleteButton.css';
 
 export interface JobCompleteButtonProps {
@@ -82,37 +82,19 @@ export function JobCompleteButton({
         return;
       }
 
-      // 2. Insert income + transaction rows
-      const incId = genId();
-      const txId = genId();
+      // 2. Create income entry (addIncome also creates matching transaction)
       const description = `Cleaning - ${venueName}`;
+      const result = await useFinanceStore.getState().addIncome({
+        user_id: user?.id,
+        amount: rate,
+        date: dateStr,
+        description,
+        source: 'TCS Cleaning',
+        client_id: null,
+        is_recurring: false,
+      });
 
-      const [incErr, txErr] = await Promise.all([
-        supabase.from('income').insert({
-          id: incId,
-          user_id: user?.id,
-          amount: rate,
-          date: dateStr,
-          description,
-          source: 'TCS Cleaning',
-          client_id: null,
-          is_recurring: false,
-        }).then(r => r.error),
-        supabase.from('transactions').insert({
-          id: txId,
-          user_id: user?.id,
-          type: 'income',
-          amount: rate,
-          title: description,
-          date: dateStr,
-          business_id: null,
-          client_id: null,
-          recurring: false,
-          notes: JSON.stringify({ auto_from_job: true }),
-        }).then(r => r.error),
-      ]);
-
-      if (incErr || txErr) {
+      if (!result) {
         setFeedback('Failed to create income entry');
         setProcessing(false);
         return;
@@ -125,9 +107,8 @@ export function JobCompleteButton({
         // Don't block on gamification failure
       }
 
-      // 4. Invalidate caches
+      // 4. Invalidate schedule cache (finance store already updated by addIncome)
       useScheduleStore.getState().invalidate();
-      useFinanceStore.getState().invalidate();
 
       // 5. Visual feedback
       setFeedback(`${fmtCurrency(rate)} recorded`);

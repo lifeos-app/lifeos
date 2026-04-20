@@ -268,28 +268,14 @@ export function FinanceAI() {
           ? `${source} — ${msg.data.amount}/${msg.data.frequency}, ${msg.data.hours}h/week`
           : `${source} — ${msg.data.amount}/${msg.data.frequency || 'once'}`;
 
-        const incId = genId();
-        const txId = genId();
-
-        await Promise.all([
-          supabase.from('income').insert({
-            id: incId,
-            user_id: user?.id,
-            amount,
-            date: todayStr(),
-            description,
-            source,
-            is_recurring: isRecurring,
-          }),
-          supabase.from('transactions').insert({
-            id: txId,
-            user_id: user?.id,
-            type: 'income',
-            amount,
-            title: source,
-            date: todayStr(),
-          }),
-        ]);
+        await useFinanceStore.getState().addIncome({
+          user_id: user?.id,
+          amount,
+          date: todayStr(),
+          description,
+          source,
+          is_recurring: isRecurring,
+        });
 
         setMessages(prev => prev.map(m => 
           m.id === msgId ? { ...m, status: 'confirmed' as const } : m
@@ -310,29 +296,14 @@ export function FinanceAI() {
         }, 500);
 
       } else if (msg.data.type === 'expense') {
-        const expId = genId();
-        const txId = genId();
-
-        await Promise.all([
-          supabase.from('expenses').insert({
-            id: expId,
-            user_id: user?.id,
-            amount: msg.data.amount!,
-            date: todayStr(),
-            description: msg.data.description!,
-            category_id: msg.data.category || null,
-            is_deductible: false,
-          }),
-          supabase.from('transactions').insert({
-            id: txId,
-            user_id: user?.id,
-            type: 'expense',
-            amount: msg.data.amount!,
-            title: msg.data.description!,
-            date: todayStr(),
-            category_id: msg.data.category || null,
-          }),
-        ]);
+        await useFinanceStore.getState().addExpense({
+          user_id: user?.id,
+          amount: msg.data.amount!,
+          date: todayStr(),
+          description: msg.data.description!,
+          category_id: msg.data.category || null,
+          is_deductible: false,
+        });
 
         setMessages(prev => prev.map(m => 
           m.id === msgId ? { ...m, status: 'confirmed' as const } : m
