@@ -28,6 +28,7 @@
 ## Priority 1: BROKEN (Fix before anything else)
 
 - [x] [P1-001] Onboarding flow is fragile — ✅ DONE — Commit: fd523c3 — Date: 2026-04-20 — 15s LLM timeout, smart template fallback (8 domains with personalized goals), progress screen, no more generic goals
+- [x] [P1-006] OAuth sign-in opens 3 spurious windows — ✅ DONE — Commit: 7356342 — Date: 2026-04-20 — setWindowOpenHandler on main window + auth popup, consolidated event listeners, fixed timeout/closed race conditions
 - [ ] [P1-002] Financial data model is dual-table — 🔨 PARTIAL — VISION-v2-ori 5.2: "Every financial write creates records in 2 tables. income + expenses + transactions." Still has `addIncome` writing to both. — Impact: 4/5, Blocks: financial reliability — File: src/stores/useFinanceStore.ts
 - [ ] [P1-003] Multi-tab sync race conditions — ❌ MISSING — LIFEOS-ROADMAP 2.2: "Field-level merge for concurrent edits. Compare field-by-field updated_at." — Impact: 4/5, Blocks: data integrity
 - [ ] [P1-004] Assets/gamification bypass offline-first — ❌ MISSING — LIFEOS-ROADMAP 2.3: "Migrate useAssetsStore to local-db pattern. Migrate gamification queries." — Impact: 3/5, Blocks: offline reliability
