@@ -7,6 +7,7 @@ import { OverviewTab, QuestsTab, StatsTab } from './character-tabs';
 import type { CharacterTab } from './character-tabs';
 import { FullscreenPage } from '../components/FullscreenPage';
 import { SpotlightTour } from '../components/SpotlightTour';
+import { CharacterSkeleton } from '../components/skeletons';
 import { useUserStore } from '../stores/useUserStore';
 import './CharacterHub.css';
 
@@ -25,24 +26,6 @@ const CHARACTER_TABS = [
 ];
 
 const VALID_TABS: CharacterTab[] = CHARACTER_TABS.map(t => t.id) as CharacterTab[];
-
-function LoadingFallback() {
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'center', padding: 48, gap: 12,
-      color: 'var(--text-muted)',
-    }}>
-      <div style={{
-        width: 32, height: 32, borderRadius: '50%',
-        border: '2px solid rgba(255,255,255,0.1)',
-        borderTopColor: 'var(--accent-cyan)',
-        animation: 'spin 0.8s linear infinite',
-      }} />
-      <span style={{ fontSize: 13 }}>Loading...</span>
-    </div>
-  );
-}
 
 export function CharacterHub() {
   const [searchParams] = useSearchParams();
@@ -112,12 +95,12 @@ export function CharacterHub() {
           {activeTab === 'quests' && <QuestsTab />}
           {activeTab === 'stats' && <StatsTab />}
           {activeTab === 'equipment' && (
-            <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={<CharacterSkeleton />}>
               <div className="tab-embedded"><EquipmentTab /></div>
             </Suspense>
           )}
           {activeTab === 'junction' && (
-            <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={<CharacterSkeleton />}>
               <div className="tab-embedded"><Junction /></div>
             </Suspense>
           )}
@@ -126,14 +109,14 @@ export function CharacterHub() {
 
       {/* Realm — gated behind tutorial completion */}
       {isRealm && realmTutorialComplete && (
-        <Suspense fallback={<LoadingFallback />}>
+        <Suspense fallback={<CharacterSkeleton />}>
           <RealmEntry fullscreen onExit={handleRealmExit} />
         </Suspense>
       )}
 
       {/* Realm tutorial — shown if user hasn't completed the onboarding quest */}
       {isRealm && !realmTutorialComplete && user && (
-        <Suspense fallback={<LoadingFallback />}>
+        <Suspense fallback={<CharacterSkeleton />}>
           <OnboardingQuest
             userId={user.id}
             onComplete={async () => {

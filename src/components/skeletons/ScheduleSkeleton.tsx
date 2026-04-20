@@ -1,8 +1,10 @@
 import { SkeletonLoader } from '../ui/SkeletonLoader';
 import '../ui/SkeletonLoader.css';
+import { Shimmer } from './Shimmer';
 
 export function ScheduleSkeleton() {
   return (
+    <Shimmer>
     <div className="sk-page sk-sched">
       {/* Header */}
       <div className="sk-sched-header">
@@ -46,5 +48,6 @@ export function ScheduleSkeleton() {
         ))}
       </div>
     </div>
+    </Shimmer>
   );
 }

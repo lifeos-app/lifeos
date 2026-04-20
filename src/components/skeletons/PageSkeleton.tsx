@@ -1,8 +1,10 @@
 import { SkeletonLoader } from '../ui/SkeletonLoader';
 import '../ui/SkeletonLoader.css';
+import { Shimmer } from './Shimmer';
 
 export function PageSkeleton() {
   return (
+    <Shimmer>
     <div className="sk-page" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <SkeletonLoader variant="circle" width={40} height={40} />
@@ -19,5 +21,6 @@ export function PageSkeleton() {
       </div>
       <SkeletonLoader variant="list" count={4} />
     </div>
+    </Shimmer>
   );
 }

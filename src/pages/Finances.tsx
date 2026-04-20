@@ -41,6 +41,7 @@ import type {
 import { normalizeToMonthly } from '../components/finances/types';
 import { SpotlightTour } from '../components/SpotlightTour';
 import { FullscreenPage } from '../components/FullscreenPage';
+import { FinancesSkeleton } from '../components/skeletons';
 import './Finances.css';
 
 const FINANCE_TABS = [
@@ -550,14 +551,7 @@ export function Finances() {
         )}
 
         {/* Loading skeleton */}
-        {loading && (
-          <div className="fin-skeleton-container">
-            <div className="fin-skeleton-stats"><div className="fin-skeleton-block fin-skeleton-stat" /><div className="fin-skeleton-block fin-skeleton-stat" /><div className="fin-skeleton-block fin-skeleton-stat" /><div className="fin-skeleton-block fin-skeleton-stat" /></div>
-            <div className="fin-skeleton-block fin-skeleton-tab" />
-            <div className="fin-skeleton-block fin-skeleton-card" />
-            <div className="fin-skeleton-block fin-skeleton-card tall" />
-          </div>
-        )}
+        {loading && <FinancesSkeleton />}
 
         {/* Empty state for first-time users */}
         {!loading && income.length === 0 && expenses.length === 0 && bills.length === 0 && transactions.length === 0 && (

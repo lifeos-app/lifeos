@@ -1,8 +1,10 @@
 import { SkeletonLoader } from '../ui/SkeletonLoader';
 import '../ui/SkeletonLoader.css';
+import { Shimmer } from './Shimmer';
 
 export function ReflectSkeleton() {
   return (
+    <Shimmer>
     <div className="sk-page" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Page header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -46,5 +48,6 @@ export function ReflectSkeleton() {
         ))}
       </div>
     </div>
+    </Shimmer>
   );
 }

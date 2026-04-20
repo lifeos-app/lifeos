@@ -1,0 +1,67 @@
+/* ── Shimmer — Premium glass-loading overlay ── */
+
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes shimmer-glow {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.sk-shimmer-wrap {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.sk-shimmer-inline {
+  display: inline-block;
+  width: auto;
+}
+
+/* Primary sweep — diagonal glow from left to right */
+.sk-shimmer-sweep {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.03) 42%,
+    rgba(0, 212, 255, 0.06) 48%,
+    rgba(255, 255, 255, 0.04) 54%,
+    transparent 62%,
+    transparent 100%
+  );
+  background-size: 50% 100%;
+  animation: shimmer-sweep var(--shimmer-duration, 2s) ease-in-out infinite;
+}
+
+/* Glass reflection pass — softer, slower */
+.sk-shimmer-glass {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.015) 0%,
+    transparent 40%,
+    transparent 60%,
+    rgba(255, 255, 255, 0.01) 100%
+  );
+  animation: shimmer-glow calc(var(--shimmer-duration, 2s) * 1.5) ease-in-out infinite;
+  border-radius: inherit;
+}

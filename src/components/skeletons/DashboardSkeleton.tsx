@@ -1,8 +1,10 @@
 import { SkeletonLoader } from '../ui/SkeletonLoader';
 import '../ui/SkeletonLoader.css';
+import { Shimmer } from './Shimmer';
 
 export function DashboardSkeleton() {
   return (
+    <Shimmer>
     <div className="sk-page sk-dash">
       {/* Greeting */}
       <div className="sk-dash-greeting">
@@ -58,5 +60,6 @@ export function DashboardSkeleton() {
         ))}
       </div>
     </div>
+    </Shimmer>
   );
 }

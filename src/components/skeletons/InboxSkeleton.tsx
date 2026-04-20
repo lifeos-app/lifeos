@@ -1,8 +1,10 @@
 import { SkeletonLoader } from '../ui/SkeletonLoader';
 import '../ui/SkeletonLoader.css';
+import { Shimmer } from './Shimmer';
 
 export function InboxSkeleton() {
   return (
+    <Shimmer>
     <div className="sk-page" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {/* Header row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -35,5 +37,6 @@ export function InboxSkeleton() {
         ))}
       </div>
     </div>
+    </Shimmer>
   );
 }

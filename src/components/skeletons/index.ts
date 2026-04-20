@@ -14,3 +14,4 @@ export { CharacterSkeleton } from './CharacterSkeleton';
 export { WorkSkeleton } from './WorkSkeleton';
 export { StorySkeleton } from './StorySkeleton';
 export { InboxSkeleton } from './InboxSkeleton';
+export { Shimmer } from './Shimmer';

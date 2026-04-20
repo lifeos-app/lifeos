@@ -1,8 +1,10 @@
 import { SkeletonLoader } from '../ui/SkeletonLoader';
 import '../ui/SkeletonLoader.css';
+import { Shimmer } from './Shimmer';
 
 export function CharacterSkeleton() {
   return (
+    <Shimmer>
     <div className="sk-page" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Character header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -50,5 +52,6 @@ export function CharacterSkeleton() {
         ))}
       </div>
     </div>
+    </Shimmer>
   );
 }

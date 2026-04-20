@@ -1,8 +1,10 @@
 import { SkeletonLoader } from '../ui/SkeletonLoader';
 import '../ui/SkeletonLoader.css';
+import { Shimmer } from './Shimmer';
 
 export function JunctionSkeleton() {
   return (
+    <Shimmer>
     <div className="sk-page sk-junction">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -33,5 +35,6 @@ export function JunctionSkeleton() {
         ))}
       </div>
     </div>
+    </Shimmer>
   );
 }

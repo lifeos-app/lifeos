@@ -9,6 +9,8 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { detectCorrelations, formatCorrelationsForLLM } from './correlation-engine';
+import type { CorrelationInput } from './correlation-engine';
 
 // ── TYPES ──────────────────────────────────────────────────────────────────────
 
@@ -90,6 +92,79 @@ export async function buildLLMContext(
 
 // ── CROSS-CUTTING CONTEXT ──────────────────────────────────────────────────────
 
+/** Fetch raw data from all domains for the correlation engine */
+async function loadCorrelationInput(
+  userId: string,
+  supabase: SupabaseClient
+): Promise<CorrelationInput> {
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const thirtyStr = thirtyDaysAgo.toISOString().split('T')[0];
+
+  const [
+    habitsRes,
+    habitLogsRes,
+    tasksRes,
+    eventsRes,
+    goalsRes,
+    transactionsRes,
+    billsRes,
+    healthRes,
+  ] = await Promise.all([
+    supabase
+      .from('habits')
+      .select('id, title, is_active, is_deleted, frequency, target_count, streak_current, goal_id')
+      .eq('user_id', userId)
+      .eq('is_deleted', false),
+    supabase
+      .from('habit_logs')
+      .select('id, habit_id, date, count')
+      .eq('user_id', userId)
+      .gte('date', thirtyStr),
+    supabase
+      .from('tasks')
+      .select('id, title, status, due_date, scheduled_date, completed_at')
+      .eq('user_id', userId)
+      .eq('is_deleted', false),
+    supabase
+      .from('schedule_events')
+      .select('id, title, start_time, end_time, event_type, is_deleted')
+      .eq('user_id', userId)
+      .gte('start_time', thirtyStr),
+    supabase
+      .from('goals')
+      .select('id, title, status, progress, updated_at, is_deleted, financial_type, category, domain')
+      .eq('user_id', userId)
+      .eq('is_deleted', false),
+    supabase
+      .from('transactions')
+      .select('id, type, amount, date')
+      .eq('user_id', userId)
+      .gte('date', thirtyStr),
+    supabase
+      .from('bills')
+      .select('id, title, amount, due_date, status, is_deleted')
+      .eq('user_id', userId)
+      .eq('is_deleted', false),
+    supabase
+      .from('health_metrics')
+      .select('id, date, mood_score, energy_score, stress_score, sleep_hours, sleep_quality, water_glasses, exercise_minutes')
+      .eq('user_id', userId)
+      .gte('date', thirtyStr),
+  ]);
+
+  return {
+    habits: (habitsRes.data ?? []) as CorrelationInput['habits'],
+    habitLogs: (habitLogsRes.data ?? []) as CorrelationInput['habitLogs'],
+    tasks: (tasksRes.data ?? []) as CorrelationInput['tasks'],
+    events: (eventsRes.data ?? []) as CorrelationInput['events'],
+    goals: (goalsRes.data ?? []) as CorrelationInput['goals'],
+    transactions: (transactionsRes.data ?? []) as CorrelationInput['transactions'],
+    bills: (billsRes.data ?? []) as CorrelationInput['bills'],
+    healthMetrics: (healthRes.data ?? []) as CorrelationInput['healthMetrics'],
+  };
+}
+
 /** Load extra sections based on keywords in the user's message */
 async function loadCrossCuttingContext(
   userId: string,
@@ -97,6 +172,20 @@ async function loadCrossCuttingContext(
   supabase: SupabaseClient
 ): Promise<ContextSection[]> {
   const sections: ContextSection[] = [];
+
+  // Cross-domain correlations (always compute, lightweight with cached data)
+  try {
+    const corrInput = await loadCorrelationInput(userId, supabase);
+    const correlations = detectCorrelations(corrInput);
+    if (correlations.length > 0) {
+      sections.push({
+        label: 'Cross-Domain Correlations',
+        data: formatCorrelationsForLLM(correlations),
+      });
+    }
+  } catch {
+    // Correlation engine is optional — never break context building
+  }
 
   // XP / level always useful for gamification questions
   if (messageLower.match(/\b(xp|level|rank|points|streak)\b/)) {
@@ -456,6 +545,20 @@ export async function loadUniversalContext(
     ...balanceSection,
     ...xpSection,
   );
+
+  // Add cross-domain correlations to universal context
+  try {
+    const corrInput = await loadCorrelationInput(userId, supabase);
+    const correlations = detectCorrelations(corrInput);
+    if (correlations.length > 0) {
+      sections.push({
+        label: 'Cross-Domain Correlations',
+        data: formatCorrelationsForLLM(correlations),
+      });
+    }
+  } catch {
+    // Correlation engine is optional
+  }
 
   if (sections.length === 0) {
     return `User ID: ${userId}\nDate: ${today}\nContext: Universal (all domains)\n`;

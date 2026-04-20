@@ -1,8 +1,10 @@
 import { SkeletonLoader } from '../ui/SkeletonLoader';
 import '../ui/SkeletonLoader.css';
+import { Shimmer } from './Shimmer';
 
 export function GoalsSkeleton() {
   return (
+    <Shimmer>
     <div className="sk-page sk-goals">
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -51,5 +53,6 @@ export function GoalsSkeleton() {
         ))}
       </div>
     </div>
+    </Shimmer>
   );
 }

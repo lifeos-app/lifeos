@@ -1,8 +1,10 @@
 import { SkeletonLoader } from '../ui/SkeletonLoader';
 import '../ui/SkeletonLoader.css';
+import { Shimmer } from './Shimmer';
 
 export function JournalSkeleton() {
   return (
+    <Shimmer>
     <div className="sk-page sk-journal">
       {/* Entry list sidebar */}
       <div className="sk-journal-sidebar">
@@ -44,5 +46,6 @@ export function JournalSkeleton() {
         </div>
       </div>
     </div>
+    </Shimmer>
   );
 }

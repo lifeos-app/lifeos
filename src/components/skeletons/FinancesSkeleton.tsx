@@ -1,8 +1,10 @@
 import { SkeletonLoader } from '../ui/SkeletonLoader';
 import '../ui/SkeletonLoader.css';
+import { Shimmer } from './Shimmer';
 
 export function FinancesSkeleton() {
   return (
+    <Shimmer>
     <div className="sk-page sk-fin">
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -41,5 +43,6 @@ export function FinancesSkeleton() {
         ))}
       </div>
     </div>
+    </Shimmer>
   );
 }

@@ -1,8 +1,10 @@
 import { SkeletonLoader } from '../ui/SkeletonLoader';
 import '../ui/SkeletonLoader.css';
+import { Shimmer } from './Shimmer';
 
 export function WorkSkeleton() {
   return (
+    <Shimmer>
     <div className="sk-page" style={{ display: 'flex', flexDirection: 'column', gap: 20, padding: '24px 20px', maxWidth: 900, margin: '0 auto' }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -41,5 +43,6 @@ export function WorkSkeleton() {
       <SkeletonLoader variant="text" width="120px" height={16} />
       <SkeletonLoader variant="list" count={4} />
     </div>
+    </Shimmer>
   );
 }

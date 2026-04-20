@@ -1,8 +1,10 @@
 import { SkeletonLoader } from '../ui/SkeletonLoader';
 import '../ui/SkeletonLoader.css';
+import { Shimmer } from './Shimmer';
 
 export function HabitsSkeleton() {
   return (
+    <Shimmer>
     <div className="sk-page sk-habits">
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -39,5 +41,6 @@ export function HabitsSkeleton() {
         ))}
       </div>
     </div>
+    </Shimmer>
   );
 }

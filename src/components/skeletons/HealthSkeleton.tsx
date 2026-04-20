@@ -1,8 +1,10 @@
 import { SkeletonLoader } from '../ui/SkeletonLoader';
 import '../ui/SkeletonLoader.css';
+import { Shimmer } from './Shimmer';
 
 export function HealthSkeleton() {
   return (
+    <Shimmer>
     <div className="sk-page sk-health">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
@@ -33,5 +35,6 @@ export function HealthSkeleton() {
       {/* Additional list */}
       <SkeletonLoader variant="list" count={4} />
     </div>
+    </Shimmer>
   );
 }
