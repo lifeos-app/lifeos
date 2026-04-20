@@ -62,7 +62,7 @@ import {
   DashboardWeeklyInsight,
   DashboardFinancialPulse,
 } from '../components/dashboard';
-import { HermeticInsightWidget } from '../components/HermeticInsightWidget';
+import { HolyHermesOracle } from '../components/HolyHermesOracle';
 import { Brain } from 'lucide-react';
 import { AgentNudgeBar } from '../components/agent';
 import { useAgentStore } from '../stores/useAgentStore';
@@ -412,8 +412,8 @@ export function Dashboard() {
               <FeatureErrorBoundary feature="Celestial" compact>
                 <DashboardCelestial />
               </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="Hermetic Insight" compact>
-                <HermeticInsightWidget />
+              <FeatureErrorBoundary feature="Holy Hermes Oracle" compact>
+                <HolyHermesOracle />
               </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Life Pulse" compact>
                 <DashboardLifePulse />
