@@ -1,10 +1,83 @@
-import { useState, useRef } from 'react';
-import { ChevronRight, Calendar, Plus, CheckCircle2, Circle, Trash2, Loader2, Check, Pencil, GripVertical, MoreHorizontal, Info, Flag, Zap } from 'lucide-react';
+/**
+ * GoalTreeNode — Recursive tree renderer for goals hierarchy.
+ *
+ * Updated with: ProgressRing, motivational state badge, decomposition preview,
+ * time remaining display, and icon-click-to-detail.
+ */
+
+import { useState } from 'react';
+import { ChevronRight, Calendar, Plus, CheckCircle2, Circle, Trash2, Loader2, Check, Pencil, GripVertical, MoreHorizontal, Info, Flag, Zap, Clock } from 'lucide-react';
 import { EmojiIcon } from '../../lib/emoji-icon';
 import { MiniChart } from '../MiniChart';
 import { GoalTaskGenerator } from './GoalTaskGenerator';
+import { ProgressRing } from '../ui/ProgressRing';
 import type { GoalNode, GoalTask, GoalView } from './types';
 import { getCountdown, calcProgress, calculateVelocity, projectCompletionDate, PRIORITY_COLORS, LEVEL_COLORS, STATUS_ICONS } from './utils';
+
+/** Motivational goal state computation */
+function getGoalState(g: GoalNode, pct: number): { state: 'on-track' | 'at-risk' | 'behind' | 'completed'; label: string } {
+  if (pct >= 100) return { state: 'completed', label: 'Completed' };
+  if (!g.target_date || !g.created_at) return { state: 'on-track', label: 'On Track' };
+  const now = Date.now();
+  const start = new Date(g.created_at).getTime();
+  const end = new Date(g.target_date + 'T00:00:00').getTime();
+  const totalDuration = end - start;
+  if (totalDuration <= 0) {
+    if (pct >= 80) return { state: 'on-track', label: 'On Track' };
+    if (pct >= 40) return { state: 'at-risk', label: 'At Risk' };
+    return { state: 'behind', label: 'Behind' };
+  }
+  const timeElapsed = Math.min(1, Math.max(0, (now - start) / totalDuration));
+  const progressRatio = pct / 100;
+  if (timeElapsed > 0.8 && progressRatio > 0.8) return { state: 'on-track', label: 'On Track' };
+  if (timeElapsed > 0.6 && progressRatio < 0.6) return { state: 'at-risk', label: 'At Risk' };
+  if (timeElapsed > 0.8 && progressRatio < 0.4) return { state: 'behind', label: 'Behind' };
+  if (progressRatio >= timeElapsed) return { state: 'on-track', label: 'On Track' };
+  if (timeElapsed > 0.6 && progressRatio < timeElapsed * 0.75) return { state: 'at-risk', label: 'At Risk' };
+  return { state: 'on-track', label: 'On Track' };
+}
+
+/** Human-readable time remaining */
+function getTimeRemaining(targetDate: string | null): { text: string; urgency: 'ok' | 'warning' | 'overdue' } | null {
+  if (!targetDate) return null;
+  const target = new Date(targetDate + 'T00:00:00').getTime();
+  const now = Date.now();
+  const diffMs = target - now;
+  const absDiffDays = Math.abs(Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+  if (diffMs < 0) {
+    if (absDiffDays === 0) return { text: 'Overdue today', urgency: 'overdue' };
+    if (absDiffDays <= 30) return { text: `Overdue by ${absDiffDays} day${absDiffDays !== 1 ? 's' : ''}`, urgency: 'overdue' };
+    return { text: `Overdue by ${Math.ceil(absDiffDays / 30)} month${Math.ceil(absDiffDays / 30) !== 1 ? 's' : ''}`, urgency: 'overdue' };
+  }
+  if (absDiffDays === 0) return { text: 'Due today', urgency: 'warning' };
+  if (absDiffDays === 1) return { text: '1 day left', urgency: 'warning' };
+  if (absDiffDays <= 14) return { text: `${absDiffDays} days left`, urgency: absDiffDays <= 3 ? 'warning' : 'ok' };
+  if (absDiffDays <= 45) return { text: `${Math.round(absDiffDays / 7)} weeks left`, urgency: 'ok' };
+  if (absDiffDays <= 365) return { text: `${Math.round(absDiffDays / 30)} months left`, urgency: 'ok' };
+  return { text: `${Math.round(absDiffDays / 365)} year${Math.round(absDiffDays / 365) !== 1 ? 's' : ''} left`, urgency: 'ok' };
+}
+
+// ── Progress Bar with Milestones ──
+function ProgressBar({ pct, color, size = 'normal' }: { pct: number; color: string; size?: 'normal' | 'small' }) {
+  const height = size === 'small' ? 4 : 6;
+  const progressGradient = pct >= 100
+    ? `linear-gradient(90deg, ${color}, #39FF14)`
+    : pct >= 75
+      ? `linear-gradient(90deg, ${color}, ${color}dd)`
+      : color;
+  return (
+    <div className="g-progress-bar" style={{ height }}>
+      <div className="g-progress-fill" style={{ width: `${Math.min(pct, 100)}%`, background: progressGradient }} />
+      {size === 'normal' && (
+        <>
+          <div className="g-milestone" style={{ left: '25%' }} data-reached={pct >= 25} />
+          <div className="g-milestone" style={{ left: '50%' }} data-reached={pct >= 50} />
+          <div className="g-milestone" style={{ left: '75%' }} data-reached={pct >= 75} />
+        </>
+      )}
+    </div>
+  );
+}
 
 interface GoalTreeNodeProps {
   goal: GoalNode;
@@ -29,6 +102,7 @@ interface GoalTreeNodeProps {
   linkedTasks: Record<string, GoalTask[]>;
   taskChartData: Record<string, { data: number[]; labels: string[] }>;
   detailTaskId: string | null;
+  ringsAnimated: boolean;
   onToggleExpand: (id: string) => void;
   onCycleStatus: (id: string, status: string) => void;
   onSetDetailNodeId: (id: string) => void;
@@ -77,6 +151,7 @@ export function GoalTreeNode({
   creatingLinkedTask,
   linkedTasks,
   taskChartData,
+  ringsAnimated,
   onToggleExpand,
   onCycleStatus,
   onSetDetailNodeId,
@@ -113,33 +188,13 @@ export function GoalTreeNode({
   const hasExpandable = children.length > 0 || tasks.length > 0;
   const levelColor = LEVEL_COLORS[cat] || '#00D4FF';
   const priorityColor = g.priority ? PRIORITY_COLORS[g.priority] : null;
-  const countdown = getCountdown(g.target_date);
   const nextChildCategory = cat === 'objective' ? 'epic' : cat === 'epic' ? 'goal' : null;
   const statusInfo = STATUS_ICONS[g.status] || STATUS_ICONS.active;
   const isDragOver = dragOverId === g.id;
   const isSwipedOpen = swipeId === g.id && swipeX < -30;
 
-  // Progress Bar
-  const ProgressBar = ({ pct, color, size = 'normal' }: { pct: number; color: string; size?: 'normal' | 'small' }) => {
-    const height = size === 'small' ? 4 : 6;
-    const progressGradient = pct >= 100
-      ? `linear-gradient(90deg, ${color}, #39FF14)`
-      : pct >= 75
-        ? `linear-gradient(90deg, ${color}, ${color}dd)`
-        : color;
-    return (
-      <div className="g-progress-bar" style={{ height }}>
-        <div className="g-progress-fill" style={{ width: `${Math.min(pct, 100)}%`, background: progressGradient }} />
-        {size === 'normal' && (
-          <>
-            <div className="g-milestone" style={{ left: '25%' }} data-reached={pct >= 25} />
-            <div className="g-milestone" style={{ left: '50%' }} data-reached={pct >= 50} />
-            <div className="g-milestone" style={{ left: '75%' }} data-reached={pct >= 75} />
-          </>
-        )}
-      </div>
-    );
-  };
+  // Progress ring color
+  const ringColor = pct >= 100 ? '#FACC15' : pct >= 50 ? '#39FF14' : '#00D4FF';
 
   return (
     <div key={g.id} data-goal-id={g.id} className={`gt-node-wrap depth-${depth}`}>
@@ -178,13 +233,23 @@ export function GoalTreeNode({
         <div className="gt-swipe-bg"><Trash2 size={18} /><span>Delete</span></div>
 
         <div className="gt-card-inner">
+          {/* Circular SVG Progress Ring */}
+          <div className="gt-progress-ring" style={{ width: 42, height: 42 }} onClick={(e) => { e.stopPropagation(); onSetDetailNodeId(g.id); }} >
+            <ProgressRing value={pct} size={42} strokeWidth={3} color={ringColor} glow={false} animate={ringsAnimated} />
+          </div>
+
+          {/* Status cycle button */}
           <button className="gt-status-btn" onClick={(e) => { e.stopPropagation(); onCycleStatus(g.id, g.status); }} style={{ color: statusInfo.color }} title={`Status: ${g.status} (tap to cycle)`}>
             {statusInfo.icon}
           </button>
+
           <GripVertical size={14} className="gt-drag-handle" />
+
+          {/* Icon — click opens detail */}
           <div className="gt-icon-wrap" onClick={(e) => { e.stopPropagation(); onSetDetailNodeId(g.id); }} style={{ cursor: 'pointer' }}>
             <span className="gt-icon"><EmojiIcon emoji={g.icon || '🎯'} size={24} fallbackAsText /></span>
           </div>
+
           <div className="gt-content" onClick={() => { if (hasExpandable) onToggleExpand(g.id); }}>
             <div className="gt-title-row">
               {editingTitle === g.id ? (
@@ -202,18 +267,63 @@ export function GoalTreeNode({
                   {g.title}
                 </span>
               )}
+              {/* Motivational State Badge */}
+              {(() => {
+                const goalState = getGoalState(g, pct);
+                return (
+                  <span className="gt-state-badge" data-state={goalState.state}>
+                    {goalState.label}
+                  </span>
+                );
+              })()}
               <span className={`gt-cat-badge cat-${cat}`}>
                 {cat === 'objective' ? '🎯' : cat === 'epic' ? '⚡' : '🏁'}
                 <span>{cat}</span>
               </span>
             </div>
+
             <ProgressBar pct={pct} color={g.color || levelColor} />
+
+            {/* Decomposition Preview */}
+            {tasks.length > 0 && (
+              <div className="gt-decomp-preview">
+                <div className="gt-decomp-bar">
+                  <div
+                    className="gt-decomp-fill"
+                    style={{
+                      width: `${(doneTasks.length / tasks.length) * 100}%`,
+                      background: g.color || levelColor,
+                    }}
+                  />
+                </div>
+                <span className="gt-decomp-label">{doneTasks.length}/{tasks.length} milestones</span>
+              </div>
+            )}
+
             <div className="gt-meta">
-              <span className="gt-pct" style={{ color: g.color || levelColor }}>{pct}%</span>
-              {g.priority && <span className="gt-priority-label" style={{ color: priorityColor || undefined }}>{g.priority.charAt(0).toUpperCase() + g.priority.slice(1)}</span>}
-              {countdown && <span className="gt-countdown" data-urgent={countdown.includes('overdue') || countdown.includes('today')}><Calendar size={9} /> {countdown}</span>}
-              {children.length > 0 && <span className="gt-child-count">{children.length} {cat === 'objective' ? 'epic' : 'goal'}{children.length !== 1 ? 's' : ''}</span>}
-              {tasks.length > 0 && <span className="gt-child-count">{doneTasks.length}/{tasks.length} tasks</span>}
+              {g.priority && (
+                <span className="gt-priority-label" style={{ color: priorityColor || undefined }}>
+                  {g.priority.charAt(0).toUpperCase() + g.priority.slice(1)}
+                </span>
+              )}
+              {/* Human-readable time remaining */}
+              {(() => {
+                const tr = getTimeRemaining(g.target_date);
+                if (!tr) return null;
+                return (
+                  <span className={`gt-time-remaining time-${tr.urgency}`}>
+                    <Clock size={9} /> {tr.text}
+                  </span>
+                );
+              })()}
+              {children.length > 0 && (
+                <span className="gt-child-count">
+                  {children.length} {cat === 'objective' ? 'epic' : 'goal'}{children.length !== 1 ? 's' : ''}
+                </span>
+              )}
+              {tasks.length > 0 && (
+                <span className="gt-child-count">{doneTasks.length}/{tasks.length} tasks</span>
+              )}
               {cat === 'objective' && (() => {
                 const goalIds = new Set<string>();
                 const q = [g.id];
@@ -249,6 +359,7 @@ export function GoalTreeNode({
               })()}
             </div>
           </div>
+
           {hasExpandable && <ChevronRight size={16} className={`gt-chevron ${expanded ? 'rotated' : ''}`} onClick={() => onToggleExpand(g.id)} />}
           <button className="gt-more-btn" onClick={(e) => onHandleContextMenu(e, g.id)} title="More actions"><MoreHorizontal size={14} /></button>
           <button className="gt-info-btn" onClick={(e) => { e.stopPropagation(); onSetDetailNodeId(g.id); }} title="View details"><Info size={14} /></button>
@@ -297,6 +408,7 @@ export function GoalTreeNode({
               linkedTasks={linkedTasks}
               taskChartData={taskChartData}
               detailTaskId={null}
+              ringsAnimated={ringsAnimated}
               onToggleExpand={onToggleExpand}
               onCycleStatus={onCycleStatus}
               onSetDetailNodeId={onSetDetailNodeId}

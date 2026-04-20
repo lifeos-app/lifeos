@@ -1,0 +1,199 @@
+/**
+ * Dashboard Modes — Time-adaptive widget priorities
+ *
+ * VISION-v2-ori section 5.4:
+ *   Morning (6am-12pm): Focus on preparation
+ *   Active  (12pm-9pm): Focus on doing
+ *   Evening (9pm-midnight): Focus on reflection
+ *   Night   (midnight-6am): Minimal
+ *
+ * Max 6 visible widgets per mode; rest are collapsed.
+ */
+
+export type DashboardMode = 'morning' | 'active' | 'evening' | 'night';
+
+export interface ModeWidgetConfig {
+  id: string;
+  priority: number;   // 1-10, higher = shown first
+  collapsed: boolean;  // true = hidden behind "show more"
+}
+
+// ── Widget IDs (must match existing dashboard component ids) ──
+
+const W = {
+  // Full-row / header widgets
+  greeting:         'greeting',
+  quickActions:     'quick-actions',
+  tcsToday:         'tcs-today',
+  tcsCheckin:       'tcs-checkin',
+  tcsDriving:       'tcs-driving',
+  streakWarnings:   'streak-warnings',
+  freeTime:         'free-time',
+  weekStrip:        'week-strip',
+  phaseTracker:     'phase-tracker',
+
+  // Primary column
+  triage:           'triage',
+  overdue:          'overdue',
+  morningBrief:     'morning-brief',
+  stats:            'stats',
+  schedule:         'schedule',
+  tasks:            'tasks',
+  habits:           'habits',
+
+  // Secondary column
+  dailyProgress:    'daily-progress',
+  streakMomentum:   'streak-momentum',
+  financialPulse:   'financial-pulse',
+  weeklyInsight:    'weekly-insight',
+  realmInvite:      'realm-invite',
+  realmPreview:     'realm-preview',
+  npcInsight:       'npc-insight',
+  celestial:        'celestial',
+  holyHermes:       'holy-hermes',
+  lifePulse:        'life-pulse',
+  completionRates:  'completion-rates',
+  suggestions:      'suggestions',
+  journal:          'journal',
+  health:           'health',
+  finances:         'finances',
+  goals:            'goals',
+  achievements:     'achievements',
+  agentNudge:       'agent-nudge',
+} as const;
+
+type WidgetId = typeof W[keyof typeof W];
+
+// ── Mode configurations ──
+
+const MORNING_WIDGETS: ModeWidgetConfig[] = [
+  // Morning (6am-12pm): Focus on preparation
+  { id: W.schedule,        priority: 10, collapsed: false },  // Calendar preview
+  { id: W.triage,          priority: 9,  collapsed: false },  // Priority tasks
+  { id: W.morningBrief,    priority: 8,  collapsed: false },  // Morning journal prompt
+  { id: W.habits,          priority: 7,  collapsed: false },  // Habit check-in
+  { id: W.streakMomentum,  priority: 6,  collapsed: false },  // Streaks
+  { id: W.holyHermes,      priority: 5,  collapsed: false },  // Holy Hermes wisdom
+  { id: W.quickActions,     priority: 4,  collapsed: true },
+  { id: W.stats,           priority: 3,  collapsed: true },
+  { id: W.dailyProgress,   priority: 2,  collapsed: true },
+  { id: W.financialPulse,  priority: 1,  collapsed: true },
+];
+
+const ACTIVE_WIDGETS: ModeWidgetConfig[] = [
+  // Active (12pm-9pm): Focus on doing
+  { id: W.triage,          priority: 10, collapsed: false },  // Active task
+  { id: W.financialPulse,  priority: 9,  collapsed: false },  // Financial pulse
+  { id: W.quickActions,    priority: 8,  collapsed: false },  // Quick actions
+  { id: W.tasks,           priority: 7,  collapsed: false },  // Live timeline
+  { id: W.habits,          priority: 6,  collapsed: false },  // Habit progress
+  { id: W.dailyProgress,   priority: 5,  collapsed: false },  // Goal progress
+  { id: W.morningBrief,    priority: 4,  collapsed: true },
+  { id: W.streakMomentum,  priority: 3,  collapsed: true },
+  { id: W.holyHermes,      priority: 2,  collapsed: true },
+  { id: W.schedule,        priority: 1,  collapsed: true },
+];
+
+const EVENING_WIDGETS: ModeWidgetConfig[] = [
+  // Evening (9pm-midnight): Focus on reflection
+  { id: W.dailyProgress,   priority: 10, collapsed: false },  // Daily review
+  { id: W.journal,         priority: 9,  collapsed: false },  // Journal entry
+  { id: W.goals,           priority: 8,  collapsed: false },  // Goal progress
+  { id: W.streakMomentum,  priority: 7,  collapsed: false },  // Streaks
+  { id: W.schedule,        priority: 6,  collapsed: false },  // Tomorrow preview
+  { id: W.holyHermes,      priority: 5,  collapsed: false },  // Holy Hermes reflection
+  { id: W.financialPulse,  priority: 4,  collapsed: true },
+  { id: W.triage,          priority: 3,  collapsed: true },
+  { id: W.habits,          priority: 2,  collapsed: true },
+  { id: W.quickActions,    priority: 1,  collapsed: true },
+];
+
+const NIGHT_WIDGETS: ModeWidgetConfig[] = [
+  // Night (midnight-6am): Minimal
+  { id: W.journal,         priority: 10, collapsed: false },  // Quick log
+  { id: W.dailyProgress,   priority: 9,  collapsed: false },  // Today's score
+  { id: W.celestial,       priority: 8,  collapsed: false },  // Sleep reminder (ambient)
+  { id: W.triage,          priority: 3,  collapsed: true },
+  { id: W.habits,          priority: 2,  collapsed: true },
+  { id: W.holyHermes,      priority: 1,  collapsed: true },
+];
+
+const MODE_CONFIGS: Record<DashboardMode, ModeWidgetConfig[]> = {
+  morning: MORNING_WIDGETS,
+  active:  ACTIVE_WIDGETS,
+  evening: EVENING_WIDGETS,
+  night:   NIGHT_WIDGETS,
+};
+
+// ── Public API ──
+
+const MAX_VISIBLE = 6;
+
+/**
+ * Determine current dashboard mode based on local time.
+ */
+export function getDashboardMode(): DashboardMode {
+  const h = new Date().getHours();
+  if (h >= 6 && h < 12) return 'morning';
+  if (h >= 12 && h < 21) return 'active';
+  if (h >= 21) return 'evening';
+  return 'night';  // midnight–6am
+}
+
+/**
+ * Get widget priorities for the given mode.
+ * Returns sorted by priority (descending), with max 6 visible.
+ */
+export function getWidgetConfig(mode: DashboardMode, maxVisible = MAX_VISIBLE): ModeWidgetConfig[] {
+  const configs = MODE_CONFIGS[mode] ?? [];
+  const sorted = [...configs].sort((a, b) => b.priority - a.priority);
+  return sorted.map((w, i) => ({
+    ...w,
+    collapsed: i >= maxVisible ? true : w.collapsed,
+  }));
+}
+
+/**
+ * Mode-aware greeting text.
+ */
+export function getModeGreeting(mode: DashboardMode, userName: string): string {
+  const name = userName || 'there';
+  switch (mode) {
+    case 'morning':  return `Good morning, ${name}`;
+    case 'active':   return `Let's go, ${name}`;
+    case 'evening':  return `Good evening, ${name}`;
+    case 'night':    return `Still up, ${name}?`;
+  }
+}
+
+/**
+ * Accent color for each mode (CSS color string).
+ */
+export function getModeAccent(mode: DashboardMode): string {
+  switch (mode) {
+    case 'morning':  return '#00BCD4';  // cyan
+    case 'active':   return '#F59E0B';  // gold
+    case 'evening':  return '#8B5CF6';  // purple
+    case 'night':    return '#1E3A5F';  // deep blue
+  }
+}
+
+/**
+ * Human-readable label for a mode.
+ */
+export function getModeLabel(mode: DashboardMode): string {
+  switch (mode) {
+    case 'morning':  return 'Morning';
+    case 'active':   return 'Active';
+    case 'evening':  return 'Evening';
+    case 'night':    return 'Night';
+  }
+}
+
+/**
+ * Check if a widget is visible (not collapsed) in the given mode config.
+ */
+export function isWidgetVisible(widgetId: string, config: ModeWidgetConfig[]): boolean {
+  const entry = config.find(w => w.id === widgetId);
+  return entry ? !entry.collapsed : true;  // default visible if not in config
+}

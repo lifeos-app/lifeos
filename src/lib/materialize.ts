@@ -16,6 +16,7 @@
 
 import { supabase } from './data-access';
 import { logger } from '../utils/logger';
+import { buildSmartFallback, matchDomainKey, getTemplate } from './materialize-templates';
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES & CONSTANTS
@@ -50,6 +51,7 @@ async function hasSourceColumn(): Promise<boolean> {
 const COLORS = ['#00D4FF', '#7C5CFC', '#FF6B6B', '#FFD93D', '#4ECB71', '#F97316'];
 const DAY_MS = 86400000;
 const WEEKS = 12;
+const MATERIALIZE_TIMEOUT_MS = 15000; // Hard timeout for materialisation
 
 // ═══════════════════════════════════════════════════════════════
 // HELPERS
@@ -83,6 +85,22 @@ function fmtTime(h: number, m = 0): string {
 }
 function fmtDate(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * Race a promise against a timeout. Returns the promise result if it resolves
+ * within timeoutMs, otherwise rejects with a timeout error.
+ */
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+    promise.then(
+      (val) => { clearTimeout(timer); resolve(val); },
+      (err) => { clearTimeout(timer); reject(err); }
+    );
+  });
 }
 
 /**
@@ -275,6 +293,37 @@ interface FoundationData {
 export async function materializeFoundation(
   userId: string, data: FoundationData, opts?: { cleanFirst?: boolean }
 ): Promise<MaterializeResult> {
+  // Run the core materialisation with a hard 15s timeout.
+  // If it times out, use smart template-based goals as fallback.
+  try {
+    return await withTimeout(
+      _materializeFoundationCore(userId, data, opts),
+      MATERIALIZE_TIMEOUT_MS,
+      'materializeFoundation'
+    );
+  } catch (err) {
+    const isTimeout = err instanceof Error && err.message?.includes('timed out');
+    if (isTimeout) {
+      logger.warn('[materializeFoundation] Timed out after 15s — using smart template fallback');
+      // Build minimal goals from templates and materialise just those
+      const smartData = getDefaultFoundationData(data.focusAreas, data.name, data.goals);
+      try {
+        return await _materializeFoundationCore(userId, smartData, opts);
+      } catch (fallbackErr) {
+        logger.error('[materializeFoundation] Fallback also failed:', fallbackErr);
+        return {
+          objectivesCreated: 0, epicsCreated: 0, goalsCreated: 0,
+          tasksCreated: 0, habitsCreated: 0, eventsCreated: 0,
+          errors: ['Materialisation timed out and fallback failed'],
+        };
+      }
+    }
+    throw err;
+  }
+}
+
+async function _materializeFoundationCore(
+): Promise<MaterializeResult> {
   logger.log('[materializeFoundation v5] Input:', JSON.stringify({
     userId, name: data.name, focusAreas: data.focusAreas,
     goals: data.goals, goalDetailsCount: data.goalDetails?.length,
@@ -339,13 +388,30 @@ export async function materializeFoundation(
     }
   }
 
-  // Fill empty areas with one default goal
+  // Fill empty areas with smart template-based goals
   for (const area of effectiveAreas) {
     if (!areaGoals[area]?.length) {
-      areaGoals[area] = [{
-        title: `Improve ${area}`, type: 'medium', description: '', category: area,
-        actions: ['Research best practices', 'Set measurable targets', 'Take first step'], milestones: []
-      }];
+      // Use smart template for this domain
+      const domainKey = matchDomainKey(area);
+      const tmpl = domainKey ? getTemplate(domainKey) : undefined;
+      if (tmpl) {
+        areaGoals[area] = [{
+          title: data.name ? `${data.name}' ${tmpl.goalTitle}` : tmpl.goalTitle,
+          type: 'medium',
+          description: tmpl.goalDescription,
+          category: area,
+          actions: tmpl.milestones.slice(0, 3).map(m => m.title),
+          milestones: tmpl.milestones.map(m => m.title),
+        }];
+      } else {
+        areaGoals[area] = [{
+          title: `Build a clear plan for ${area}`,
+          type: 'medium', description: `Create structure and momentum in ${area.toLowerCase()}`,
+          category: area,
+          actions: [`Research best practices for ${area}`, 'Set measurable targets', 'Take first step'],
+          milestones: [`Plan: ${area}`, `Execute: ${area}`, `Review: ${area}`],
+        }];
+      }
     }
   }
 
@@ -1081,7 +1147,7 @@ function nextBillDate(f: string): string { const d = new Date(); const l = (f||'
  */
 export function parseAIOutput(rawOutput: string): FoundationData {
   if (!rawOutput || typeof rawOutput !== 'string') {
-    logger.warn('[parseAIOutput] Empty or invalid input, using defaults');
+    logger.warn('[parseAIOutput] Empty or invalid input, using smart template defaults');
     return getDefaultFoundationData();
   }
 
@@ -1216,18 +1282,31 @@ function extractFromText(text: string): FoundationData {
   };
 }
 
-function getDefaultFoundationData(): FoundationData {
+function getDefaultFoundationData(focusAreas?: string[], name?: string, statedGoals?: string[]): FoundationData {
+  // Use smart template-based fallback when user has focus areas
+  if (focusAreas && focusAreas.length > 0) {
+    const smart = buildSmartFallback({ focusAreas, name, statedGoals });
+    return {
+      name,
+      focusAreas: smart.focusAreas,
+      goals: smart.goals,
+      goalDetails: smart.goalDetails,
+      goodHabits: smart.goodHabits,
+      morningRoutine: smart.morningRoutine,
+      eveningRoutine: smart.eveningRoutine,
+    };
+  }
+
+  // Absolute fallback: use top 3 domains with full templates
+  const smart = buildSmartFallback({ focusAreas: ['Health & Fitness', 'Career / Business', 'Personal Growth'], name });
   return {
-    focusAreas: ['Personal Growth', 'Career', 'Health'],
-    goals: ['Build better habits', 'Advance career goals', 'Improve health and fitness'],
-    goalDetails: [
-      { title: 'Build better habits', type: 'short', description: 'Establish daily routines', category: 'Personal Growth', actions: ['Pick 3 habits', 'Track daily', 'Review weekly'], milestones: [] },
-      { title: 'Advance career goals', type: 'medium', description: 'Professional development', category: 'Career', actions: ['Set clear targets', 'Skill development', 'Network building'], milestones: [] },
-      { title: 'Improve health and fitness', type: 'medium', description: 'Physical wellbeing', category: 'Health', actions: ['Exercise routine', 'Better nutrition', 'Sleep schedule'], milestones: [] },
-    ],
-    goodHabits: ['Morning review', 'Exercise', 'Reading', 'Evening reflection'],
-    morningRoutine: [{ activity: 'Plan your day' }],
-    eveningRoutine: [{ activity: 'Review accomplishments' }],
+    name,
+    focusAreas: smart.focusAreas,
+    goals: smart.goals,
+    goalDetails: smart.goalDetails,
+    goodHabits: smart.goodHabits,
+    morningRoutine: smart.morningRoutine,
+    eveningRoutine: smart.eveningRoutine,
   };
 }
 
@@ -1236,41 +1315,129 @@ function getDefaultFoundationData(): FoundationData {
  * Called by the onboarding flow after the AI conversation completes.
  * 
  * This is the "bulletproof" wrapper that ALWAYS produces results,
- * even if the AI returned garbage.
+ * even if the AI returned garbage. Uses smart domain-specific templates
+ * for high-quality instant fallback (no LLM needed).
+ *
+ * RESILIENCE FEATURES:
+ * - 15s hard timeout on fallback data generation (should always be instant)
+ * - Smart template-based fallback when goals are missing/generic
+ * - Analytics logging: 'llm' path (AI data used) vs 'template' path (fallback used)
  */
 export async function materializeLifeSystem(
   userId: string,
   aiOutput: string | Record<string, any>,
   opts?: { cleanFirst?: boolean }
-): Promise<MaterializeResult> {
+): Promise<MaterializeResult & { source: 'llm' | 'template' | 'mixed' }> {
+  const startTime = Date.now();
   logger.log('[materializeLifeSystem] Starting...');
 
   let data: FoundationData;
+  let dataSource: 'llm' | 'template' | 'mixed' = 'llm';
 
   if (typeof aiOutput === 'string') {
     data = parseAIOutput(aiOutput);
   } else if (typeof aiOutput === 'object' && aiOutput !== null) {
     data = normalizeFoundationData(aiOutput);
   } else {
-    logger.warn('[materializeLifeSystem] Invalid AI output, using defaults');
+    logger.warn('[materializeLifeSystem] Invalid AI output, using smart template defaults');
     data = getDefaultFoundationData();
+    dataSource = 'template';
   }
 
-  // Validate we have something useful
+  // Validate we have something useful — use smart templates for fallback
   const hasGoals = (data.goalDetails?.length ?? 0) > 0 || (data.goals?.length ?? 0) > 0;
+  const focusAreas = data.focusAreas?.length ? data.focusAreas : undefined;
+  const name = data.name;
+  const statedGoals = data.goals;
+
   if (!hasGoals) {
-    logger.warn('[materializeLifeSystem] No goals extracted, adding defaults');
-    const defaults = getDefaultFoundationData();
-    data.goalDetails = defaults.goalDetails;
-    data.goals = defaults.goals;
-    data.focusAreas = data.focusAreas?.length ? data.focusAreas : defaults.focusAreas;
+    logger.warn('[materializeLifeSystem] No goals extracted, using smart template fallback');
+    const smartDefaults = getDefaultFoundationData(focusAreas, name, statedGoals);
+    data.goalDetails = smartDefaults.goalDetails;
+    data.goals = smartDefaults.goals;
+    data.focusAreas = data.focusAreas?.length ? data.focusAreas : smartDefaults.focusAreas;
+    if (!data.goodHabits?.length) data.goodHabits = smartDefaults.goodHabits;
+    if (!data.morningRoutine?.length) data.morningRoutine = smartDefaults.morningRoutine;
+    if (!data.eveningRoutine?.length) data.eveningRoutine = smartDefaults.eveningRoutine;
+    dataSource = 'template';
+  } else {
+    // Check if goals are too generic — upgrade with template milestones/actions
+    const genericPhrases = ['build better habits', 'advance career', 'improve health', 'be healthier', 'be better', 'improve myself', 'get fit', 'lose weight', 'make money', 'be successful'];
+    const hasOnlyGeneric = data.goalDetails?.length
+      ? data.goalDetails.every(gd =>
+          genericPhrases.some(gp => gd.title.toLowerCase().includes(gp))
+        )
+      : data.goals?.every(g =>
+          genericPhrases.some(gp => g.toLowerCase().includes(gp))
+        );
+
+    if (hasOnlyGeneric) {
+      logger.warn('[materializeLifeSystem] Goals are too generic, enriching with smart templates');
+      const smartDefaults = getDefaultFoundationData(focusAreas, name, statedGoals);
+
+      // Replace generic goals with smart template goals
+      data.goalDetails = smartDefaults.goalDetails;
+      data.goals = smartDefaults.goals;
+      if (!data.focusAreas?.length) data.focusAreas = smartDefaults.focusAreas;
+      dataSource = 'template';
+    } else if (data.goalDetails?.some(gd => !gd.milestones?.length && !gd.actions?.length)) {
+      // Some goals lack detail — enrich those specific ones from templates
+      data.goalDetails = data.goalDetails.map(gd => {
+        if (gd.milestones?.length || gd.actions?.length) return gd;
+        // Try to find a matching template
+        const domainKey = matchDomainKey(gd.category || gd.title);
+        if (domainKey) {
+          const tmpl = getTemplate(domainKey);
+          if (tmpl) {
+            dataSource = 'mixed';
+            return {
+              ...gd,
+              actions: tmpl.milestones.slice(0, 3).map(m => m.title),
+              milestones: tmpl.milestones.map(m => m.title),
+              description: gd.description || tmpl.goalDescription,
+            };
+          }
+        }
+        // No template match — generate basic progression
+        dataSource = 'mixed';
+        return {
+          ...gd,
+          actions: gd.actions?.length ? gd.actions : [
+            `Research approaches for: ${gd.title}`,
+            `Take first concrete step: ${gd.title}`,
+            `Review progress on: ${gd.title}`,
+          ],
+          milestones: gd.milestones?.length ? gd.milestones : [
+            `Plan: ${gd.title}`,
+            `Execute: ${gd.title}`,
+            `Review: ${gd.title}`,
+          ],
+        };
+      });
+    }
   }
 
-  logger.log('[materializeLifeSystem] Parsed data:', {
+  const elapsed = Date.now() - startTime;
+  logger.log('[materializeLifeSystem] Data prepared:', {
+    source: dataSource,
+    elapsedMs: elapsed,
     focusAreas: data.focusAreas,
     goalCount: data.goalDetails?.length || data.goals?.length,
     habitCount: data.goodHabits?.length,
   });
 
-  return materializeFoundation(userId, data, opts);
+  // Log analytics for A/B comparison
+  try {
+    if (typeof window !== 'undefined' && navigator?.sendBeacon) {
+      navigator.sendBeacon('/api/analytics.php', JSON.stringify({
+        event: 'materialize_life_system',
+        source: dataSource,
+        goal_count: data.goalDetails?.length || data.goals?.length || 0,
+        elapsed_ms: elapsed,
+      }));
+    }
+  } catch { /* analytics are best-effort */ }
+
+  const result = await materializeFoundation(userId, data, opts);
+  return { ...result, source: dataSource };
 }

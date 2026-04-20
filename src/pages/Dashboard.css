@@ -1740,3 +1740,29 @@
 .dash-secondary-col > .dash-card + .dash-card {
   margin-top: 8px;
 }
+
+/* ── Dashboard Mode Badge ── */
+.dash-mode-badge {
+  white-space: nowrap;
+  user-select: none;
+  flex-shrink: 0;
+}
+.dash-mode-badge span {
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* ── Dashboard Mode Accent (set via CSS custom property --dash-accent) ── */
+.dash {
+  --dash-accent: #F97316;
+  transition: --dash-accent 1.5s ease;
+}
+
+/* ── Dashboard Mode Toggle (Show all / fewer) ── */
+.dash-mode-toggle:hover {
+  opacity: 0.8;
+  background: rgba(255,255,255,0.03);
+}
+.dash-mode-toggle:active {
+  transform: scale(0.98);
+}

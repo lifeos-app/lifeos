@@ -9,6 +9,7 @@ import React, { useState, useEffect, useMemo, useRef, useCallback, startTransiti
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   LayoutDashboard, Calendar, Target, Flame, BarChart3,
+  Sunrise, Zap, MoonStar, Bed,
 } from 'lucide-react';
 import { useUserStore } from '../stores/useUserStore';
 import { useScheduleStore } from '../stores/useScheduleStore';
@@ -20,10 +21,12 @@ import { useJournalStore } from '../stores/useJournalStore';
 import { useShallow } from 'zustand/react/shallow';
 import { getAllSuggestions, type HabitSuggestion } from '../lib/habit-engine';
 import { getFinancialSnapshot, type FinancialSnapshot } from '../lib/financial-engine';
+import { getModeLabel, type DashboardMode } from '../lib/dashboard-modes';
 import { DashboardLayoutEditor } from '../components/DashboardLayoutEditor';
 import { safeScrollIntoView } from '../utils/scroll';
 import { localDateStr, getWeekRange, formatDate } from '../utils/date';
 import { useDashboardLayout } from '../hooks/useDashboardLayout';
+import { useDashboardMode } from '../hooks/useDashboardMode';
 import { PluginActivityWidget } from '../components/plugins/PluginActivityWidget';
 import { PhaseTracker } from '../components/PhaseTracker';
 import { getUIState, setUIState } from '../utils/ui-state';
@@ -89,10 +92,19 @@ const DASH_TABS = [
 const VALID_TABS: DashTab[] = ['today', 'schedule', 'goals', 'habits', 'insights'];
 const MOODS: Record<number, string> = { 1: '😫', 2: '😕', 3: '😐', 4: '🙂', 5: '😄' };
 
+// Mode indicator icons (Lucide)
+const MODE_ICONS: Record<DashboardMode, React.ReactNode> = {
+  morning: <Sunrise size={13} />,
+  active:  <Zap size={13} />,
+  evening: <MoonStar size={13} />,
+  night:   <Bed size={13} />,
+};
+
 export function Dashboard() {
   const user = useUserStore(s => s.user);
   const profile = useUserStore(s => s.profile);
   const layout = useDashboardLayout();
+  const dashMode = useDashboardMode(profile?.display_name ?? user?.email ?? '');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tabFromUrl = searchParams.get('tab') as DashTab | null;
@@ -155,6 +167,22 @@ export function Dashboard() {
   const [showAllWidgets, setShowAllWidgets] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [phaseTrackerDismissed, setPhaseTrackerDismissed] = useState(() => getUIState('phase_tracker_dismissed'));
+
+  // ── MODE-BASED WIDGET VISIBILITY ──
+  // Determine which secondary-column widgets are visible based on mode priorities
+  const modeVisibleIds = useMemo(() => {
+    if (showAllWidgets) return null; // null = show all
+    const visible = new Set<string>();
+    for (const w of dashMode.config) {
+      if (!w.collapsed) visible.add(w.id);
+    }
+    return visible;
+  }, [dashMode.config, showAllWidgets]);
+
+  const isWidgetVisible = useCallback((id: string) => {
+    if (!modeVisibleIds) return true; // showAllWidgets mode
+    return modeVisibleIds.has(id);
+  }, [modeVisibleIds]);
 
   const sevenDaysAgoStr = useMemo(() => {
     const d = new Date(); d.setDate(d.getDate() - 7);
@@ -288,6 +316,31 @@ export function Dashboard() {
     </div>
   );
 
+  // ── Mode badge for header ──
+  const modeBadge = (
+    <div
+      className="dash-mode-badge"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 5,
+        padding: '3px 10px',
+        borderRadius: 12,
+        fontSize: 11,
+        fontWeight: 600,
+        letterSpacing: 0.3,
+        color: dashMode.accent,
+        background: `color-mix(in srgb, ${dashMode.accent} 12%, transparent)`,
+        border: `1px solid color-mix(in srgb, ${dashMode.accent} 20%, transparent)`,
+        transition: 'color 1.5s ease, background 1.5s ease, border-color 1.5s ease',
+      }}
+      aria-label={`Dashboard mode: ${getModeLabel(dashMode.mode)}`}
+    >
+      {MODE_ICONS[dashMode.mode]}
+      <span>{getModeLabel(dashMode.mode)}</span>
+    </div>
+  );
+
   return (
     <FullscreenPage
       title="LifeOS"
@@ -297,8 +350,9 @@ export function Dashboard() {
       onTabChange={handleTabChange}
       slideDir={slideDir}
       activeColor={activeColor}
+      headerExtra={modeBadge}
     >
-      <div className="dash">
+      <div className="dash" style={{ '--dash-accent': dashMode.accent } as React.CSSProperties}>
         <AgentNudgeBar />
         {fetchError && <ErrorCard message={fetchError} onRetry={fetchAll} />}
         {loading && tasks.length === 0 && <DashboardSkeleton />}
@@ -372,52 +426,108 @@ export function Dashboard() {
               )}
             </div>
             <div className="dash-primary-col">
-              <FeatureErrorBoundary feature="Triage" compact>
-                <DashboardTriage />
-              </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="Overdue" compact>
-                <DashboardOverdue />
-              </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="Morning Brief" compact>
-                <DashboardMorningBrief />
-              </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="Stats" compact>
-                <DashboardStatsRow dayTasks={dayTasks} dayDoneTasks={dayDoneTasks} dayActiveTasks={dayActiveTasks}
-                  dayHabitsDone={dayHabitsDone} totalHabits={habits.length} dayEvents={dayEvents} dayBills={dayBills} net={net}
-                  onScrollToTasks={() => scrollTo(tasksRef)} onScrollToHabits={() => scrollTo(habitsRef)} onSetTaskFilter={f => setTaskFilter(f as string)} />
-              </FeatureErrorBoundary>
+              {isWidgetVisible('triage') && (
+                <FeatureErrorBoundary feature="Triage" compact>
+                  <DashboardTriage />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('overdue') && (
+                <FeatureErrorBoundary feature="Overdue" compact>
+                  <DashboardOverdue />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('morning-brief') && (
+                <FeatureErrorBoundary feature="Morning Brief" compact>
+                  <DashboardMorningBrief />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('stats') && (
+                <FeatureErrorBoundary feature="Stats" compact>
+                  <DashboardStatsRow dayTasks={dayTasks} dayDoneTasks={dayDoneTasks} dayActiveTasks={dayActiveTasks}
+                    dayHabitsDone={dayHabitsDone} totalHabits={habits.length} dayEvents={dayEvents} dayBills={dayBills} net={net}
+                    onScrollToTasks={() => scrollTo(tasksRef)} onScrollToHabits={() => scrollTo(habitsRef)} onSetTaskFilter={f => setTaskFilter(f as string)} />
+                </FeatureErrorBoundary>
+              )}
             </div>
-            <div className="dash-secondary-col">
-              <FeatureErrorBoundary feature="Daily Progress" compact>
-                <DashboardDailyProgress />
-              </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="Streak Momentum" compact>
-                <DashboardStreakMomentum />
-              </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="Financial Pulse" compact>
-                <DashboardFinancialPulse />
-              </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="Weekly Insight" compact>
-                <DashboardWeeklyInsight />
-              </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="Realm Invite" compact>
-                <DashboardRealmInvite />
-              </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="Realm Preview" compact>
-                <DashboardRealmPreview />
-              </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="NPC Insight" compact>
-                <DashboardNPCInsight />
-              </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="Celestial" compact>
-                <DashboardCelestial />
-              </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="Holy Hermes Oracle" compact>
-                <HolyHermesOracle />
-              </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="Life Pulse" compact>
-                <DashboardLifePulse />
-              </FeatureErrorBoundary>
+            <div className="dash-secondary-col" style={{
+              borderColor: dashMode.accent,
+              transition: 'border-color 1.5s ease',
+            }}>
+              {isWidgetVisible('daily-progress') && (
+                <FeatureErrorBoundary feature="Daily Progress" compact>
+                  <DashboardDailyProgress />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('streak-momentum') && (
+                <FeatureErrorBoundary feature="Streak Momentum" compact>
+                  <DashboardStreakMomentum />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('financial-pulse') && (
+                <FeatureErrorBoundary feature="Financial Pulse" compact>
+                  <DashboardFinancialPulse />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('weekly-insight') && (
+                <FeatureErrorBoundary feature="Weekly Insight" compact>
+                  <DashboardWeeklyInsight />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('realm-invite') && (
+                <FeatureErrorBoundary feature="Realm Invite" compact>
+                  <DashboardRealmInvite />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('realm-preview') && (
+                <FeatureErrorBoundary feature="Realm Preview" compact>
+                  <DashboardRealmPreview />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('npc-insight') && (
+                <FeatureErrorBoundary feature="NPC Insight" compact>
+                  <DashboardNPCInsight />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('celestial') && (
+                <FeatureErrorBoundary feature="Celestial" compact>
+                  <DashboardCelestial />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('holy-hermes') && (
+                <FeatureErrorBoundary feature="Holy Hermes Oracle" compact>
+                  <HolyHermesOracle />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('life-pulse') && (
+                <FeatureErrorBoundary feature="Life Pulse" compact>
+                  <DashboardLifePulse />
+                </FeatureErrorBoundary>
+              )}
+              {/* Show more / fewer toggle when mode filtering is active */}
+              {modeVisibleIds && (
+                <button
+                  className="dash-mode-toggle"
+                  onClick={() => setShowAllWidgets(prev => !prev)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '6px 12px',
+                    marginTop: 6,
+                    border: `1px solid color-mix(in srgb, ${dashMode.accent} 20%, transparent)`,
+                    borderRadius: 8,
+                    background: 'transparent',
+                    color: 'rgba(255,255,255,0.5)',
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    width: '100%',
+                    justifyContent: 'center',
+                    transition: 'border-color 1.5s ease',
+                  }}
+                >
+                  {showAllWidgets ? 'Show fewer' : `Show all widgets (${dashMode.config.filter(w => w.collapsed).length} hidden)`}
+                </button>
+              )}
             </div>
           </div>
         )}

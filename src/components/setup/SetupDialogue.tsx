@@ -384,7 +384,7 @@ export function SetupDialogue({ phase, onComplete, initialData }: SetupDialogueP
       ];
 
       const llmResponse = await callLLMProxy(proxyMessages, {
-        timeoutMs: 30000,
+        timeoutMs: 15000,
         format: 'json',
         provider: 'openrouter',
         model: 'google/gemini-2.0-flash-001',
@@ -424,11 +424,14 @@ export function SetupDialogue({ phase, onComplete, initialData }: SetupDialogueP
 
       saveProgress(merged, percent);
     } catch (err) {
+      const isTimeout = err instanceof Error && err.message?.includes('timed out');
       logger.error('Setup dialogue error:', err);
       const errMsg: ChatMessage = {
         id: genId(),
         role: 'npc',
-        text: 'The arcane channels flicker... Could you say that once more, adventurer?',
+        text: isTimeout
+          ? 'The cosmic winds are slow today... Your words were heard. Speak again and we shall continue.'
+          : 'The arcane channels flicker... Could you say that once more, adventurer?',
       };
       setMessages(prev => [...prev, errMsg]);
     }
