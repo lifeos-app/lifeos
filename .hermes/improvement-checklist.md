@@ -5,10 +5,10 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.19.30
+- **Current Version:** 1.19.33
 - **Baseline Date:** 2026-04-20
 - **Last Audit:** 2026-04-20
-- **Completion:** 15/65 = 23.1%
+- **Completion:** 18/65 = 27.7%
 
 ## Vision Documents (Source of Truth)
 1. `/home/tewedros/Desktop/webapp/docs/vision/VISION.md` — "LifeOS IS an AI that has an app as its interface"
@@ -27,7 +27,7 @@
 
 ## Priority 1: BROKEN (Fix before anything else)
 
-- [ ] [P1-001] Onboarding flow is fragile — 🔨 PARTIAL — VISION-v2-ori: "generateLifeSystem() frequently times out (45s LLM call). Fallback creates useless generic goals." — WelcomeWizard exists but generateLifeSystem can still fail. — Impact: 5/5, Blocks: new user acquisition — File: src/lib/materialize.ts, src/pages/LifeOnboarding.tsx
+- [x] [P1-001] Onboarding flow is fragile — ✅ DONE — Commit: fd523c3 — Date: 2026-04-20 — 15s LLM timeout, smart template fallback (8 domains with personalized goals), progress screen, no more generic goals
 - [ ] [P1-002] Financial data model is dual-table — 🔨 PARTIAL — VISION-v2-ori 5.2: "Every financial write creates records in 2 tables. income + expenses + transactions." Still has `addIncome` writing to both. — Impact: 4/5, Blocks: financial reliability — File: src/stores/useFinanceStore.ts
 - [ ] [P1-003] Multi-tab sync race conditions — ❌ MISSING — LIFEOS-ROADMAP 2.2: "Field-level merge for concurrent edits. Compare field-by-field updated_at." — Impact: 4/5, Blocks: data integrity
 - [ ] [P1-004] Assets/gamification bypass offline-first — ❌ MISSING — LIFEOS-ROADMAP 2.3: "Migrate useAssetsStore to local-db pattern. Migrate gamification queries." — Impact: 3/5, Blocks: offline reliability
@@ -35,7 +35,7 @@
 ## Priority 2: FOUNDATION (Architecture blocking progress)
 
 - [x] [P2-001] Schedule.tsx god component — ✅ DONE — Commit: 8145fbc — Date: 2026-04-20 — 2051→229 lines. Split into ScheduleDayView + ScheduleTimeline + ScheduleBoardView + useScheduleDragHandlers + useScheduleEffects + useScheduleTimelineData
-- [ ] [P2-002] Goals.tsx god component — 🔨 PARTIAL — 1827 lines. VISION-v2-ori 5.3: "Split into Goals.tsx (orchestrator), GoalTree.tsx, GoalForm.tsx, GoalActions.ts" — Impact: 3/5, Blocks: any goals improvement
+- [x] [P2-002] Goals.tsx god component — ✅ DONE — Commit: 566ec24 — Date: 2026-04-20 — 1827→300 lines. Split into GoalsForm, GoalsFilterBar, useGoalsEffects, useGoalsActions
 - [ ] [P2-003] Intent Engine monolith — 🔨 PARTIAL — 2324 lines. WORLD-CLASS-ROADMAP: "Intent engine is a monolith, needs decomposition" — Impact: 3/5, Blocks: AI improvement
 - [x] [P2-004] Error handling inconsistent — ✅ DONE — Commit: b1b1dab — Date: 2026-04-20 — Created src/lib/error-handler.ts: classifyError, handleError, handleErrorWithRetry, useErrorHandler hook (6 categories)
 - [ ] [P2-005] Loading states incomplete — 🔨 PARTIAL — VISION-v2-ori 5.6: "Add skeleton for CharacterHub, ReflectHub, Story, SocialPage. Add shimmer animation." — Impact: 2/5, Blocks: perceived quality
@@ -59,7 +59,7 @@
 - [ ] [P4-003] Smart notifications — 🔨 PARTIAL — LIFEOS-ROADMAP 3.3: "Smart notification timing. Habit reminder at optimal time. NPC-flavored notifications." Basic toasts exist but no learning. — Impact: 3/5
 - [ ] [P4-004] Quick actions everywhere — 🔨 PARTIAL — VISION-v2-ori 5.4 + LIFEOS-ROADMAP 3.4: "1-tap habit logging. Voice FAB polish." Some quick actions exist. — Impact: 2/5
 - [ ] [P4-005] Progress visualization — 🔨 PARTIAL — LIFEOS-ROADMAP 3.5: "Weekly progress heatmap. Monthly comparison sparklines. Year in Review." Basic stats exist but no heatmap. — Impact: 2/5
-- [ ] [P4-006] Time-adaptive Dashboard — ❌ MISSING — VISION-v2-ori 5.4: "Morning Mode (6am-12pm), Active Mode (12pm-9pm), Evening Mode (9pm-midnight). Max 6 visible widgets." — Impact: 3/5
+- [x] [P4-006] Time-adaptive Dashboard — ✅ DONE — Commit: 6587fcd — Date: 2026-04-20 — Morning/active/evening/night modes with widget prioritization, mode badge, accent colors, dashboard-modes.ts + useDashboardMode.ts
 
 ## Priority 5: DEPTH (Richness and completeness)
 
@@ -89,7 +89,7 @@
 ## Technical Debt
 
 - [x] [TD-001] Schedule.tsx: 2051→229 lines — ✅ DONE — Split into 6 files. Commit: 8145fbc
-- [ ] [TD-002] Goals.tsx: 1827 lines — budget 300. Split into 4+ files.
+- [x] [TD-002] Goals.tsx: 1827→300 lines — ✅ DONE — Split into 4 files. Commit: 566ec24
 - [ ] [TD-003] Intent Engine: 2324 lines — budget 400. Decompose into modules.
 - [ ] [TD-004] Health.tsx orchestration vs Health-tabs subcomponents — verify clean split
 - [ ] [TD-005] Finances.tsx: 657 lines — move CRUD to useFinanceStore
@@ -126,3 +126,4 @@
 ## Audit Log
 - 2026-04-20: Initial deep audit. 65 features assessed. 12 DONE, 53 remaining. Score: 18.5%. Holy Hermes Oracle committed as first execution.
 - 2026-04-20: Batch 2 execution. 3 items DONE: P2-001 Schedule split, P3-005 Pattern Engine, P2-004 Error Handler. Score: 15/65 = 23.1%. Version: 1.19.30.
+- 2026-04-20: Batch 3 execution. 3 items DONE: P2-002 Goals split, P4-006 Time-adaptive Dashboard, P1-001 Onboarding fix. Score: 18/65 = 27.7%. Version: 1.19.33.
