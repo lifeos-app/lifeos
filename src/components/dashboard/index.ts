@@ -25,4 +25,5 @@ export { DashboardStreakMomentum } from './DashboardStreakMomentum';
 export { DashboardDailyProgress } from './DashboardDailyProgress';
 export { DashboardWeeklyInsight } from './DashboardWeeklyInsight';
 export { DashboardFinancialPulse } from './DashboardFinancialPulse';
+export { SleepQuickLog } from './SleepQuickLog';
 export { HolyHermesOracle } from '../HolyHermesOracle';

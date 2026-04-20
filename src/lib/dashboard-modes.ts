@@ -52,6 +52,7 @@ const W = {
   celestial:        'celestial',
   holyHermes:       'holy-hermes',
   lifePulse:        'life-pulse',
+  sleepQuickLog:    'sleep-quick-log',
   completionRates:  'completion-rates',
   suggestions:      'suggestions',
   journal:          'journal',
@@ -69,15 +70,15 @@ type WidgetId = typeof W[keyof typeof W];
 const MORNING_WIDGETS: ModeWidgetConfig[] = [
   // Morning (6am-12pm): Focus on preparation
   { id: W.schedule,        priority: 10, collapsed: false },  // Calendar preview
-  { id: W.triage,          priority: 9,  collapsed: false },  // Priority tasks
-  { id: W.morningBrief,    priority: 8,  collapsed: false },  // Morning journal prompt
-  { id: W.habits,          priority: 7,  collapsed: false },  // Habit check-in
-  { id: W.streakMomentum,  priority: 6,  collapsed: false },  // Streaks
-  { id: W.holyHermes,      priority: 5,  collapsed: false },  // Holy Hermes wisdom
-  { id: W.quickActions,     priority: 4,  collapsed: true },
-  { id: W.stats,           priority: 3,  collapsed: true },
-  { id: W.dailyProgress,   priority: 2,  collapsed: true },
-  { id: W.financialPulse,  priority: 1,  collapsed: true },
+  { id: W.sleepQuickLog,   priority: 9,  collapsed: false },  // Sleep quick log (morning wake-up)
+  { id: W.triage,          priority: 8,  collapsed: false },  // Priority tasks
+  { id: W.morningBrief,    priority: 7,  collapsed: false },  // Morning journal prompt
+  { id: W.habits,          priority: 6,  collapsed: false },  // Habit check-in
+  { id: W.streakMomentum,  priority: 5,  collapsed: false },  // Streaks
+  { id: W.holyHermes,      priority: 4,  collapsed: true },
+  { id: W.quickActions,    priority: 3,  collapsed: true },
+  { id: W.stats,           priority: 2,  collapsed: true },
+  { id: W.dailyProgress,   priority: 1,  collapsed: true },
 ];
 
 const ACTIVE_WIDGETS: ModeWidgetConfig[] = [
@@ -88,31 +89,32 @@ const ACTIVE_WIDGETS: ModeWidgetConfig[] = [
   { id: W.tasks,           priority: 7,  collapsed: false },  // Live timeline
   { id: W.habits,          priority: 6,  collapsed: false },  // Habit progress
   { id: W.dailyProgress,   priority: 5,  collapsed: false },  // Goal progress
-  { id: W.morningBrief,    priority: 4,  collapsed: true },
-  { id: W.streakMomentum,  priority: 3,  collapsed: true },
-  { id: W.holyHermes,      priority: 2,  collapsed: true },
-  { id: W.schedule,        priority: 1,  collapsed: true },
+  { id: W.sleepQuickLog,   priority: 4,  collapsed: true },  // Sleep summary (collapsed)
+  { id: W.morningBrief,    priority: 3,  collapsed: true },
+  { id: W.streakMomentum,  priority: 2,  collapsed: true },
+  { id: W.holyHermes,      priority: 1,  collapsed: true },
 ];
 
 const EVENING_WIDGETS: ModeWidgetConfig[] = [
   // Evening (9pm-midnight): Focus on reflection
   { id: W.dailyProgress,   priority: 10, collapsed: false },  // Daily review
-  { id: W.journal,         priority: 9,  collapsed: false },  // Journal entry
-  { id: W.goals,           priority: 8,  collapsed: false },  // Goal progress
-  { id: W.streakMomentum,  priority: 7,  collapsed: false },  // Streaks
-  { id: W.schedule,        priority: 6,  collapsed: false },  // Tomorrow preview
-  { id: W.holyHermes,      priority: 5,  collapsed: false },  // Holy Hermes reflection
-  { id: W.financialPulse,  priority: 4,  collapsed: true },
-  { id: W.triage,          priority: 3,  collapsed: true },
-  { id: W.habits,          priority: 2,  collapsed: true },
-  { id: W.quickActions,    priority: 1,  collapsed: true },
+  { id: W.sleepQuickLog,   priority: 9,  collapsed: false },  // Bedtime tracking
+  { id: W.journal,         priority: 8,  collapsed: false },  // Journal entry
+  { id: W.goals,           priority: 7,  collapsed: false },  // Goal progress
+  { id: W.streakMomentum,  priority: 6,  collapsed: false },  // Streaks
+  { id: W.schedule,        priority: 5,  collapsed: false },  // Tomorrow preview
+  { id: W.holyHermes,      priority: 4,  collapsed: true },
+  { id: W.financialPulse,  priority: 3,  collapsed: true },
+  { id: W.triage,          priority: 2,  collapsed: true },
+  { id: W.habits,          priority: 1,  collapsed: true },
 ];
 
 const NIGHT_WIDGETS: ModeWidgetConfig[] = [
   // Night (midnight-6am): Minimal
-  { id: W.journal,         priority: 10, collapsed: false },  // Quick log
-  { id: W.dailyProgress,   priority: 9,  collapsed: false },  // Today's score
-  { id: W.celestial,       priority: 8,  collapsed: false },  // Sleep reminder (ambient)
+  { id: W.sleepQuickLog,   priority: 10, collapsed: false },  // Bedtime tracking
+  { id: W.journal,         priority: 9,  collapsed: false },  // Quick log
+  { id: W.dailyProgress,   priority: 8,  collapsed: false },  // Today's score
+  { id: W.celestial,       priority: 7,  collapsed: false },  // Sleep reminder (ambient)
   { id: W.triage,          priority: 3,  collapsed: true },
   { id: W.habits,          priority: 2,  collapsed: true },
   { id: W.holyHermes,      priority: 1,  collapsed: true },

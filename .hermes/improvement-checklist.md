@@ -5,10 +5,10 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.19.36
+- **Current Version:** 1.19.37
 - **Baseline Date:** 2026-04-20
 - **Last Audit:** 2026-04-20
-- **Completion:** 21/65 = 32.3%
+- **Completion:** 22/66 = 33.3%
 
 ## Vision Documents (Source of Truth)
 1. `/home/tewedros/Desktop/webapp/docs/vision/VISION.md` — "LifeOS IS an AI that has an app as its interface"
@@ -31,6 +31,7 @@
 - [ ] [P1-002] Financial data model is dual-table — 🔨 PARTIAL — VISION-v2-ori 5.2: "Every financial write creates records in 2 tables. income + expenses + transactions." Still has `addIncome` writing to both. — Impact: 4/5, Blocks: financial reliability — File: src/stores/useFinanceStore.ts
 - [ ] [P1-003] Multi-tab sync race conditions — ❌ MISSING — LIFEOS-ROADMAP 2.2: "Field-level merge for concurrent edits. Compare field-by-field updated_at." — Impact: 4/5, Blocks: data integrity
 - [ ] [P1-004] Assets/gamification bypass offline-first — ❌ MISSING — LIFEOS-ROADMAP 2.3: "Migrate useAssetsStore to local-db pattern. Migrate gamification queries." — Impact: 3/5, Blocks: offline reliability
+- [x] [P1-005] Sleep tracking as easy as journaling — SleepQuickLog dashboard widget with one-tap bedtime/wake logging — DONE 2026-04-20 — Morning/active/evening/night mode priorities. Widget ID: sleep-quick-log.
 
 ## Priority 2: FOUNDATION (Architecture blocking progress)
 
@@ -128,3 +129,4 @@
 - 2026-04-20: Batch 2 execution. 3 items DONE: P2-001 Schedule split, P3-005 Pattern Engine, P2-004 Error Handler. Score: 15/65 = 23.1%. Version: 1.19.30.
 - 2026-04-20: Batch 3 execution. 3 items DONE: P2-002 Goals split, P4-006 Time-adaptive Dashboard, P1-001 Onboarding fix. Score: 18/65 = 27.7%. Version: 1.19.33.
 - 2026-04-20: Batch 4 execution. 3 items DONE: P2-003 Intent Engine split, P3-004 Cross-domain fusion, P2-005 Skeleton shimmer. Score: 21/65 = 32.3%. Version: 1.19.36.
+- 2026-04-20: P1-005 SleepQuickLog integrated into Dashboard with time-adaptive mode priorities. Score: 22/66 = 33.3%. Version: 1.19.37.

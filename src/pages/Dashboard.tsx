@@ -21,6 +21,7 @@ import { useJournalStore } from '../stores/useJournalStore';
 import { useShallow } from 'zustand/react/shallow';
 import { getAllSuggestions, type HabitSuggestion } from '../lib/habit-engine';
 import { getFinancialSnapshot, type FinancialSnapshot } from '../lib/financial-engine';
+import { useHealthMetrics } from '../hooks/useHealth';
 import { getModeLabel, type DashboardMode } from '../lib/dashboard-modes';
 import { DashboardLayoutEditor } from '../components/DashboardLayoutEditor';
 import { safeScrollIntoView } from '../utils/scroll';
@@ -64,6 +65,7 @@ import {
   DashboardDailyProgress,
   DashboardWeeklyInsight,
   DashboardFinancialPulse,
+  SleepQuickLog,
 } from '../components/dashboard';
 import { HolyHermesOracle } from '../components/HolyHermesOracle';
 import { Brain } from 'lucide-react';
@@ -150,6 +152,18 @@ export function Dashboard() {
   );
   const healthMetrics = useHealthStore(s => s.todayMetrics);
   const healthLoading = useHealthStore(s => s.loading);
+
+  // Recent health metrics (last 7 days) for SleepQuickLog sparkline
+  const sevenDaysAgo = useMemo(() => {
+    const d = new Date(); d.setDate(d.getDate() - 7);
+    return d.toISOString().split('T')[0];
+  }, []);
+  const todayDateStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const { data: recentHealthMetrics, upsertToday: updateHealthMetrics } = useHealthMetrics(
+    { from: sevenDaysAgo, to: todayDateStr }
+  );
+  // Cast to HealthMetric[] — both types share sleep_hours, sleep_quality, date
+  const recentMetrics = useMemo(() => [...recentHealthMetrics].reverse() as unknown as typeof healthMetrics[], [recentHealthMetrics]);
 
   // Unified loading: show skeleton until ALL critical stores are ready
   const allDataReady = useMemo(() =>
@@ -456,6 +470,15 @@ export function Dashboard() {
               {isWidgetVisible('daily-progress') && (
                 <FeatureErrorBoundary feature="Daily Progress" compact>
                   <DashboardDailyProgress />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('sleep-quick-log') && (
+                <FeatureErrorBoundary feature="Sleep Quick Log" compact>
+                  <SleepQuickLog
+                    todayMetrics={healthMetrics}
+                    recentMetrics={recentMetrics}
+                    onUpdateMetrics={updateHealthMetrics}
+                  />
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('streak-momentum') && (

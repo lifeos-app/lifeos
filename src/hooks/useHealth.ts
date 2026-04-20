@@ -35,3 +35,7 @@ export { useMeditation, useGratitude } from './useWellbeing';
 
 // Meals & Grocery
 export { useMeals, useGroceryLists } from './useMealsGrocery';
+
+// Smart Sleep
+export { useSmartBedtime, useSleepInsights } from './useSmartSleep';
+export type { BedtimeState, SleepInsight, SleepInsights } from './useSmartSleep';
