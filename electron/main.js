@@ -98,6 +98,19 @@ function createWindow() {
     show: false,
   });
 
+  // Prevent the main window from generating spurious new windows.
+  // All navigation to external URLs goes through shell.openExternal
+  // or the auth popup. Without this, window.open() calls in the page
+  // (e.g. Google OAuth's account picker / one-tap prompts) create
+  // additional BrowserWindows — the "3 windows on sign-in" bug.
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    // Open external links in the system browser instead of a new Electron window
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      shell.openExternal(url);
+    }
+    return { action: 'deny' }; // never create a new Electron window
+  });
+
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
   });
@@ -223,7 +236,7 @@ function registerIpcHandlers() {
   // and resolves the promise with the extracted tokens.
   ipcMain.handle('open-auth-popup', async (_event, authUrl) => {
     return new Promise((resolve, reject) => {
-      let resolved = false;
+      let resolved = { done: false };
       const authWin = new BrowserWindow({
         width: 500,
         height: 650,
@@ -236,46 +249,63 @@ function registerIpcHandlers() {
         title: 'Sign in with Google — LifeOS',
       });
 
+      // Prevent the auth popup from creating MORE windows.
+      // Google's sign-in page tries to open new windows for account picker,
+      // CAPTCHA, one-tap prompts etc — these must NOT spawn more BrowserWindows.
+      // Instead, navigate the SAME popup window to that URL.
+      authWin.webContents.setWindowOpenHandler(({ url }) => {
+        // Navigate the auth popup itself to the requested URL
+        // (account picker, etc.) instead of opening a new window.
+        authWin.loadURL(url);
+        return { action: 'deny' };
+      });
+
       authWin.loadURL(authUrl);
 
       const timeout = setTimeout(() => {
-        authWin.close();
-        reject(new Error('Auth timeout — try again'));
+        if (!resolved.done) {
+          resolved.done = true;
+          authWin.close();
+          reject(new Error('Auth timeout — try again'));
+        }
       }, 120000);
 
-      // Watch all navigations — when Supabase redirects back with tokens, catch it
+      // Unified handler: check URL for tokens and resolve once.
+      // We use 'did-navigate' as the primary reliable event.
+      // 'will-redirect' is kept only to prevent the default redirect
+      // (which would navigate the popup away before we can read the URL).
+      const tryResolveFromUrl = (url) => {
+        if (resolved.done) return;
+        if (url.includes('access_token=') || url.includes('#access_token=')) {
+          extractTokensAndResolve(url, authWin, timeout, resolve, resolved);
+        }
+      };
+
+      // Stop the popup from navigating AWAY to our callback URL
+      // (we want to read the tokens from it, not actually load the page)
       authWin.webContents.on('will-redirect', (event, url) => {
         if (url.includes('access_token=') || url.includes('#access_token=')) {
           event.preventDefault();
-          extractTokensAndResolve(url, authWin, timeout, resolve, resolved);
+          tryResolveFromUrl(url);
         }
       });
 
-      authWin.webContents.on('will-navigate', (event, url) => {
-        if (url.includes('access_token=')) {
-          event.preventDefault();
-          extractTokensAndResolve(url, authWin, timeout, resolve, resolved);
-        }
-      });
-
-      // Also check did-navigate for hash fragments (Supabase uses #)
+      // Primary event: fires after the page has navigated (including hash changes)
       authWin.webContents.on('did-navigate', (_event, url) => {
-        if (url.includes('access_token=')) {
-          extractTokensAndResolve(url, authWin, timeout, resolve, resolved);
-        }
+        tryResolveFromUrl(url);
       });
 
-      // Handle hash fragment changes (Supabase puts tokens after #)
+      // Hash changes within the same page (Supabase puts tokens after #)
       authWin.webContents.on('did-navigate-in-page', (_event, url) => {
-        if (url.includes('access_token=')) {
-          extractTokensAndResolve(url, authWin, timeout, resolve, resolved);
-        }
+        tryResolveFromUrl(url);
       });
 
       authWin.on('closed', () => {
-        clearTimeout(timeout);
-        // Don't reject if already resolved
-        try { resolve(null); } catch {}
+        if (!resolved.done) {
+          resolved.done = true;
+          clearTimeout(timeout);
+          resolve(null); // User closed the window without completing auth
+        }
       });
     });
   });
