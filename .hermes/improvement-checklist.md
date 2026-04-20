@@ -5,10 +5,10 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.19.33
+- **Current Version:** 1.19.36
 - **Baseline Date:** 2026-04-20
 - **Last Audit:** 2026-04-20
-- **Completion:** 18/65 = 27.7%
+- **Completion:** 21/65 = 32.3%
 
 ## Vision Documents (Source of Truth)
 1. `/home/tewedros/Desktop/webapp/docs/vision/VISION.md` — "LifeOS IS an AI that has an app as its interface"
@@ -36,9 +36,9 @@
 
 - [x] [P2-001] Schedule.tsx god component — ✅ DONE — Commit: 8145fbc — Date: 2026-04-20 — 2051→229 lines. Split into ScheduleDayView + ScheduleTimeline + ScheduleBoardView + useScheduleDragHandlers + useScheduleEffects + useScheduleTimelineData
 - [x] [P2-002] Goals.tsx god component — ✅ DONE — Commit: 566ec24 — Date: 2026-04-20 — 1827→300 lines. Split into GoalsForm, GoalsFilterBar, useGoalsEffects, useGoalsActions
-- [ ] [P2-003] Intent Engine monolith — 🔨 PARTIAL — 2324 lines. WORLD-CLASS-ROADMAP: "Intent engine is a monolith, needs decomposition" — Impact: 3/5, Blocks: AI improvement
+- [x] [P2-003] Intent Engine monolith — ✅ DONE — Commit: 0402d50 — Date: 2026-04-20 — 2324→25 lines re-export + 12 focused modules in src/lib/intent/
 - [x] [P2-004] Error handling inconsistent — ✅ DONE — Commit: b1b1dab — Date: 2026-04-20 — Created src/lib/error-handler.ts: classifyError, handleError, handleErrorWithRetry, useErrorHandler hook (6 categories)
-- [ ] [P2-005] Loading states incomplete — 🔨 PARTIAL — VISION-v2-ori 5.6: "Add skeleton for CharacterHub, ReflectHub, Story, SocialPage. Add shimmer animation." — Impact: 2/5, Blocks: perceived quality
+- [x] [P2-005] Loading states incomplete — ✅ DONE — Commit: 8a02d66 — Date: 2026-04-20 — Shimmer component + all 16 skeletons wrapped + CharacterHub/Finances use proper skeletons
 - [ ] [P2-006] Test coverage thin — 🔨 PARTIAL — Only 5 test files (4 store tests, 1 intent engine test). LIFEOS-ROADMAP: "80% coverage on lib/ and stores/" — Impact: 3/5, Blocks: refactoring confidence
 
 ## Priority 3: VISION-CRITICAL (Features that ARE the product)
@@ -46,7 +46,7 @@
 - [ ] [P3-001] AI IS the OS, not a chatbot — 🔨 PARTIAL — VISION.md: "LifeOS IS an AI that has an app as its interface. You talk, it acts." Intent engine exists but action execution returns false. ZeroClaw can't CRUD data. — Impact: 5/5
 - [ ] [P3-002] AI remembers permanently — ❌ MISSING — VISION.md: "It remembers. Not session-by-session. Permanently." No persistent conversation memory. — Impact: 4/5
 - [ ] [P3-003] AI anticipates proactively — ❌ MISSING — VISION.md: "It anticipates. 'You have your evening shift tonight. Want me to set your alarm?'" No proactive suggestions system. — Impact: 4/5
-- [ ] [P3-004] Cross-domain data fusion — 🔨 PARTIAL — VISION-v2: "Schedule→flight paths, Habits→satellite orbits, Goals→strategic assets, Finances→supply chains." Context builder exists but no correlation engine. — Impact: 4/5
+- [x] [P3-004] Cross-domain data fusion — ✅ DONE — Commit: 939ea64 — Date: 2026-04-20 — correlation-engine.ts with Pearson correlation across 5 domains, integrated into AI context builder
 - [x] [P3-005] Pattern Engine — ✅ DONE — Commit: 501d35a — Date: 2026-04-20 — Created src/lib/pattern-engine.ts (286 lines): 7 detectors (productivity_peak, energy_cycle, habit_anchor, goal_neglect, spending_spike, streak_risk, optimal_schedule)
 - [ ] [P3-006] Pre-populated intelligence — ❌ MISSING — VISION.md: "On first login, LifeOS isn't empty. It already knows your work schedule, drive times, education goals." No data seeding. — Impact: 3/5
 - [ ] [P3-007] Junction as game library — 🔨 PARTIAL — VISION-v2: "Massive Junction library — Iron Protocol, Brain Forge, Monk Mode, The Game, Tewahedo." Current: 10 thin traditions, no themed quests. — Impact: 3/5
@@ -90,7 +90,7 @@
 
 - [x] [TD-001] Schedule.tsx: 2051→229 lines — ✅ DONE — Split into 6 files. Commit: 8145fbc
 - [x] [TD-002] Goals.tsx: 1827→300 lines — ✅ DONE — Split into 4 files. Commit: 566ec24
-- [ ] [TD-003] Intent Engine: 2324 lines — budget 400. Decompose into modules.
+- [x] [TD-003] Intent Engine: 2324→25 lines — ✅ DONE — Decomposed into 12 modules. Commit: 0402d50
 - [ ] [TD-004] Health.tsx orchestration vs Health-tabs subcomponents — verify clean split
 - [ ] [TD-005] Finances.tsx: 657 lines — move CRUD to useFinanceStore
 - [ ] [TD-006] Service worker — disabled in Electron (expected). Should work for PWA.
@@ -127,3 +127,4 @@
 - 2026-04-20: Initial deep audit. 65 features assessed. 12 DONE, 53 remaining. Score: 18.5%. Holy Hermes Oracle committed as first execution.
 - 2026-04-20: Batch 2 execution. 3 items DONE: P2-001 Schedule split, P3-005 Pattern Engine, P2-004 Error Handler. Score: 15/65 = 23.1%. Version: 1.19.30.
 - 2026-04-20: Batch 3 execution. 3 items DONE: P2-002 Goals split, P4-006 Time-adaptive Dashboard, P1-001 Onboarding fix. Score: 18/65 = 27.7%. Version: 1.19.33.
+- 2026-04-20: Batch 4 execution. 3 items DONE: P2-003 Intent Engine split, P3-004 Cross-domain fusion, P2-005 Skeleton shimmer. Score: 21/65 = 32.3%. Version: 1.19.36.
