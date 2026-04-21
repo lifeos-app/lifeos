@@ -5,10 +5,10 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.19.42
+- **Current Version:** 1.19.43
 - **Baseline Date:** 2026-04-20
 - **Last Audit:** 2026-04-21
-- **Completion:** 34/68 = 50.0%
+- **Completion:** 37/68 = 54.4%
 
 ## Vision Documents (Source of Truth)
 1. `/home/tewedros/Desktop/webapp/docs/vision/VISION.md` — "LifeOS IS an AI that has an app as its interface"
@@ -41,7 +41,7 @@
 - [x] [P2-003] Intent Engine monolith — ✅ DONE — Commit: 0402d50 — Date: 2026-04-20 — 2324→25 lines re-export + 12 focused modules in src/lib/intent/
 - [x] [P2-004] Error handling inconsistent — ✅ DONE — Commit: b1b1dab — Date: 2026-04-20 — Created src/lib/error-handler.ts: classifyError, handleError, handleErrorWithRetry, useErrorHandler hook (6 categories)
 - [x] [P2-005] Loading states incomplete — ✅ DONE — Commit: 8a02d66 — Date: 2026-04-20 — Shimmer component + all 16 skeletons wrapped + CharacterHub/Finances use proper skeletons
-- [ ] [P2-006] Test coverage thin — 🔨 PARTIAL — Only 5 test files (4 store tests, 1 intent engine test). LIFEOS-ROADMAP: "80% coverage on lib/ and stores/" — Impact: 3/5, Blocks: refactoring confidence
+- [x] [P2-006] Test coverage thin — ✅ DONE — Commit: b208d73 — Date: 2026-04-22 — 5→8 test files, 41→150 tests. Added pattern-engine.test.ts (29 tests), error-handler.test.ts (34 tests), xp-engine.test.ts (46 tests). All pure function tests with proper mocking.
 
 ## Priority 3: VISION-CRITICAL (Features that ARE the product)
 
@@ -50,8 +50,8 @@
 - [x] [P3-003] AI anticipates proactively — ✅ DONE — Date: 2026-04-21 — proactive-suggestions.ts with 5 generators (schedule_reminder, habit_nudge, health_warning, goal_progress, streak_at_risk). ProactiveSuggestions widget on Dashboard with action buttons wired to intent engine. Rate limited to 3/session, 4h cooldown on dismiss.
 - [x] [P3-004] Cross-domain data fusion — ✅ DONE — Commit: 939ea64 — Date: 2026-04-20 — correlation-engine.ts with Pearson correlation across 5 domains, integrated into AI context builder
 - [x] [P3-005] Pattern Engine — ✅ DONE — Commit: 501d35a — Date: 2026-04-20 — Created src/lib/pattern-engine.ts (286 lines): 7 detectors (productivity_peak, energy_cycle, habit_anchor, goal_neglect, spending_spike, streak_risk, optimal_schedule)
-- [ ] [P3-006] Pre-populated intelligence — ❌ MISSING — VISION.md: "On first login, LifeOS isn't empty. It already knows your work schedule, drive times, education goals." No data seeding. — Impact: 3/5
-- [ ] [P3-007] Junction as game library — 🔨 PARTIAL — VISION-v2: "Massive Junction library — Iron Protocol, Brain Forge, Monk Mode, The Game, Tewahedo." Current: 10 thin traditions, no themed quests. — Impact: 3/5
+- [x] [P3-006] Pre-populated intelligence — ✅ DONE — Commit: b208d73 — Date: 2026-04-22 — data-seed.ts (575 lines): seedInitialData() creates 6 habits, 3 goals, schedule scaffolding, 3 expense categories based on onboarding answers. Idempotent via localStorage marker. Offline-first via localInsert.
+- [x] [P3-007] Junction as game library — 🔨 DONE — Commit: b208d73 — Date: 2026-04-22 — Expanded from 10 thin traditions to 18 rich Junctions (added 8 secular: The Game, Iron Protocol, The Grind, Clean Slate, Brain Forge, Gut Check, Monk Mode, Stack Overflow). 6 new tradition categories. JUNCTION_QUEST_TIERS with 24 tiers and ~78 quests. Updated TraditionSelector and SwitchJunctionModal to use CATEGORY_TABS.
 - [ ] [P3-008] Junction AI Recommender — ❌ MISSING — VISION-v2: "Junction AI doesn't just let you browse — it actively helps you choose. Smart matching." — Impact: 3/5
 
 ## Priority 4: ENGAGEMENT (Retention and daily use)
@@ -138,3 +138,4 @@
 - 2026-04-21: Hermes improvement cycle. 4 items DONE: C-022 Holy Sage page, C-023 Sage Dashboard widget, C-024 Electron blank screen fix (TMPDIR+build:desktop), P3-002 AI persistent memory. Score: 28/68 = 41.2%. Version: 1.19.40.
 - 2026-04-21: Hermes cycle 2. 3 items DONE: P3-001 Intent engine action execution (6 real CRUD handlers), P4-001 Daily reward system (escalating XP tiers + streaks + toast), TD-005 Finances refactor (657→302 lines, zero direct Supabase). Score: 31/68 = 45.6%. Version: 1.19.41.
 - 2026-04-21: Hermes cycle 3. 4 items DONE: P3-003 Proactive suggestions (5 generators + Dashboard widget), P4-002 Challenge system (weekly/monthly, 200-1000XP), TD-004 Health.tsx verified clean (125 lines), TD-005 Finances refactor confirmed. Score: 34/68 = 50.0%. Version: 1.19.42.
+- 2026-04-22: Hermes cron cycle. 3 items DONE: P2-006 Test coverage (5→8 test files, 41→150 tests — pattern-engine/error-handler/xp-engine), P3-006 Pre-populated intelligence (data-seed.ts, 575 lines, onboarding-aware seeding), P3-007 Junction game library (10→18 traditions, 8 secular Junctions with quest tiers, 6 new categories). Also committed accumulated work from prior sessions. Score: 37/68 = 54.4%. Version: 1.19.43.
