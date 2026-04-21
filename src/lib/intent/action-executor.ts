@@ -1,7 +1,7 @@
 /**
  * LifeOS Intent Engine — Action Executor
  *
- * Executes structured IntentActions against the database.
+ * Executes structured IntentActions against the database and Zustand stores.
  * Heavy action types are delegated to dedicated executor modules
  * (goal-plan-executor, recurring-event-expander, grocery-actions,
  * health-actions).
@@ -13,10 +13,14 @@ import { useGoalsStore } from '../../stores/useGoalsStore';
 import { useScheduleStore } from '../../stores/useScheduleStore';
 import { useHabitsStore } from '../../stores/useHabitsStore';
 import { useFinanceStore } from '../../stores/useFinanceStore';
+import { useJournalStore } from '../../stores/useJournalStore';
+import { useHealthStore } from '../../stores/useHealthStore';
 import { createScheduleEvent } from '../schedule-events';
 import { syncNowImmediate } from '../sync-engine';
 import { getErrorMessage } from '../../utils/error';
 import { logger } from '../../utils/logger';
+import { localDateStr, genId } from '../../utils/date';
+import { localInsert, localUpdate, localQuery } from '../local-db';
 import type { IntentAction } from './types';
 import { parseTimeToToday } from './shorthand-parser';
 import { executeGoalPlan } from './goal-plan-executor';
@@ -105,6 +109,8 @@ async function createCompanionEvent(opts: {
 // ─── Main Action Executor ────────────────────────────────────────
 
 export async function executeActions(actions: IntentAction[]): Promise<{
+  success: boolean;
+  message: string;
   successes: string[];
   failures: string[];
 }> {
@@ -180,6 +186,8 @@ export async function executeActions(actions: IntentAction[]): Promise<{
             color:       data.color ? String(data.color) : null,
             allDay:      data.all_day === true,
           });
+          // Refresh schedule store so UI updates immediately
+          useScheduleStore.getState().invalidate();
           successes.push(`✅ Event: ${action.summary}`);
           break;
         }
@@ -193,11 +201,15 @@ export async function executeActions(actions: IntentAction[]): Promise<{
           break;
         }
         case 'habit_log': {
-          const { error } = await supabase.from('habit_logs').insert(data);
-          if (error) throw error;
-          successes.push(`✅ Habit logged: ${action.summary}`);
+          // ── Route through useHabitsStore for local-first UI update ──
+          const habitId = data.habit_id as string;
+          const logDate = (data.date as string) || localDateStr();
+          if (!habitId) throw new Error('habit_id is required for habit_log');
+          const habitTitle = useHabitsStore.getState().habits.find(h => h.id === habitId)?.title || 'Habit';
+          await useHabitsStore.getState().toggleHabit(habitId, logDate);
+          successes.push(`✅ Habit logged: ${habitTitle} on ${logDate}`);
           await createCompanionEvent({
-            userId: data.user_id as string, title: `✅ ${action.summary}`, color: '#FACC15',
+            userId: data.user_id as string, title: `✅ ${habitTitle}`, color: '#FACC15',
           });
           break;
         }
@@ -437,11 +449,57 @@ export async function executeActions(actions: IntentAction[]): Promise<{
         useScheduleStore.getState().invalidate();
         useHabitsStore.getState().invalidate();
         useFinanceStore.getState().invalidate();
+        useJournalStore.getState().invalidate();
+        useHealthStore.getState().invalidate();
       }
     } catch (syncErr) {
       logger.warn('[executeActions] Post-action sync failed:', syncErr);
     }
   }
 
-  return { successes, failures };
+  const allSuccess = failures.length === 0;
+  const message = allSuccess
+    ? (successes.length === 1
+      ? successes[0]
+      : `${successes.length} actions completed successfully`)
+    : (failures.length === 1
+      ? failures[0]
+      : `${successes.length} succeeded, ${failures.length} failed`);
+
+  return { success: allSuccess, message, successes, failures };
+}
+
+// ─── Convenience: Single-Intent Executor ──────────────────────────
+
+/**
+ * Execute a single intent action and return a simple result.
+ * Validates required fields before dispatching to executeActions.
+ *
+ * Usage:
+ *   const result = await executeIntent({ type: 'habit_log', data: { habit_id, date }, summary, confidence });
+ *   result.success // boolean
+ *   result.message // human-readable confirmation
+ */
+export async function executeIntent(action: IntentAction): Promise<{ success: boolean; message: string }> {
+  // ── Validate required fields per action type ──
+  const requiredFields: Record<string, string[]> = {
+    habit_log:   ['habit_id'],
+    health_log:  ['user_id'],
+    journal:     ['user_id', 'content'],
+    income:      ['amount', 'user_id'],
+    expense:     ['amount', 'user_id'],
+    event:       ['title', 'user_id'],
+  };
+
+  const required = requiredFields[action.type];
+  if (required) {
+    for (const field of required) {
+      if (!action.data[field]) {
+        return { success: false, message: `Missing required field: ${field}` };
+      }
+    }
+  }
+
+  const result = await executeActions([action]);
+  return { success: result.success, message: result.message };
 }

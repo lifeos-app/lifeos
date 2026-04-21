@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { ArrowLeftRight, ArrowRight, Check, Clock, Loader2, Search, Shield, AlertTriangle, X } from 'lucide-react';
 import type { JunctionTradition } from '../../hooks/useJunction';
 import { TraditionHeroBg, TraditionIcon } from './TraditionIcons';
-import { TRADITION_CATEGORIES, FALLBACK_TRADITIONS, type TraditionCategory } from './constants';
+import { TRADITION_CATEGORIES, FALLBACK_TRADITIONS, CATEGORY_TABS, type TraditionCategory } from './constants';
 
 export function SwitchJunctionModal({
   currentTradition,
@@ -51,7 +51,7 @@ export function SwitchJunctionModal({
     setSwitching(false);
   };
 
-  const categoryTabs: TraditionCategory[] = ['All', 'Abrahamic', 'Eastern', 'Indigenous', 'Philosophical'];
+  const categoryTabs: TraditionCategory[] = CATEGORY_TABS;
 
   return createPortal(
     <div className="jnc-switch-overlay" onClick={onClose}>

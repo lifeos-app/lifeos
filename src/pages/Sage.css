@@ -143,6 +143,8 @@
   color: var(--text-primary, #E2E8F0);
   font-size: 0.85rem;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: flex-start;
 }
 
 .sage-warning strong {
@@ -491,6 +493,147 @@
   font-family: var(--font-display, 'Orbitron', sans-serif);
   letter-spacing: 0.08em;
   flex-shrink: 0;
+}
+
+/* ─── Header Action Button (Download) ──────────────────────────── */
+
+.sage-header-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--text-secondary, #94A3B8);
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.sage-header-btn:hover:not(:disabled) {
+  background: rgba(192, 132, 252, 0.15);
+  border-color: rgba(192, 132, 252, 0.3);
+  color: #C084FC;
+}
+
+.sage-header-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ─── Retry Connection Button ──────────────────────────────────── */
+
+.sage-retry-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(192, 132, 252, 0.12);
+  border: 1px solid rgba(192, 132, 252, 0.3);
+  border-radius: 10px;
+  color: #C084FC;
+  font-family: var(--font-body, 'Poppins', sans-serif);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sage-retry-btn:hover:not(:disabled) {
+  background: rgba(192, 132, 252, 0.22);
+  box-shadow: 0 0 12px rgba(192, 132, 252, 0.15);
+  transform: scale(1.03);
+}
+
+.sage-retry-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sage-retry-btn .sage-spin {
+  animation: sage-spin 1s linear infinite;
+  color: #C084FC;
+}
+
+/* ─── Hermetic Section Auto-Highlight ──────────────────────────── */
+
+.sage-hermetic-section {
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 3px solid;
+  transition: all 0.2s;
+}
+
+.sage-hermetic-section + .sage-hermetic-section {
+  margin-top: 4px;
+}
+
+.sage-hermetic-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display, 'Orbitron', sans-serif);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.sage-hermetic-body {
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+/* Principle — Eye — #C084FC */
+.sage-section-principle {
+  border-left-color: #C084FC;
+  background: rgba(192, 132, 252, 0.06);
+}
+
+.sage-section-principle:hover {
+  background: rgba(192, 132, 252, 0.1);
+}
+
+/* Correspondence — BookOpen — #00D4FF */
+.sage-section-correspondence {
+  border-left-color: #00D4FF;
+  background: rgba(0, 212, 255, 0.06);
+}
+
+.sage-section-correspondence:hover {
+  background: rgba(0, 212, 255, 0.1);
+}
+
+/* Practice — Zap — #39FF14 */
+.sage-section-practice {
+  border-left-color: #39FF14;
+  background: rgba(57, 255, 20, 0.06);
+}
+
+.sage-section-practice:hover {
+  background: rgba(57, 255, 20, 0.1);
+}
+
+/* Miracle — Flame — #FFD700 */
+.sage-section-miracle {
+  border-left-color: #FFD700;
+  background: rgba(255, 215, 0, 0.06);
+}
+
+.sage-section-miracle:hover {
+  background: rgba(255, 215, 0, 0.1);
+}
+
+/* ─── Keyboard Shortcut Hint ──────────────────────────────────── */
+
+.sage-shortcut-hint {
+  opacity: 0.5;
+  font-family: var(--font-body, 'Poppins', sans-serif);
+  font-size: 0.58rem;
+  letter-spacing: 0.03em;
 }
 
 /* ─── Mobile ─────────────────────────────────────────────────────── */

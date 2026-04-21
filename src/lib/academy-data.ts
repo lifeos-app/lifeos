@@ -336,7 +336,10 @@ export async function loadTrackUrl(trackPath: string): Promise<string> {
   // Electron path: use custom protocol (lifeos-media://) for streaming — avoids IPC Buffer serialization issues
   if (isElectronCheck()) {
     const fullPath = resolveMediaPath(trackPath);
-    return `lifeos-media://${fullPath}`;
+    // Encode each path segment so spaces/special chars in filenames don't break the URL.
+    // Keep slashes as separators; join back with /
+    const encodedPath = fullPath.split('/').map(s => encodeURIComponent(s)).join('/');
+    return `lifeos-media://${encodedPath}`;
   }
 
   // Tauri path: load via Rust IPC

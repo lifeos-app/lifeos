@@ -15,7 +15,7 @@ export interface ChatMessage {
   needs_confirmation?: boolean;
   executed?: boolean;
   executing?: boolean;
-  executionResults?: { successes: string[]; failures: string[] };
+  executionResults?: { success: boolean; message: string; successes: string[]; failures: string[] };
   follow_up?: string;
   timestamp: Date;
   isStreaming?: boolean;

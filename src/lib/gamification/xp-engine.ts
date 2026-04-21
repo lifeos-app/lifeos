@@ -29,7 +29,8 @@ export type ActionType =
   | 'junction_practice'
   | 'goal_create'
   | 'healer_consult'
-  | 'scholar_study';
+  | 'scholar_study'
+  | 'daily_reward';
 
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type GoalCategory = 'goal' | 'epic' | 'objective';
@@ -44,6 +45,8 @@ export interface XPActionMetadata {
   // Junction
   tradition?: string;
   tier?: number;
+  // Daily reward — exact XP amount for the tier
+  dailyRewardXP?: number;
   // Generic
   description?: string;
 }
@@ -73,6 +76,7 @@ const BASE_XP: Record<ActionType, number> = {
   goal_create: 25,
   healer_consult: 10,
   scholar_study: 10,
+  daily_reward: 0, // Base is 0 — actual XP amount comes from daily-rewards utility via metadata
 };
 
 // Task priority multipliers
@@ -147,6 +151,11 @@ export function calculateXP(
     const TIER_XP: Record<number, number> = { 1: 10, 2: 15, 3: 20, 4: 25 };
     baseXP = TIER_XP[metadata.tier] ?? 10;
     breakdown.push(`Junction practice (Tier ${metadata.tier}): ${baseXP} XP`);
+  }
+  // Daily reward — exact XP from tier system
+  else if (action === 'daily_reward' && metadata.dailyRewardXP) {
+    baseXP = metadata.dailyRewardXP;
+    breakdown.push(`Daily login reward: ${baseXP} XP`);
   }
   // Habit with streak bonus
   else if (action === 'habit_log' && metadata.streakDays) {
@@ -331,7 +340,17 @@ export async function awardXP(
     logger.error('[xp-engine] Failed to update user_xp in local-db:', e);
   }
 
-  // 7. Trigger background sync (debounced)
+  // 7. Update challenge progress (non-blocking)
+  try {
+    const { updateChallengeProgressFromXP } = await import('../challenges');
+    updateChallengeProgressFromXP(action);
+    // Dispatch event so ChallengeCard UI refreshes
+    window.dispatchEvent(new CustomEvent('challenge-progress'));
+  } catch (e) {
+    // Non-critical — don't block XP awarding
+  }
+
+  // 8. Trigger background sync (debounced)
   syncNow(userId).catch(() => { /* non-blocking */ });
 
   return {
@@ -436,6 +455,8 @@ function actionToCategory(action: string): string {
       return 'social';
     case 'junction_practice':
       return 'knowledge';
+    case 'daily_reward':
+      return 'consistency';
     default:
       return 'productivity';
   }

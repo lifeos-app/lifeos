@@ -1,0 +1,214 @@
+/* DailyRewardToast — Animated daily login reward notification */
+
+.daily-reward-toast {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
+  background: var(--bg-glass);
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(20px);
+  animation: daily-reward-slide-in 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(255, 215, 0, 0.08);
+}
+
+.daily-reward-toast.dismiss {
+  animation: daily-reward-slide-out 0.3s ease forwards;
+}
+
+.daily-reward-toast.claimed {
+  border-color: rgba(57, 255, 20, 0.2);
+  box-shadow: 0 4px 24px rgba(57, 255, 20, 0.08);
+}
+
+/* Slide in */
+@keyframes daily-reward-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Slide out */
+@keyframes daily-reward-slide-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.97);
+  }
+}
+
+/* Close button */
+.daily-reward-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.daily-reward-close:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+}
+
+/* Icon */
+.daily-reward-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: var(--accent-gold-dim);
+}
+
+.daily-reward-toast.claimed .daily-reward-icon {
+  background: var(--accent-neon-dim);
+}
+
+/* Content */
+.daily-reward-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.daily-reward-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.2px;
+}
+
+.daily-reward-xp {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent-gold);
+  letter-spacing: 0.5px;
+}
+
+.daily-reward-toast.claimed .daily-reward-xp {
+  color: var(--accent-neon);
+}
+
+/* Weekly bonus badge */
+.daily-reward-badge {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 1px 8px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--accent-orange);
+  background: var(--accent-orange-dim);
+  border: 1px solid rgba(249, 115, 22, 0.25);
+  border-radius: var(--radius-full);
+  width: fit-content;
+}
+
+/* Claim button */
+.daily-reward-claim-btn {
+  flex-shrink: 0;
+  padding: 6px 18px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--bg-primary);
+  background: var(--gradient-gold);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+  box-shadow: 0 2px 12px rgba(255, 215, 0, 0.25);
+}
+
+.daily-reward-claim-btn:hover {
+  transform: scale(1.04);
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.35);
+}
+
+.daily-reward-claim-btn:active {
+  transform: scale(0.98);
+}
+
+/* Check mark */
+.daily-reward-check {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent-neon);
+  background: var(--accent-neon-dim);
+  border-radius: 50%;
+  animation: daily-reward-pop 0.3s cubic-bezier(0.21, 1.2, 0.73, 1);
+}
+
+@keyframes daily-reward-pop {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Fire particles for 7+ day streaks */
+.daily-reward-fire {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  right: 0;
+  height: 20px;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.fire-particle {
+  position: absolute;
+  top: 0;
+  font-size: 14px;
+  animation: fire-rise 1.2s ease-out infinite;
+  opacity: 0;
+}
+
+@keyframes fire-rise {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateY(-14px) scale(1.1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-28px) scale(0.6);
+    opacity: 0;
+  }
+}

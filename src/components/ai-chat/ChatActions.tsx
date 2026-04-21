@@ -65,9 +65,13 @@ export function ChatActionCards({ msg, onConfirm, onDismiss }: ChatActionCardsPr
       {/* Execution results */}
       {msg.executed && msg.executionResults && (
         <div className="ai-chat-results">
-          {msg.executionResults.successes.map((s, i) => (
-            <div key={i} className="ai-chat-result ok">{s}</div>
-          ))}
+          {msg.executionResults.success && msg.executionResults.successes.length > 0 && (
+            <div className="ai-chat-result-banner ok">
+              {msg.executionResults.successes.map((s, i) => (
+                <div key={i} className="ai-chat-result ok">{s}</div>
+              ))}
+            </div>
+          )}
           {msg.executionResults.failures.map((f, i) => (
             <div key={i} className="ai-chat-result err">{f}</div>
           ))}

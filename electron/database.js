@@ -35,7 +35,7 @@ const ALLOWED_TABLES = new Set([
   'rpg_characters', 'rpg_quest_log', 'user_xp', 'xp_events',
   'achievements', 'inventory_items', 'pet_profiles', 'categories',
   'projects', 'notes', 'assets', 'asset_maintenance', 'asset_bills',
-  'asset_documents', 'ai_insights', 'chat_messages', 'unified_events',
+  'asset_documents',  'ai_insights', 'chat_messages', 'ai_conversations', 'unified_events',
   'sync_meta', 'lesson_progress', 'parts_inventory',
 ]);
 
@@ -58,6 +58,7 @@ const JSON_FIELDS = new Set([
   'tags', 'metadata', 'preferences', 'stats', 'equipment',
   'position', 'sprite_data', 'exercises', 'attachments',
   'context', 'key_results', 'resources', 'steps_completed', 'custom_fields',
+  'messages_json',
 ]);
 
 const ALLOWED_COLUMNS = new Set([
@@ -114,6 +115,7 @@ const ALLOWED_COLUMNS = new Set([
   'lesson_id', 'module_id', 'current_step', 'steps_completed',
   'total_practice_time', 'last_practiced_at',
   'supplier', 'sku', 'unit_price', 'custom_fields',
+  'messages_json',
 ]);
 
 // Directories the app is allowed to read from (academy, assets, data)

@@ -4,7 +4,7 @@ import { Sparkles, Lock, Zap, Check, Loader2, Calendar, BookOpen, Globe, ArrowRi
 import type { JunctionTradition } from '../../hooks/useJunction';
 import { showToast } from '../Toast';
 import { TraditionHeroBg, TraditionIcon } from './TraditionIcons';
-import { TRADITION_CATEGORIES, FALLBACK_TRADITIONS, getFaithPathInfo, type TraditionCategory } from './constants';
+import { TRADITION_CATEGORIES, FALLBACK_TRADITIONS, CATEGORY_TABS, getFaithPathInfo, type TraditionCategory } from './constants';
 import { AIMatchingModal } from './AIMatchingModal';
 
 export function TraditionSelector({
@@ -55,7 +55,7 @@ export function TraditionSelector({
     }
   };
 
-  const categoryTabs: TraditionCategory[] = ['All', 'Abrahamic', 'Eastern', 'Indigenous', 'Philosophical'];
+  const categoryTabs: TraditionCategory[] = CATEGORY_TABS;
 
   return (
     <div className="jnc-selector">

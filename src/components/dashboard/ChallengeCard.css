@@ -1,0 +1,304 @@
+/* ChallengeCard — Weekly & Monthly challenge progress display */
+/* Dark glass aesthetic with accent-color progress bars */
+
+.challenge-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.challenge-section {
+  background: var(--bg-glass);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  backdrop-filter: blur(20px);
+  transition: border-color 0.2s ease;
+}
+
+.challenge-section:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.challenge-weekly {
+  animation: challenge-slide-in 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+}
+
+.challenge-monthly {
+  animation: challenge-slide-in 0.35s cubic-bezier(0.21, 1.02, 0.73, 1) 0.05s both;
+}
+
+@keyframes challenge-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header layout */
+.challenge-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+/* Icon */
+.challenge-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  border: 1px solid;
+}
+
+.challenge-emoji {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Info section */
+.challenge-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.challenge-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.challenge-type-badge {
+  display: inline-block;
+  padding: 1px 7px;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #A855F7;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: var(--radius-full);
+}
+
+.challenge-type-badge.monthly-badge {
+  color: #FFD700;
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(255, 215, 0, 0.2);
+}
+
+.challenge-time-left {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.2px;
+}
+
+.challenge-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.1px;
+  line-height: 1.3;
+}
+
+.challenge-desc {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.challenge-desc-compact {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* XP badge */
+.challenge-xp-badge {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  border: 1px solid;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.03);
+  white-space: nowrap;
+}
+
+.challenge-xp-monthly {
+  font-size: 9px;
+  padding: 2px 6px;
+}
+
+/* Progress bar */
+.challenge-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.challenge-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.challenge-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s cubic-bezier(0.21, 1.02, 0.73, 1), background 0.3s ease;
+  position: relative;
+}
+
+.challenge-progress-fill.completed {
+  animation: challenge-glow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes challenge-glow {
+  from {
+    box-shadow: 0 0 4px rgba(57, 255, 20, 0.3);
+  }
+  to {
+    box-shadow: 0 0 12px rgba(57, 255, 20, 0.5);
+  }
+}
+
+.challenge-progress-text {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 44px;
+  text-align: right;
+  letter-spacing: 0.2px;
+}
+
+.challenge-complete-text {
+  color: #39FF14;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.challenge-claimed-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+
+/* Claim button */
+.challenge-claim-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 7px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--bg-primary);
+  background: linear-gradient(135deg, var(--btn-accent, #39FF14), color-mix(in srgb, var(--btn-accent, #39FF14) 70%, #00D4FF));
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+  box-shadow: 0 2px 16px color-mix(in srgb, var(--btn-accent, #39FF14) 30%, transparent);
+  animation: claim-pulse 1.5s ease-in-out infinite;
+}
+
+.challenge-claim-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 24px color-mix(in srgb, var(--btn-accent, #39FF14) 40%, transparent);
+}
+
+.challenge-claim-btn:active {
+  transform: scale(0.98);
+}
+
+.challenge-claim-btn.just-claimed {
+  animation: claim-pop 0.4s cubic-bezier(0.21, 1.2, 0.73, 1);
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+}
+
+@keyframes claim-pulse {
+  0%, 100% {
+    box-shadow: 0 2px 16px color-mix(in srgb, var(--btn-accent, #39FF14) 30%, transparent);
+  }
+  50% {
+    box-shadow: 0 4px 24px color-mix(in srgb, var(--btn-accent, #39FF14) 45%, transparent);
+  }
+}
+
+@keyframes claim-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+.challenge-claim-monthly {
+  font-size: 12px;
+  padding: 8px 18px;
+}
+
+/* Monthly toggle */
+.challenge-monthly-toggle {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+}
+
+.challenge-monthly-toggle:focus-visible {
+  outline: 2px solid rgba(255, 215, 0, 0.4);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.challenge-expand-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  padding-top: 4px;
+  transition: transform 0.2s ease;
+}
+
+.challenge-monthly-details {
+  padding-top: 8px;
+  animation: challenge-expand 0.25s ease forwards;
+}
+
+@keyframes challenge-expand {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 200px;
+  }
+}

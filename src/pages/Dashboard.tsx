@@ -66,7 +66,11 @@ import {
   DashboardWeeklyInsight,
   DashboardFinancialPulse,
   SleepQuickLog,
+  SageWidget,
+  DailyRewardToast,
+  ChallengeCard,
 } from '../components/dashboard';
+import { ProactiveSuggestions } from '../components/dashboard/ProactiveSuggestions';
 import { HolyHermesOracle } from '../components/HolyHermesOracle';
 import { Brain } from 'lucide-react';
 import { AgentNudgeBar } from '../components/agent';
@@ -367,6 +371,8 @@ export function Dashboard() {
       headerExtra={modeBadge}
     >
       <div className="dash" style={{ '--dash-accent': dashMode.accent } as React.CSSProperties}>
+        <DailyRewardToast />
+        <ChallengeCard />
         <AgentNudgeBar />
         {fetchError && <ErrorCard message={fetchError} onRetry={fetchAll} />}
         {loading && tasks.length === 0 && <DashboardSkeleton />}
@@ -472,6 +478,11 @@ export function Dashboard() {
                   <DashboardDailyProgress />
                 </FeatureErrorBoundary>
               )}
+              {isWidgetVisible('proactive-suggest') && (
+                <FeatureErrorBoundary feature="Proactive Suggestions" compact>
+                  <ProactiveSuggestions />
+                </FeatureErrorBoundary>
+              )}
               {isWidgetVisible('sleep-quick-log') && (
                 <FeatureErrorBoundary feature="Sleep Quick Log" compact>
                   <SleepQuickLog
@@ -519,6 +530,11 @@ export function Dashboard() {
               {isWidgetVisible('holy-hermes') && (
                 <FeatureErrorBoundary feature="Holy Hermes Oracle" compact>
                   <HolyHermesOracle />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('sage-oracle') && (
+                <FeatureErrorBoundary feature="Sage Oracle" compact>
+                  <SageWidget />
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('life-pulse') && (

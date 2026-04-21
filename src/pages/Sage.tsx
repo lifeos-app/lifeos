@@ -17,7 +17,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Sparkles, Send, Trash2, AlertCircle, Loader2, Flame, Eye, BookOpen, Zap } from 'lucide-react';
+import { Sparkles, Send, Trash2, AlertCircle, Loader2, Flame, Eye, BookOpen, Zap, Download, RefreshCw } from 'lucide-react';
 import './Sage.css';
 
 // ─── Ollama Config ──────────────────────────────────────────────────
@@ -195,6 +195,74 @@ async function streamOracle(
   }
 }
 
+// ─── Hermetic Principle Auto-Highlight ──────────────────────────────
+
+interface ParsedSection {
+  cssClass: string;
+  icon: typeof Eye;
+  label: string;
+  color: string;
+  content: string;
+}
+
+function parseHermeticSections(text: string): ParsedSection[] | null {
+  // Match section headers: **THE PRINCIPLE:** or THE PRINCIPLE:
+  const headerRegex = /\*\*THE (PRINCIPLE|CORRESPONDENCE|PRACTICE|MIRACLE):?\*\*:?\s*|THE (PRINCIPLE|CORRESPONDENCE|PRACTICE|MIRACLE):?\s/gi;
+
+  const matches = Array.from(text.matchAll(headerRegex));
+  if (matches.length === 0) return null;
+
+  const sections: ParsedSection[] = [];
+  const classMap: Record<string, { icon: typeof Eye; label: string; color: string; cssClass: string }> = {
+    principle: { icon: Eye, label: 'The Principle', color: '#C084FC', cssClass: 'sage-section-principle' },
+    correspondence: { icon: BookOpen, label: 'The Correspondence', color: '#00D4FF', cssClass: 'sage-section-correspondence' },
+    practice: { icon: Zap, label: 'The Practice', color: '#39FF14', cssClass: 'sage-section-practice' },
+    miracle: { icon: Flame, label: 'The Miracle', color: '#FFD700', cssClass: 'sage-section-miracle' },
+  };
+
+  for (let i = 0; i < matches.length; i++) {
+    const match = matches[i];
+    const key = (match[1] || match[2]).toLowerCase();
+    const meta = classMap[key];
+    if (!meta) continue;
+
+    const startIdx = match.index! + match[0].length;
+    const endIdx = i + 1 < matches.length ? matches[i + 1].index! : text.length;
+    const content = text.slice(startIdx, endIdx).trim();
+
+    if (content) {
+      sections.push({ ...meta, content });
+    }
+  }
+
+  return sections.length > 0 ? sections : null;
+}
+
+// ─── Conversation Export ─────────────────────────────────────────────
+
+function exportConversation(messages: ChatMessage[]): void {
+  const lines: string[] = ['# Holy Sage — Oracle Conversation', '', `Exported: ${new Date().toLocaleString()}`, ''];
+
+  for (const msg of messages) {
+    if (msg.role === 'user') {
+      lines.push(`## You`, '', msg.content, '');
+    } else if (msg.role === 'assistant') {
+      lines.push(`## Oracle`, '', msg.content, '');
+    }
+    lines.push('---', '');
+  }
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `sage-conversation-${new Date().toISOString().slice(0, 10)}.md`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 // ─── Component ──────────────────────────────────────────────────────
 
 export function Sage() {
@@ -203,12 +271,25 @@ export function Sage() {
   const [streaming, setStreaming] = useState(false);
   const [streamText, setStreamText] = useState('');
   const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
+  const [reconnecting, setReconnecting] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Check Ollama on mount
   useEffect(() => {
     checkOllama().then(setOllamaStatus);
+  }, []);
+
+  // Keyboard shortcut: Ctrl+/ or Cmd+/ focuses the input
+  useEffect(() => {
+    function handleGlobalKeyDown(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    }
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, []);
 
   // Auto-scroll to bottom on new messages
@@ -220,6 +301,15 @@ export function Sage() {
   useEffect(() => {
     saveHistory(messages);
   }, [messages]);
+
+  // Retry Ollama connection
+  const retryConnection = useCallback(() => {
+    setReconnecting(true);
+    checkOllama().then((status) => {
+      setOllamaStatus(status);
+      setReconnecting(false);
+    });
+  }, []);
 
   const clearHistory = useCallback(() => {
     setMessages([]);
@@ -240,6 +330,10 @@ export function Sage() {
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput('');
+    // Reset textarea height after clearing input
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+    }
     setStreaming(true);
     setStreamText('');
 
@@ -278,6 +372,14 @@ export function Sage() {
     }
   }, [send]);
 
+  // Auto-resize textarea
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    const el = e.target;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }, []);
+
   // Hermetic principle labels for structured oracle responses
   const principleLabels = useMemo(() => [
     { icon: Eye, label: 'Principle', color: '#C084FC' },
@@ -307,6 +409,14 @@ export function Sage() {
               {isOllamaReady ? '● Connected' : '○ Offline'}
             </span>
           )}
+          <button
+            className="sage-header-btn"
+            onClick={() => exportConversation(messages)}
+            title="Export conversation as markdown"
+            disabled={messages.length === 0}
+          >
+            <Download size={16} />
+          </button>
           <button
             className="sage-clear-btn"
             onClick={clearHistory}
@@ -341,6 +451,15 @@ export function Sage() {
             </p>
             {ollamaStatus.error && <p className="sage-warning-detail">Error: {ollamaStatus.error}</p>}
           </div>
+          <button
+            className="sage-retry-btn"
+            onClick={retryConnection}
+            disabled={reconnecting}
+            title="Retry Ollama connection"
+          >
+            <RefreshCw size={16} className={reconnecting ? 'sage-spin' : ''} />
+            <span>{reconnecting ? 'Connecting...' : 'Retry Connection'}</span>
+          </button>
         </div>
       )}
 
@@ -365,36 +484,76 @@ export function Sage() {
           </div>
         )}
 
-        {messages.map(msg => (
-          <div key={msg.id} className={`sage-msg sage-msg-${msg.role}`}>
-            <div className="sage-msg-avatar">
-              {msg.role === 'user' ? (
-                <span className="sage-avatar-user">You</span>
-              ) : (
-                <Sparkles size={18} />
-              )}
+        {messages.map(msg => {
+          // Attempt hermetic section parsing for assistant messages
+          const sections = msg.role === 'assistant' ? parseHermeticSections(msg.content) : null;
+
+          return (
+            <div key={msg.id} className={`sage-msg sage-msg-${msg.role}`}>
+              <div className="sage-msg-avatar">
+                {msg.role === 'user' ? (
+                  <span className="sage-avatar-user">You</span>
+                ) : (
+                  <Sparkles size={18} />
+                )}
+              </div>
+              <div className="sage-msg-content">
+                {sections ? (
+                  sections.map((sec, idx) => (
+                    <div key={idx} className={`sage-hermetic-section ${sec.cssClass}`}>
+                      <div className="sage-hermetic-header">
+                        <sec.icon size={14} style={{ color: sec.color }} />
+                        <span style={{ color: sec.color }}>{sec.label}</span>
+                      </div>
+                      <div className="sage-hermetic-body">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {sec.content}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {msg.content}
+                  </ReactMarkdown>
+                )}
+              </div>
             </div>
-            <div className="sage-msg-content">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {msg.content}
-              </ReactMarkdown>
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Streaming response in progress */}
-        {streaming && streamText && (
-          <div className="sage-msg sage-msg-assistant sage-msg-streaming">
-            <div className="sage-msg-avatar">
-              <Sparkles size={18} className="sage-icon-pulse" />
+        {streaming && streamText && (() => {
+          const sections = parseHermeticSections(streamText);
+          return (
+            <div className="sage-msg sage-msg-assistant sage-msg-streaming">
+              <div className="sage-msg-avatar">
+                <Sparkles size={18} className="sage-icon-pulse" />
+              </div>
+              <div className="sage-msg-content">
+                {sections ? (
+                  sections.map((sec, idx) => (
+                    <div key={idx} className={`sage-hermetic-section ${sec.cssClass}`}>
+                      <div className="sage-hermetic-header">
+                        <sec.icon size={14} style={{ color: sec.color }} />
+                        <span style={{ color: sec.color }}>{sec.label}</span>
+                      </div>
+                      <div className="sage-hermetic-body">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {sec.content}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {streamText}
+                  </ReactMarkdown>
+                )}
+              </div>
             </div>
-            <div className="sage-msg-content">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {streamText}
-              </ReactMarkdown>
-            </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Loading indicator (Ollama thinking) */}
         {streaming && !streamText && (
@@ -418,7 +577,7 @@ export function Sage() {
           ref={inputRef}
           className="sage-input"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder="Speak at the crossroads..."
           disabled={streaming || !isOllamaReady}
@@ -439,6 +598,8 @@ export function Sage() {
         <span>As Above, So Below</span>
         <span>·</span>
         <span>{SAGE_MODEL}</span>
+        <span>·</span>
+        <span className="sage-shortcut-hint">Ctrl+/ to focus</span>
       </div>
     </div>
   );

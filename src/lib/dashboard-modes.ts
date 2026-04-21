@@ -50,7 +50,9 @@ const W = {
   realmPreview:     'realm-preview',
   npcInsight:       'npc-insight',
   celestial:        'celestial',
+  proactiveSuggest: 'proactive-suggest',
   holyHermes:       'holy-hermes',
+  sageOracle:        'sage-oracle',
   lifePulse:        'life-pulse',
   sleepQuickLog:    'sleep-quick-log',
   completionRates:  'completion-rates',
@@ -61,6 +63,7 @@ const W = {
   goals:            'goals',
   achievements:     'achievements',
   agentNudge:       'agent-nudge',
+  dailyReward:      'daily-reward',
 } as const;
 
 type WidgetId = typeof W[keyof typeof W];
@@ -69,52 +72,61 @@ type WidgetId = typeof W[keyof typeof W];
 
 const MORNING_WIDGETS: ModeWidgetConfig[] = [
   // Morning (6am-12pm): Focus on preparation
+  { id: W.dailyReward,    priority: 10, collapsed: false },  // Daily login reward (morning prime)
   { id: W.schedule,        priority: 10, collapsed: false },  // Calendar preview
   { id: W.sleepQuickLog,   priority: 9,  collapsed: false },  // Sleep quick log (morning wake-up)
-  { id: W.triage,          priority: 8,  collapsed: false },  // Priority tasks
-  { id: W.morningBrief,    priority: 7,  collapsed: false },  // Morning journal prompt
-  { id: W.habits,          priority: 6,  collapsed: false },  // Habit check-in
-  { id: W.streakMomentum,  priority: 5,  collapsed: false },  // Streaks
-  { id: W.holyHermes,      priority: 4,  collapsed: true },
-  { id: W.quickActions,    priority: 3,  collapsed: true },
-  { id: W.stats,           priority: 2,  collapsed: true },
-  { id: W.dailyProgress,   priority: 1,  collapsed: true },
+  { id: W.sageOracle,      priority: 8,  collapsed: false },  // Sage Oracle — spiritual morning
+  { id: W.proactiveSuggest, priority: 7,  collapsed: false },  // Proactive AI suggestions
+  { id: W.triage,          priority: 7,  collapsed: false },  // Priority tasks
+  { id: W.morningBrief,    priority: 6,  collapsed: false },  // Morning journal prompt
+  { id: W.habits,          priority: 5,  collapsed: false },  // Habit check-in
+  { id: W.streakMomentum,  priority: 4,  collapsed: true },
+  { id: W.holyHermes,      priority: 3,  collapsed: true },
+  { id: W.quickActions,    priority: 2,  collapsed: true },
+  { id: W.stats,           priority: 1,  collapsed: true },
 ];
 
 const ACTIVE_WIDGETS: ModeWidgetConfig[] = [
-  // Active (12pm-9pm): Focus on doing
+  // Active (12pm-9pm): Focus on doing — sage oracle collapsed (low priority)
   { id: W.triage,          priority: 10, collapsed: false },  // Active task
+  { id: W.dailyReward,    priority: 5,  collapsed: false },  // Daily login reward (lower mid-day)
   { id: W.financialPulse,  priority: 9,  collapsed: false },  // Financial pulse
   { id: W.quickActions,    priority: 8,  collapsed: false },  // Quick actions
+  { id: W.proactiveSuggest, priority: 7,  collapsed: false },  // Proactive AI suggestions
   { id: W.tasks,           priority: 7,  collapsed: false },  // Live timeline
   { id: W.habits,          priority: 6,  collapsed: false },  // Habit progress
   { id: W.dailyProgress,   priority: 5,  collapsed: false },  // Goal progress
   { id: W.sleepQuickLog,   priority: 4,  collapsed: true },  // Sleep summary (collapsed)
   { id: W.morningBrief,    priority: 3,  collapsed: true },
   { id: W.streakMomentum,  priority: 2,  collapsed: true },
-  { id: W.holyHermes,      priority: 1,  collapsed: true },
+  { id: W.sageOracle,      priority: 1,  collapsed: true },  // Lower priority during active hours
 ];
 
 const EVENING_WIDGETS: ModeWidgetConfig[] = [
   // Evening (9pm-midnight): Focus on reflection
   { id: W.dailyProgress,   priority: 10, collapsed: false },  // Daily review
+  { id: W.dailyReward,    priority: 8,  collapsed: false },  // Daily login reward (evening catch-up)
   { id: W.sleepQuickLog,   priority: 9,  collapsed: false },  // Bedtime tracking
   { id: W.journal,         priority: 8,  collapsed: false },  // Journal entry
-  { id: W.goals,           priority: 7,  collapsed: false },  // Goal progress
-  { id: W.streakMomentum,  priority: 6,  collapsed: false },  // Streaks
-  { id: W.schedule,        priority: 5,  collapsed: false },  // Tomorrow preview
-  { id: W.holyHermes,      priority: 4,  collapsed: true },
-  { id: W.financialPulse,  priority: 3,  collapsed: true },
-  { id: W.triage,          priority: 2,  collapsed: true },
-  { id: W.habits,          priority: 1,  collapsed: true },
+  { id: W.sageOracle,      priority: 7,  collapsed: false },  // Sage Oracle — evening wisdom
+  { id: W.proactiveSuggest, priority: 7,  collapsed: false },  // Proactive AI suggestions
+  { id: W.goals,           priority: 6,  collapsed: false },  // Goal progress
+  { id: W.streakMomentum,  priority: 5,  collapsed: false },  // Streaks
+  { id: W.schedule,        priority: 4,  collapsed: true },
+  { id: W.holyHermes,      priority: 3,  collapsed: true },
+  { id: W.financialPulse,  priority: 2,  collapsed: true },
+  { id: W.triage,          priority: 1,  collapsed: true },
 ];
 
 const NIGHT_WIDGETS: ModeWidgetConfig[] = [
-  // Night (midnight-6am): Minimal
-  { id: W.sleepQuickLog,   priority: 10, collapsed: false },  // Bedtime tracking
-  { id: W.journal,         priority: 9,  collapsed: false },  // Quick log
-  { id: W.dailyProgress,   priority: 8,  collapsed: false },  // Today's score
-  { id: W.celestial,       priority: 7,  collapsed: false },  // Sleep reminder (ambient)
+  // Night (midnight-6am): Minimal — spiritual/soulful time
+  { id: W.sageOracle,      priority: 10, collapsed: false },  // Sage Oracle — prime spiritual time
+  { id: W.sleepQuickLog,   priority: 9,  collapsed: false },  // Bedtime tracking
+  { id: W.journal,         priority: 8,  collapsed: false },  // Quick log
+  { id: W.dailyReward,    priority: 8,  collapsed: false },  // Daily login reward (night owl catch)
+  { id: W.dailyProgress,   priority: 7,  collapsed: false },  // Today's score
+  { id: W.proactiveSuggest, priority: 7,  collapsed: false },  // Proactive AI suggestions
+  { id: W.celestial,       priority: 6,  collapsed: false },  // Sleep reminder (ambient)
   { id: W.triage,          priority: 3,  collapsed: true },
   { id: W.habits,          priority: 2,  collapsed: true },
   { id: W.holyHermes,      priority: 1,  collapsed: true },

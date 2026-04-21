@@ -5,18 +5,25 @@ import { useSubscription } from '../hooks/useSubscription';
 import { useGamificationContext } from '../lib/gamification/context';
 import { Sparkles } from 'lucide-react';
 import { getErrorMessage } from '../utils/error';
+import { showToast } from '../components/Toast';
 import { agentChatStream, type AgentChatResponse } from '../lib/zeroclaw-client';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import {
   callIntentEngine, executeActions, loadIntentContext,
   getAISettings,
-  type IntentResult, type IntentContext, type RateLimitInfo,
+  type IntentResult, type IntentContext, type RateLimitInfo, type ExecuteIntentResult,
 } from '../lib/intent-engine';
 import { executeTool, detectToolIntent, type OrchestratorToolName } from '../lib/llm/orchestrator';
 import { supabase } from '../lib/data-access';
 import { streamText, type StreamController } from '../lib/streaming';
 import { genId } from '../utils/date';
 import { safeScrollIntoView } from '../utils/scroll';
+import {
+  createConversation, saveConversationMessages,
+  listConversations, loadConversation, deleteConversation,
+  generateTitle,
+  type AIConversationMeta,
+} from '../lib/ai-memory';
 import './AIChat.css';
 import { logger } from '../utils/logger';
 
@@ -43,6 +50,12 @@ export function AIChat() {
   const [streaming, setStreaming] = useState(false);
   const agentAbortRef = useRef<AbortController | null>(null);
   const [externalInputFocused, setExternalInputFocused] = useState(false);
+
+  // ─── AI Persistent Memory State ─────────────────────────────────
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [currentConversationTitle, setCurrentConversationTitle] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<AIConversationMeta[]>([]);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Broadcast open/close state so VoiceFAB can hide
   useEffect(() => {
@@ -113,12 +126,31 @@ export function AIChat() {
   useEffect(() => {
     migrateLegacyChat(user?.id);
     setMessages(loadChatHistory(user?.id));
+    // Also load conversation list from DB (local mode)
+    if (user?.id) {
+      listConversations(user.id).then(setConversations).catch(() => {});
+    } else {
+      setConversations([]);
+      setCurrentConversationId(null);
+      setCurrentConversationTitle(null);
+    }
   }, [user?.id]);
 
-  // Persist messages to localStorage when they change (per-user)
+  // Persist messages to localStorage when they change (per-user) — always, as fallback
+  // Also persist to SQLite via ai-memory if we have a conversation id
   useEffect(() => {
-    if (messages.length > 0) saveChatHistory(messages, user?.id);
-  }, [messages, user?.id]);
+    if (messages.length > 0) {
+      saveChatHistory(messages, user?.id);
+      // Debounced save to SQLite (avoid saving on every streaming chunk)
+      if (currentConversationId && user?.id) {
+        if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = setTimeout(() => {
+          saveConversationMessages(currentConversationId, messages);
+        }, 1000);
+      }
+    }
+    return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
+  }, [messages, user?.id, currentConversationId]);
 
   // Load context when opening
   useEffect(() => {
@@ -402,6 +434,18 @@ export function AIChat() {
     };
     setMessages(prev => [...prev, userMsg]);
 
+    // ─── AI Persistent Memory: create conversation on first message ───
+    if (!currentConversationId && user?.id) {
+      // Fire-and-forget: create a DB record & set title from message
+      const convId = await createConversation(user.id, msg);
+      if (convId) {
+        setCurrentConversationId(convId);
+        setCurrentConversationTitle(generateTitle(msg));
+        // Refresh conversation list
+        listConversations(user.id).then(setConversations).catch(() => {});
+      }
+    }
+
     setLoading(true);
 
     // Create abort controller for this request
@@ -593,10 +637,23 @@ export function AIChat() {
                   if (execResult.failures && execResult.failures.length > 0) {
                     updatedContent = updatedContent + '\n\n⚠️ **Action Failures:**\n' + execResult.failures.map(f => `- ${f}`).join('\n');
                   }
+                  // Append success summary inline if not already in content
+                  if (execResult.success && execResult.successes.length > 0) {
+                    const successLine = execResult.successes.join(' · ');
+                    if (!updatedContent.includes(successLine)) {
+                      updatedContent = updatedContent + '\n\n✅ ' + successLine;
+                    }
+                  }
                   return { ...m, content: updatedContent, executing: false, executed: true, executionResults: execResult, isStreaming: false };
                 }
                 return m;
               }));
+              // Show green toast for successful action execution
+              if (execResult.success) {
+                showToast(execResult.message, '✅', '#22C55E');
+              } else {
+                showToast(execResult.message, '⚠️', '#F97316');
+              }
               window.dispatchEvent(new Event('lifeos-refresh'));
               // Second refresh after a short delay to catch async companion events
               setTimeout(() => window.dispatchEvent(new Event('lifeos-refresh')), 1500);
@@ -698,7 +755,7 @@ export function AIChat() {
       setLoading(false);
       setStreaming(false);
     }
-  }, [input, loading, streaming, context, messages, navigate, location.pathname, user?.id, tier, rateLimit, callServerAgent, isDeepQuery]);
+  }, [input, loading, streaming, context, messages, navigate, location.pathname, user?.id, tier, rateLimit, callServerAgent, isDeepQuery, currentConversationId]);
 
   const confirmActions = useCallback(async (msgId: string) => {
     setMessages(prev => prev.map(m => {
@@ -719,6 +776,13 @@ export function AIChat() {
       if (result.failures && result.failures.length > 0) {
         updatedContent = updatedContent + '\n\n⚠️ **Action Failures:**\n' + result.failures.map(f => `- ${f}`).join('\n');
       }
+      // Append success summary inline if not already in content
+      if (result.success && result.successes.length > 0) {
+        const successLine = result.successes.join(' · ');
+        if (!updatedContent.includes(successLine)) {
+          updatedContent = updatedContent + '\n\n✅ ' + successLine;
+        }
+      }
       return {
         ...m,
         content: updatedContent,
@@ -728,6 +792,13 @@ export function AIChat() {
         executionResults: result,
       };
     }));
+
+    // Show green toast for successful action execution
+    if (result.success) {
+      showToast(result.message, '✅', '#22C55E');
+    } else {
+      showToast(result.message, '⚠️', '#F97316');
+    }
 
     window.dispatchEvent(new Event('lifeos-refresh'));
     setTimeout(() => window.dispatchEvent(new Event('lifeos-refresh')), 1500);
@@ -770,8 +841,51 @@ export function AIChat() {
     setMessages([]);
     setContext(null); // Force reload context next time
     setShowSuggestions(true);
+    // Reset conversation tracking (start fresh, new conversation on next message)
+    setCurrentConversationId(null);
+    setCurrentConversationTitle(null);
     try { localStorage.removeItem(getChatStorageKey(user?.id)); } catch { /* Safari private */ }
   };
+
+  // ─── AI Persistent Memory: conversation handlers ──────────────────
+  const handleSelectConversation = useCallback(async (convId: string) => {
+    if (!user?.id) return;
+    try {
+      const conv = await loadConversation(convId);
+      if (conv) {
+        cancelGeneration();
+        setMessages(conv.messages_json);
+        setCurrentConversationId(conv.id);
+        setCurrentConversationTitle(conv.title);
+        setShowSuggestions(conv.messages_json.length === 0);
+      }
+    } catch (err) {
+      logger.warn('[AIChat] Failed to load conversation:', err);
+    }
+  }, [user?.id, cancelGeneration]);
+
+  const handleNewConversation = useCallback(() => {
+    cancelGeneration();
+    setMessages([]);
+    setCurrentConversationId(null);
+    setCurrentConversationTitle(null);
+    setContext(null);
+    setShowSuggestions(true);
+  }, [cancelGeneration]);
+
+  const handleDeleteConversation = useCallback(async (convId: string) => {
+    if (!user?.id) return;
+    await deleteConversation(convId);
+    // If deleting the current conversation, reset
+    if (convId === currentConversationId) {
+      setMessages([]);
+      setCurrentConversationId(null);
+      setCurrentConversationTitle(null);
+      setShowSuggestions(true);
+    }
+    // Refresh list
+    listConversations(user.id).then(setConversations).catch(() => {});
+  }, [user?.id, currentConversationId]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -815,9 +929,15 @@ export function AIChat() {
       <ChatHeader
         pathname={location.pathname}
         rateLimit={rateLimit}
+        currentConversationId={currentConversationId}
+        currentTitle={currentConversationTitle}
+        conversations={conversations}
         onClearChat={clearChat}
         onNavigateSettings={() => navigate('/settings')}
         onClose={() => setOpen(false)}
+        onSelectConversation={handleSelectConversation}
+        onNewConversation={handleNewConversation}
+        onDeleteConversation={handleDeleteConversation}
       />
 
       <ChatMessageList

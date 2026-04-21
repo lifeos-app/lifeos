@@ -8,4 +8,8 @@ export { WorkTab } from './WorkTab';
 export { AnalysisTab } from './AnalysisTab';
 export { BudgetRingBtn } from './BudgetRingBtn';
 export { LongPressRow } from './LongPressRow';
+export { FinanceSummary } from './FinanceSummary';
+export { FinanceTabActions } from './FinanceTabActions';
+export { useFinanceActions } from './useFinanceActions';
+export { useFinanceComputed } from './useFinanceComputed';
 export type * from './types';

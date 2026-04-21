@@ -7,6 +7,8 @@
 
 import { supabase } from '../data-access';
 import { logger } from '../../utils/logger';
+import { genId } from '../../utils/date';
+import { localInsert, localUpdate, localQuery } from '../local-db';
 import type { IntentAction } from './types';
 import { parseTimeToToday } from './shorthand-parser';
 
@@ -49,22 +51,51 @@ export async function executeHealthLog(
 ): Promise<void> {
   const healthUserId = data.user_id as string;
   const healthDate = (data.date as string) || new Date().toLocaleDateString('en-CA');
-  const { data: existing } = await supabase.from('health_metrics')
-    .select('id').eq('user_id', healthUserId).eq('date', healthDate).limit(1);
+
+  // Build metrics object from action data
   const metrics: Record<string, unknown> = {};
   for (const k of ['weight_kg', 'mood_score', 'energy_score', 'sleep_hours', 'sleep_quality', 'water_glasses', 'notes']) {
     if (data[k] !== undefined && data[k] !== null) metrics[k] = data[k];
   }
-  if (existing?.length) {
-    metrics.updated_at = new Date().toISOString();
-    const { error: hErr } = await supabase.from('health_metrics').update(metrics).eq('id', existing[0].id);
-    if (hErr) throw hErr;
-  } else {
-    metrics.user_id = healthUserId;
-    metrics.date = healthDate;
-    const { error: hErr } = await supabase.from('health_metrics').insert(metrics);
-    if (hErr) throw hErr;
+
+  // ── Local-first: write via local DB so store can read it immediately ──
+  try {
+    const existingResults = await localQuery('health_metrics', 'date', healthDate);
+    const existing = (existingResults as { user_id: string; id: string }[])
+      .find(r => r.user_id === healthUserId);
+
+    if (existing) {
+      metrics.updated_at = new Date().toISOString();
+      await localUpdate('health_metrics', existing.id, metrics);
+    } else {
+      await localInsert('health_metrics', {
+        id: genId(),
+        user_id: healthUserId,
+        date: healthDate,
+        ...metrics,
+      });
+    }
+
+    // Invalidate health store so UI refreshes locally
+    const { useHealthStore } = await import('../../stores/useHealthStore');
+    useHealthStore.getState().invalidate();
+  } catch (localErr) {
+    logger.warn('[health_log] Local DB write failed, falling back to Supabase:', localErr);
+    // ── Fallback: direct Supabase write ──
+    const { data: existing } = await supabase.from('health_metrics')
+      .select('id').eq('user_id', healthUserId).eq('date', healthDate).limit(1);
+    if (existing?.length) {
+      metrics.updated_at = new Date().toISOString();
+      const { error: hErr } = await supabase.from('health_metrics').update(metrics).eq('id', existing[0].id);
+      if (hErr) throw hErr;
+    } else {
+      metrics.user_id = healthUserId;
+      metrics.date = healthDate;
+      const { error: hErr } = await supabase.from('health_metrics').insert(metrics);
+      if (hErr) throw hErr;
+    }
   }
+
   successes.push(`💪 ${action.summary}`);
   const healthTitle = data.sleep_hours ? `😴 Sleep: ${data.sleep_hours}h` : `💪 Health check-in`;
   await createCompanionEvent({
@@ -123,8 +154,24 @@ export async function executeJournal(
   action: IntentAction,
   successes: string[],
 ): Promise<void> {
-  const { error: jErr } = await supabase.from('journal_entries').insert(data);
-  if (jErr) throw jErr;
+  // ── Local-first: write through useJournalStore so UI updates immediately ──
+  try {
+    const { useJournalStore } = await import('../../stores/useJournalStore');
+    const entry = await useJournalStore.getState().addEntry({
+      date: (data.date as string) || new Date().toISOString().split('T')[0],
+      title: (data.title as string) || '',
+      content: (data.content as string) || '',
+      mood: data.mood as number | undefined,
+      energy: data.energy as number | undefined,
+      tags: data.tags as string | undefined,
+      user_id: data.user_id as string,
+    });
+    if (!entry) throw new Error('Journal addEntry returned null');
+  } catch (storeErr) {
+    logger.warn('[journal] Store write failed, falling back to Supabase:', storeErr);
+    const { error: jErr } = await supabase.from('journal_entries').insert(data);
+    if (jErr) throw jErr;
+  }
   successes.push(`📖 ${action.summary}`);
   await createCompanionEvent({
     userId: data.user_id as string, title: `📖 Journal`,

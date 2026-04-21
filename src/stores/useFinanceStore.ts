@@ -57,6 +57,11 @@ interface FinanceState {
   addBill: (data: Partial<Bill>) => Promise<Bill | null>;
   updateBill: (id: string, updates: Partial<Bill>) => Promise<void>;
   deleteBill: (id: string) => Promise<void>;
+  saveBudget: (categoryId: string, amount: number) => Promise<void>;
+  updateBusiness: (id: string, updates: Partial<Business>) => Promise<void>;
+  deleteBusiness: (id: string) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
+  softDeleteRow: (table: string, id: string) => Promise<void>;
 
   // Computed
   monthIncome: () => number;
@@ -370,6 +375,83 @@ export const useFinanceStore = create<FinanceState>((set, get) => ({
     } catch (err) {
       logger.error('[finance] deleteBill error:', err);
       set({ bills: prev });
+    }
+  },
+
+  saveBudget: async (categoryId, amount) => {
+    const existing = get().budgets.find(b => b.category_id === categoryId);
+    if (existing?.id) {
+      await localUpdate('budgets', existing.id, { amount });
+      set(s => ({ budgets: s.budgets.map(b => b.id === existing.id ? { ...b, amount } : b) }));
+    } else {
+      const newBudget = await localInsert<Budget>('budgets', {
+        id: genId(),
+        user_id: getEffectiveUserId(),
+        category_id: categoryId,
+        month: thisMonth(),
+        amount,
+      });
+      set(s => ({ budgets: [...s.budgets, newBudget] }));
+    }
+    if (isOnline()) syncNow(useUserStore.getState().user?.id).catch(e => logger.warn('[finance] sync failed:', e));
+  },
+
+  updateBusiness: async (id, updates) => {
+    const prev = get().businesses;
+    set(s => ({ businesses: s.businesses.map(b => b.id === id ? { ...b, ...updates } : b) }));
+    try {
+      await localUpdate('businesses', id, updates);
+      if (isOnline()) syncNow(useUserStore.getState().user?.id).catch(e => logger.warn('[finance] sync failed:', e));
+    } catch (err) {
+      logger.error('[finance] updateBusiness error:', err);
+      set({ businesses: prev });
+    }
+  },
+
+  deleteBusiness: async (id) => {
+    const prev = get().businesses;
+    set(s => ({ businesses: s.businesses.filter(b => b.id !== id) }));
+    try {
+      await localDelete('businesses', id);
+      if (isOnline()) syncNow(useUserStore.getState().user?.id).catch(e => logger.warn('[finance] sync failed:', e));
+    } catch (err) {
+      logger.error('[finance] deleteBusiness error:', err);
+      set({ businesses: prev });
+    }
+  },
+
+  deleteCategory: async (id) => {
+    const prev = get().categories;
+    set(s => ({ categories: s.categories.filter(c => c.id !== id) }));
+    try {
+      await localDelete('expense_categories', id);
+      if (isOnline()) syncNow(useUserStore.getState().user?.id).catch(e => logger.warn('[finance] sync failed:', e));
+    } catch (err) {
+      logger.error('[finance] deleteCategory error:', err);
+      set({ categories: prev });
+    }
+  },
+
+  softDeleteRow: async (table, id) => {
+    try {
+      await localUpdate(table as any, id, { is_deleted: true });
+      // Remove from local state arrays
+      const stateMaps: Record<string, keyof FinanceState> = {
+        income: 'income',
+        expenses: 'expenses',
+        bills: 'bills',
+        businesses: 'businesses',
+        transactions: 'transactions',
+      };
+      const key = stateMaps[table];
+      if (key) {
+        set(s => ({
+          [key]: ((s as any)[key] as any[]).filter((r: any) => r.id !== id),
+        } as any));
+      }
+      if (isOnline()) syncNow(useUserStore.getState().user?.id).catch(e => logger.warn('[finance] sync failed:', e));
+    } catch (err) {
+      logger.error('[finance] softDeleteRow error:', err);
     }
   },
 

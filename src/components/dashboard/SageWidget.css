@@ -1,0 +1,158 @@
+/**
+ * SageWidget.css — Holy Sage Oracle Dashboard Card
+ *
+ * Dark glass aesthetic with purple/gold accents matching Sage.css.
+ * Uses LifeOS design-system.css custom properties.
+ */
+
+.sage-widget {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  padding: 18px 20px 14px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(10, 14, 26, 0.6) 60%, rgba(255, 215, 0, 0.04) 100%);
+  border: 1px solid rgba(192, 132, 252, 0.18);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.sage-widget:hover {
+  border-color: rgba(192, 132, 252, 0.35);
+  box-shadow: 0 0 24px rgba(139, 92, 246, 0.12), 0 0 6px rgba(192, 132, 252, 0.08);
+}
+
+/* ── Ambient glow ── */
+
+.sage-widget__glow {
+  position: absolute;
+  top: -24px;
+  right: -24px;
+  width: 72px;
+  height: 72px;
+  background: radial-gradient(circle, rgba(192, 132, 252, 0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* ── Header ── */
+
+.sage-widget__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.sage-widget__icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(139, 92, 246, 0.14);
+  border: 1px solid rgba(192, 132, 252, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #C084FC;
+  flex-shrink: 0;
+}
+
+.sage-widget__label {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.sage-widget__name {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: #C084FC;
+}
+
+.sage-widget__tagline {
+  font-size: 11px;
+  color: rgba(192, 132, 252, 0.5);
+  font-weight: 400;
+}
+
+/* ── Invite text ── */
+
+.sage-widget__invite {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-style: italic;
+  color: rgba(192, 132, 252, 0.6);
+  padding-left: 12px;
+  border-left: 2px solid rgba(139, 92, 246, 0.3);
+  line-height: 1.5;
+}
+
+/* ── Input form ── */
+
+.sage-widget__form {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.sage-widget__input {
+  flex: 1;
+  min-width: 0;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(192, 132, 252, 0.18);
+  border-radius: 9px;
+  padding: 9px 14px;
+  color: #E2E8F0;
+  font-size: 13px;
+  font-family: 'Poppins', sans-serif;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sage-widget__input::placeholder {
+  color: rgba(192, 132, 252, 0.35);
+}
+
+.sage-widget__input:focus {
+  border-color: rgba(192, 132, 252, 0.45);
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.12);
+}
+
+.sage-widget__submit {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  border: 1px solid rgba(192, 132, 252, 0.25);
+  background: rgba(139, 92, 246, 0.16);
+  color: #C084FC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.sage-widget__submit:disabled {
+  background: rgba(139, 92, 246, 0.06);
+  border-color: rgba(192, 132, 252, 0.1);
+  color: rgba(192, 132, 252, 0.25);
+  cursor: default;
+}
+
+.sage-widget__submit:not(:disabled):hover {
+  background: rgba(139, 92, 246, 0.28);
+  border-color: #C084FC;
+  color: #FFD700;
+}
+
+/* ── Hint ── */
+
+.sage-widget__hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 10px;
+  color: rgba(192, 132, 252, 0.3);
+  text-align: right;
+  letter-spacing: 0.02em;
+}

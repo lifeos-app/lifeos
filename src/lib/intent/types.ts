@@ -75,3 +75,12 @@ export interface AISettings {
   proxyUrl: string;
   enabled: boolean;
 }
+
+// ─── Execute Intent Result ─────────────────────────────────────
+
+export interface ExecuteIntentResult {
+  success: boolean;
+  message: string;
+  successes: string[];
+  failures: string[];
+}

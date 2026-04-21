@@ -638,6 +638,17 @@ CREATE TABLE IF NOT EXISTS lesson_progress (
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_lesson_progress_user ON lesson_progress(user_id);
 
+CREATE TABLE IF NOT EXISTS ai_conversations (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    title TEXT NOT NULL DEFAULT 'New Conversation',
+    messages_json TEXT NOT NULL DEFAULT '[]',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_ai_conversations_user ON ai_conversations(user_id);
+CREATE INDEX IF NOT EXISTS idx_ai_conversations_updated ON ai_conversations(updated_at);
+
 CREATE TABLE IF NOT EXISTS parts_inventory (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,

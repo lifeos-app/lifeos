@@ -37,6 +37,12 @@ import { initSteam, getSteamStatus } from './steam.js';
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const isDev = !app.isPackaged;
 
+// Register lifeos-media:// as a privileged standard scheme so the renderer
+// can use it as an audio/video src. Must be called before app.whenReady().
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'lifeos-media', privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true } },
+]);
+
 // ═══════════════════════════════════════════════════════════════
 // Helper: Extract OAuth tokens from a redirect URL and resolve the auth popup
 // ═══════════════════════════════════════════════════════════════
@@ -156,7 +162,10 @@ function isPathAllowed(filePath) {
 
 function registerMediaProtocol() {
   protocol.handle('lifeos-media', (request) => {
-    const filePath = decodeURIComponent(request.url.replace('lifeos-media://', ''));
+    // URL format: lifeos-media:///absolute/path/to/file.mp3
+    // Path segments are percent-encoded to handle spaces and special chars.
+    const raw = request.url.replace(/^lifeos-media:\/\//, '');
+    const filePath = raw.split('/').map(s => decodeURIComponent(s)).join('/');
     if (!isPathAllowed(filePath) || !existsSync(filePath)) {
       return new Response('Not found', { status: 404 });
     }
@@ -395,6 +404,7 @@ if (isJetson) {
   // Jetson Orin Nano: Mesa/ARM GPU crashes Chromium repeatedly.
   // Must use full software rendering stack — no GPU process at all.
   // These flags MUST be set before app.whenReady().
+  app.disableHardwareAcceleration(); // kills GPU process entirely
   app.commandLine.appendSwitch('no-sandbox');
   app.commandLine.appendSwitch('disable-gpu');
   app.commandLine.appendSwitch('disable-gpu-compositing');

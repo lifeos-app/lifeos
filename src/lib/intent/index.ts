@@ -13,6 +13,7 @@ export type {
   IntentResult,
   IntentContext,
   AISettings,
+  ExecuteIntentResult,
 } from './types';
 
 // ─── System Prompt ───────────────────────────────────────────────
@@ -25,7 +26,7 @@ export { loadIntentContext } from './context-loader';
 export { parseShorthand, parseTimeToToday } from './shorthand-parser';
 
 // ─── Action Executor ─────────────────────────────────────────────
-export { executeActions, sanitizeData, searchDatabase } from './action-executor';
+export { executeActions, executeIntent, sanitizeData, searchDatabase } from './action-executor';
 
 // ─── Settings ────────────────────────────────────────────────────
 export { getAISettings, saveAISettings } from './settings';

@@ -98,6 +98,10 @@ export interface FinancesCtxValue {
   setBudgetValue: (v: string) => void;
   saveBudget: (categoryId: string, amount: number) => Promise<void>;
   openBudgetEditor: (cat: ExpenseCategory) => void;
+  budgetEditorOpen: boolean;
+  setBudgetEditorOpen: (v: boolean) => void;
+  selectedCategoryForBudget: (ExpenseCategory & { spent: number; budget: number }) | null;
+  setSelectedCategoryForBudget: (v: (ExpenseCategory & { spent: number; budget: number }) | null) => void;
 
   // Actions
   fetchAll: () => Promise<void>;

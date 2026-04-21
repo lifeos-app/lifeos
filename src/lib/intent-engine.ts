@@ -12,12 +12,14 @@ export {
   type IntentResult,
   type IntentContext,
   type AISettings,
+  type ExecuteIntentResult,
 
   // Functions
   buildSystemPrompt,
   loadIntentContext,
   parseShorthand,
   executeActions,
+  executeIntent,
   sanitizeData,
   searchDatabase,
   getAISettings,
