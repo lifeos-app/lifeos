@@ -282,16 +282,29 @@ export const useUserStore = create<UserState>((set, get) => ({
                 set({ profile, profileLoading: false, firstName: pn });
                 cacheProfile(profile);
               } else {
-                // New user — create profile
-                const { data: created } = await cloudSupabase.from('user_profiles').upsert({
+                // New user — create profile (local-first)
+                const newProfile: UserProfile = {
                   user_id: user.id,
                   display_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+                  occupation: null,
+                  primary_focus: null,
                   onboarding_complete: false,
                   preferences: {},
-                }, { onConflict: 'user_id' }).select().single();
-                const profile = created || { user_id: user.id, display_name: null, onboarding_complete: false, preferences: {} } as UserProfile;
-                set({ profile, profileLoading: false, firstName });
-                cacheProfile(profile);
+                };
+                // Write to local DB first — sync-engine will push to Supabase
+                await localInsert('user_profile', {
+                  user_id: user.id,
+                  display_name: newProfile.display_name,
+                  occupation: null,
+                  primary_focus: null,
+                  onboarding_complete: false,
+                  preferences: {},
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                  synced: false,
+                }).catch(() => {});
+                set({ profile: newProfile, profileLoading: false, firstName });
+                cacheProfile(newProfile);
               }
             } catch {
               set({ profileLoading: false });
@@ -586,29 +599,36 @@ export const useUserStore = create<UserState>((set, get) => ({
       }
 
       if (!data) {
-        // New user — auto-create profile row
+        // New user — auto-create profile row (local-first)
         logger.log('[Auth] No profile found — creating for', user.id);
         try {
-          await supabase.from('user_profiles').upsert({
+          const newProfile: UserProfile = {
             user_id: user.id,
             display_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+            occupation: null,
+            primary_focus: null,
             onboarding_complete: false,
             preferences: {},
-          }, { onConflict: 'user_id' });
+          };
+
+          // Write to local DB first (offline-first) — sync-engine will push to Supabase
+          await localInsert('user_profile', {
+            user_id: user.id,
+            display_name: newProfile.display_name,
+            occupation: null,
+            primary_focus: null,
+            onboarding_complete: false,
+            preferences: {},
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            synced: false,
+          });
 
           // Mark as new signup for tour system
           try { sessionStorage.setItem('lifeos_new_signup', 'true'); } catch { /* Safari private */ }
           try { localStorage.removeItem('lifeos_completed_tours'); } catch { /* Safari private */ }
 
-          // Re-fetch the newly created profile
-          const { data: newData } = await supabase
-            .from('user_profiles')
-            .select('user_id,display_name,occupation,primary_focus,onboarding_complete,preferences')
-            .eq('user_id', user.id)
-            .maybeSingle();
-
-          const newProfile = newData as UserProfile | null;
-          const firstName = newProfile?.display_name
+          const firstName = newProfile.display_name
             || user.user_metadata?.full_name?.split(' ')[0]
             || 'Commander';
 
@@ -731,21 +751,29 @@ export const useUserStore = create<UserState>((set, get) => ({
               || 'Commander';
             set({ profile, profileLoading: false, firstName });
           } else {
-            await cloudSupabase.from('user_profiles').upsert({
+            // New user — create profile (local-first)
+            const newProfile: UserProfile = {
               user_id: user.id,
               display_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+              occupation: null,
+              primary_focus: null,
               onboarding_complete: false,
               preferences: {},
-            }, { onConflict: 'user_id' });
+            };
+            // Write to local DB first — sync-engine will push to Supabase
+            await localInsert('user_profile', {
+              user_id: user.id,
+              display_name: newProfile.display_name,
+              occupation: null,
+              primary_focus: null,
+              onboarding_complete: false,
+              preferences: {},
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              synced: false,
+            }).catch(() => {});
             set({
-              profile: {
-                user_id: user.id,
-                display_name: user.user_metadata?.full_name || null,
-                occupation: null,
-                primary_focus: null,
-                onboarding_complete: false,
-                preferences: {},
-              },
+              profile: newProfile,
               profileLoading: false,
               firstName: user.user_metadata?.full_name?.split(' ')[0] || 'Commander',
             });

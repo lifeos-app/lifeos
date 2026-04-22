@@ -15,7 +15,6 @@ import { logger } from '../utils/logger';
 import { isOnline } from '../lib/offline';
 import { localInsert, localUpdate, localQuery, localGet, getEffectiveUserId } from '../lib/local-db';
 import { syncNow } from '../lib/sync-engine';
-import { showToast } from '../components/Toast';
 
 // ─── Types ──────────────────────────────────────────
 
@@ -259,20 +258,8 @@ export const useLiveActivityStore = create<LiveActivityState>((set, get) => ({
       logger.warn('Local insert for live activity failed:', e);
     }
 
-    // Sync to Supabase if online
+    // Trigger background sync if online; otherwise queue for later
     if (isOnline()) {
-      try {
-        const { error } = await supabase.from('schedule_events').insert(eventData);
-        if (error) {
-          logger.warn('Supabase insert failed (queued for sync):', error.message);
-          showToast('Activity saved offline', undefined, '#F97316');
-        }
-      } catch {
-        showToast('Activity saved offline — will sync when online', undefined, '#F97316');
-        syncNow(userId).catch(() => {});
-      }
-    } else {
-      showToast('Activity saved offline — will sync when online', undefined, '#F97316');
       syncNow(userId).catch(() => {});
     }
 
@@ -348,18 +335,6 @@ export const useLiveActivityStore = create<LiveActivityState>((set, get) => ({
       });
     } catch (e) {
       logger.warn('Local update for stop activity failed:', e);
-    }
-
-    // Sync to Supabase if online
-    if (isOnline()) {
-      try {
-        const { error } = await supabase.from('schedule_events').update(updatePayload).eq('id', activeEvent.id);
-        if (error) {
-          logger.warn('Supabase update failed (queued for sync):', error.message);
-        }
-      } catch {
-        logger.warn('Supabase update failed (queued for sync)');
-      }
     }
 
     // Reset UI state
@@ -467,18 +442,6 @@ export const useLiveActivityStore = create<LiveActivityState>((set, get) => ({
       await localUpdate('schedule_events', activeEvent.id, updatePayload);
     } catch (e) {
       logger.warn('Local metadata update failed:', e);
-    }
-
-    // Persist to Supabase if online
-    if (isOnline()) {
-      try {
-        const { error } = await supabase.from('schedule_events').update(updatePayload).eq('id', activeEvent.id);
-        if (error) {
-          logger.warn('Failed to update metadata:', error.message);
-        }
-      } catch {
-        logger.warn('Failed to update metadata (offline)');
-      }
     }
   },
 

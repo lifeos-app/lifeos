@@ -195,27 +195,17 @@ export const useAgentStore = create<AgentState>((set, get) => ({
     set(s => ({
       nudges: s.nudges.map(n => n.id === nudgeId ? { ...n, dismissed: true } : n),
     }));
-    // Mark dismissed in local DB first (offline-safe)
+    // Mark dismissed in local DB (offline-first) — sync-engine will push to Supabase
     localUpdate('ai_insights', nudgeId, {
       is_dismissed: true,
       dismissed_at: new Date().toISOString(),
       synced: false,
     }).catch(e => logger.warn('[agent] dismiss local update failed:', e));
-
-    // Also mark in Supabase if online
-    if (isOnline()) {
-      supabase
-        .from('ai_insights')
-        .update({ dismissed_at: new Date().toISOString() })
-        .eq('id', nudgeId)
-        .then(() => {})
-        .catch(e => logger.warn('[agent] dismiss nudge sync failed:', e));
-    }
   },
 
   persistInsight: async (userId, nudge) => {
     try {
-      // Write to local DB first (always succeeds)
+      // Write to local DB (offline-first) — sync-engine will push to Supabase
       await localInsert('ai_insights', {
         id: nudge.id,
         user_id: userId,
@@ -230,21 +220,6 @@ export const useAgentStore = create<AgentState>((set, get) => ({
         updated_at: new Date().toISOString(),
         synced: false,
       });
-
-      // Sync to Supabase if online
-      if (isOnline()) {
-        supabase.from('ai_insights').insert({
-          id: nudge.id,
-          user_id: userId,
-          insight_type: nudge.type,
-          title: nudge.title,
-          summary: nudge.summary,
-          priority: nudge.priority,
-          data: { actions: nudge.actions, generatedAt: nudge.generatedAt },
-        }).then(({ error }) => {
-          if (error) logger.warn('[Agent] Supabase insight insert failed:', error.message);
-        }).catch(() => {});
-      }
     } catch (err) {
       logger.warn('[Agent] Failed to persist insight:', err);
     }

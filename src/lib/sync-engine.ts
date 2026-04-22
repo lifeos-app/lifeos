@@ -81,6 +81,7 @@ const SYNC_TABLES: TableName[] = [
   'lesson_progress',
   'parts_inventory',
   'user_xp',
+  'user_profile',      // Singleton per user (keyPath: user_id → Supabase: user_profiles)
   'businesses',
   'clients',
   'expense_categories',
@@ -126,6 +127,7 @@ const REMOVED_SYNC_TABLES: string[] = [];
 // Supabase table name mapping (local → remote, if different)
 const TABLE_MAP: Record<string, string> = {
   events: 'schedule_events',
+  user_profile: 'user_profiles',
   // Add any other mappings here if local/remote names differ
 };
 
@@ -175,6 +177,7 @@ const STATIC_COLUMNS: Record<string, Set<string>> = {
   unified_events: new Set(['id','user_id','type','timestamp','title','details','source','is_deleted','created_at','updated_at','module_source']),
   event_completions: new Set(['id','user_id','schedule_event_id','event_type','duration_min','xp_awarded','metadata','completed_at','created_at']),
   ai_insights: new Set(['id','user_id','type','title','content','data','source','is_read','is_dismissed','created_at','updated_at']),
+  user_profiles: new Set(['user_id','display_name','occupation','primary_focus','onboarding_complete','preferences','email','full_name','avatar_url','timezone','subscription_tier','stripe_customer_id','subscription_id','subscription_expires_at','created_at','updated_at']),
 };
 
 // ── Runtime Schema Cache ──
