@@ -64,9 +64,9 @@ export interface SuggestionInput {
 // ── Constants ─────────────────────────────────────────────────────────
 
 const MAX_SUGGESTIONS_PER_SESSION = 3;
-const COOLDOWN_HOURS = 4;
-const COOLDOWN_MS = COOLDOWN_HOURS * 60 * 60 * 1000;
+const COOLDOWN_MS = 4 * 60 * 60 * 1000;   // base: 4h
 const STORAGE_KEY = 'lifeos_proactive_suggestions_cooldown';
+const ACCEPT_KEY  = 'lifeos_proactive_suggestions_accepted';
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
@@ -79,36 +79,71 @@ const daysAgo = (n: number): string => {
 };
 const genId = () => `ps_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-/** Get the cooldown map from localStorage */
-function getCooldownMap(): Record<string, number> {
+// ── Adaptive Cooldown Storage ──────────────────────────────────────────
+// Shape: { [key]: { at: number; count: number } }
+interface CooldownEntry { at: number; count: number; }
+
+function getCooldownMap(): Record<string, CooldownEntry> {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    // Migrate old format {key: number} to new format
+    const migrated: Record<string, CooldownEntry> = {};
+    for (const [k, v] of Object.entries(parsed)) {
+      migrated[k] = typeof v === 'number' ? { at: v, count: 1 } : (v as CooldownEntry);
+    }
+    return migrated;
   } catch {
     return {};
   }
 }
 
-/** Mark a suggestion id as dismissed (cooldown) */
+function getAcceptMap(): Record<string, number> {
+  try {
+    const raw = localStorage.getItem(ACCEPT_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+/** Adaptive cooldown duration based on how many times this key was dismissed */
+function cooldownDuration(count: number): number {
+  if (count >= 5) return 48 * 60 * 60 * 1000; // 48h — user really doesn't want this
+  if (count >= 3) return 24 * 60 * 60 * 1000; // 24h — consistently dismissed
+  return COOLDOWN_MS;                           // 4h — default
+}
+
+/** Mark a suggestion id as dismissed (adaptive cooldown) */
 export function dismissSuggestion(suggestionId: string): void {
   const map = getCooldownMap();
-  map[suggestionId] = Date.now();
-  // Prune old entries (older than 24h)
-  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  const prev = map[suggestionId];
+  map[suggestionId] = { at: Date.now(), count: (prev?.count ?? 0) + 1 };
+  // Prune entries older than 72h
+  const cutoff = Date.now() - 72 * 60 * 60 * 1000;
+  for (const [k, v] of Object.entries(map)) {
+    if (v.at < cutoff) delete map[k];
+  }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(map)); } catch { /* ignore */ }
+}
+
+/** Record that the user acted on a suggestion (signals positive reception) */
+export function acceptSuggestion(key: string): void {
+  const map = getAcceptMap();
+  map[key] = Date.now();
+  // Keep 30 days of accept history
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
   for (const [k, v] of Object.entries(map)) {
     if (v < cutoff) delete map[k];
   }
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
-  } catch { /* localStorage full — ignore */ }
+  try { localStorage.setItem(ACCEPT_KEY, JSON.stringify(map)); } catch { /* ignore */ }
 }
 
-/** Check if a suggestion key is still in cooldown */
+/** Check if a suggestion key is still in adaptive cooldown */
 function isInCooldown(key: string): boolean {
   const map = getCooldownMap();
-  const dismissedAt = map[key];
-  if (!dismissedAt) return false;
-  return Date.now() - dismissedAt < COOLDOWN_MS;
+  const entry = map[key];
+  if (!entry) return false;
+  return Date.now() - entry.at < cooldownDuration(entry.count);
 }
 
 /** Build a unique cooldown key from suggestion type + core identifier */

@@ -5,10 +5,10 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.19.50
+- **Current Version:** 1.19.51
 - **Baseline Date:** 2026-04-20
 - **Last Audit:** 2026-04-22
-- **Completion:** 41/68 = 60.3%
+- **Completion:** 46/68 = 67.6%
 
 ## Vision Documents (Source of Truth)
 1. `/home/tewedros/Desktop/webapp/docs/vision/VISION.md` — "LifeOS IS an AI that has an app as its interface"
@@ -58,9 +58,9 @@
 
 - [x] [P4-001] Daily reward system — ✅ DONE — Date: 2026-04-21 — daily-rewards.ts with escalating XP tiers (10→20→30→50→80→120→200), streak calculation, DailyRewardToast component with fire animation for 7+ streaks, auto-dismiss, claim once/day, wired to xp-engine
 - [x] [P4-002] Challenge system — ✅ DONE — Date: 2026-04-21 — challenges.ts with weekly pool (4 challenges: journal/habit/mood/expense), monthly mega-challenge (30 check-ins=1000XP), progress tracking, Claim button wired to xp-engine, ChallengeCard component on Dashboard
-- [ ] [P4-003] Smart notifications — 🔨 PARTIAL — LIFEOS-ROADMAP 3.3: "Smart notification timing. Habit reminder at optimal time. NPC-flavored notifications." Basic toasts exist but no learning. — Impact: 3/5
-- [ ] [P4-004] Quick actions everywhere — 🔨 PARTIAL — VISION-v2-ori 5.4 + LIFEOS-ROADMAP 3.4: "1-tap habit logging. Voice FAB polish." Some quick actions exist. — Impact: 2/5
-- [ ] [P4-005] Progress visualization — 🔨 PARTIAL — LIFEOS-ROADMAP 3.5: "Weekly progress heatmap. Monthly comparison sparklines. Year in Review." Basic stats exist but no heatmap. — Impact: 2/5
+- [x] [P4-003] Smart notifications — ✅ DONE — v1.19.51 — Adaptive cooldown system: 4h→24h→48h based on dismiss count. acceptSuggestion() signals positive reception. CooldownEntry tracks {at, count}. Migrates old format automatically.
+- [x] [P4-004] Quick actions everywhere — ✅ DONE — v1.19.51 — Added Log Mood (inline 1-tap emoji row, no sheet), Log Water (+1 glass counter with current count shown), Focus Block (creates 25-min task + starts live timer in 1 tap). All 3 fire with zero navigation.
+- [x] [P4-005] Progress visualization — ✅ DONE — v1.19.51 — DashboardHeatmap.tsx: GitHub-style 26-week activity grid. Tasks done + habit logs + journal entries combined. Colour scale #1A4A2E→#39FF14. Fixed-position tooltip. Legend. Shown in Dashboard secondary column.
 - [x] [P4-006] Time-adaptive Dashboard — ✅ DONE — Commit: 6587fcd — Date: 2026-04-20 — Morning/active/evening/night modes with widget prioritization, mode badge, accent colors, dashboard-modes.ts + useDashboardMode.ts
 
 ## Priority 5: DEPTH (Richness and completeness)
@@ -78,8 +78,8 @@
 ## Priority 6: SCALE (Multi-user, social, revenue)
 
 - [x] [P6-001] Habit Coaching AI — ✅ DONE — Commit: ed212c4 — Date: 2026-04-22 — habit-coaching.ts generates 4 insight types (streak_at_risk, recovery, pairing, optimal_time). Merged into ProactiveSuggestions pipeline on Dashboard.y scaling." — Impact: 3/5 — File needed: src/lib/habit-coaching.ts
-- [ ] [P6-002] Financial intelligence — ❌ MISSING — LIFEOS-ROADMAP 5.3: "Spending anomaly detection. Income forecasting. Tax deduction optimizer." — Impact: 3/5 — File needed: src/lib/financial-intelligence.ts
-- [ ] [P6-003] Health correlations — ❌ MISSING — LIFEOS-ROADMAP 5.4: "Sleep→productivity. Exercise→mood. Meal→energy." — Impact: 3/5 — File needed: src/lib/health-correlations.ts
+- [x] [P6-002] Financial intelligence — ✅ DONE — v1.19.51 — financial-intelligence.ts wired into DashboardFinancialPulse. Top insight shown inline, expand to see up to 4. Anomalies, income forecast, savings opportunities, trend alerts all rendered with severity-coloured InsightRow components.
+- [x] [P6-003] Health correlations — ✅ DONE — v1.19.51 — correlateHealthWithProductivity() results now surface in DashboardHealth widget below the vitals grid. "Pattern detected" section with colour-coded correlation strings (green=positive, orange=negative). Min strength 0.35, max 2 shown.
 - [ ] [P6-004] Predictive scheduling — ❌ MISSING — LIFEOS-ROADMAP 5.1: "Pattern learning. Auto-schedule suggestions. Energy-aware scheduling." — Impact: 3/5
 - [ ] [P6-005] Guild system — 📦 STUB — Social code exists but gated. LIFEOS-ROADMAP 6.1: "Guild creation, leaderboard, challenges, chat." — Impact: 2/5
 - [ ] [P6-006] Accountability partners — 📦 STUB — Partner matching exists. LIFEOS-ROADMAP 6.2: "Shared goals, partner nudge, partner streak." — Impact: 2/5

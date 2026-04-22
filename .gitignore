@@ -40,3 +40,6 @@ __pycache__/
 # Temporary
 CC-PROMPT.md
 .autodev/
+node_modules
+dist
+.android-sdk

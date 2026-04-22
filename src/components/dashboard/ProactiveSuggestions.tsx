@@ -11,6 +11,7 @@ import { Sparkles, X, ChevronRight } from 'lucide-react';
 import {
   generateProactiveSuggestions,
   dismissProactiveSuggestion,
+  acceptSuggestion,
   isSuggestionDismissed,
   type ProactiveSuggestion,
   type SuggestionInput,
@@ -101,10 +102,12 @@ export function ProactiveSuggestions() {
       const result = await executeIntent(suggestion.action.intent as any);
       if (result.success) {
         showToast(result.message, '✅', '#39FF14');
+        // Signal positive reception — reduces future cooldown for this type
+        acceptSuggestion(`${suggestion.type}:accepted`);
       } else {
         showToast(result.message, '⚠️', '#F43F5E');
       }
-      // Dismiss after successful action
+      // Dismiss after action (success or failure)
       dismissProactiveSuggestion(suggestion);
       setSuggestion(null);
       setHidden(true);

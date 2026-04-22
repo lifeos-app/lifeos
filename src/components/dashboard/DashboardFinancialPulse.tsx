@@ -5,9 +5,10 @@
  * Uses useFinanceStore for financial data.
  */
 
-import { useMemo } from 'react';
-import { TrendingUp, TrendingDown, DollarSign, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { TrendingUp, TrendingDown, DollarSign, ArrowUpRight, ArrowDownRight, AlertTriangle, Lightbulb, ChevronDown, ChevronUp } from 'lucide-react';
 import { useFinanceStore } from '../../stores/useFinanceStore';
+import { generateFinancialInsights, type FinancialInsight } from '../../lib/financial-intelligence';
 
 const CARD_STYLE: React.CSSProperties = {
   background: 'rgba(17, 24, 39, 0.5)',
@@ -99,6 +100,16 @@ export function DashboardFinancialPulse() {
   }, [income, expenses]);
 
   const isPositiveNet = net >= 0;
+  const [insightsExpanded, setInsightsExpanded] = useState(false);
+
+  // Financial intelligence insights
+  const insights = useMemo(() =>
+    generateFinancialInsights({ income, expenses }),
+    [income, expenses]
+  );
+
+  const topInsight = insights[0] ?? null;
+  const extraInsights = insights.slice(1, 4);
 
   return (
     <div className="dash-card" style={{
@@ -179,12 +190,67 @@ export function DashboardFinancialPulse() {
       {/* Daily sparkline */}
       <MiniSparkline data={sparklineData} color={isPositiveNet ? '#39FF14' : '#F43F5E'} />
 
+      {/* AI Insights */}
+      {topInsight && (
+        <div style={{ marginTop: 10 }}>
+          <InsightRow insight={topInsight} />
+          {extraInsights.length > 0 && (
+            <>
+              <button
+                onClick={() => setInsightsExpanded(v => !v)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  marginTop: 6, background: 'none', border: 'none',
+                  color: '#5A7A9A', fontSize: 10, cursor: 'pointer', padding: 0,
+                }}
+              >
+                {insightsExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+                {insightsExpanded ? 'fewer insights' : `${extraInsights.length} more insight${extraInsights.length > 1 ? 's' : ''}`}
+              </button>
+              {insightsExpanded && extraInsights.map(ins => (
+                <InsightRow key={ins.id} insight={ins} />
+              ))}
+            </>
+          )}
+        </div>
+      )}
+
       {/* Hermetic touch */}
       <div style={{
         marginTop: 8, fontSize: 9, color: 'rgba(255,255,255,0.15)',
         textAlign: 'center', fontStyle: 'italic',
       }}>
         As within your ledger, so without your life
+      </div>
+    </div>
+  );
+}
+
+function InsightRow({ insight }: { insight: FinancialInsight }) {
+  const SEVERITY_COLOR: Record<string, string> = {
+    warning: '#F97316',
+    success: '#39FF14',
+    info:    '#00D4FF',
+  };
+  const color = SEVERITY_COLOR[insight.severity] ?? '#8BA4BE';
+  const Icon = insight.severity === 'warning' ? AlertTriangle : Lightbulb;
+
+  return (
+    <div style={{
+      display: 'flex', gap: 7, alignItems: 'flex-start',
+      marginTop: 6, padding: '6px 8px',
+      background: `${color}0d`,
+      border: `1px solid ${color}22`,
+      borderRadius: 8,
+    }}>
+      <Icon size={11} color={color} style={{ marginTop: 1, flexShrink: 0 }} />
+      <div>
+        <div style={{ fontSize: 10, fontWeight: 600, color, lineHeight: 1.3 }}>
+          {insight.title}
+        </div>
+        <div style={{ fontSize: 9, color: '#8BA4BE', lineHeight: 1.4, marginTop: 1 }}>
+          {insight.message}
+        </div>
       </div>
     </div>
   );

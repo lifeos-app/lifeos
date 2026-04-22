@@ -85,6 +85,7 @@ import { EmptyState } from '../components/EmptyState';
 import { FeatureErrorBoundary } from '../components/FeatureErrorBoundary';
 import { TCSTodayCard, DailyCheckin, TCSDrivingWidget } from '../components/tcs';
 import { useTCSEnabled } from '../hooks/useTCSEnabled';
+import { DashboardHeatmap } from '../components/dashboard/DashboardHeatmap';
 
 type DashTab = 'today' | 'schedule' | 'goals' | 'habits' | 'insights';
 
@@ -515,6 +516,9 @@ export function Dashboard() {
                   <DashboardWeeklyInsight />
                 </FeatureErrorBoundary>
               )}
+              <FeatureErrorBoundary feature="Activity Heatmap" compact>
+                <DashboardHeatmap />
+              </FeatureErrorBoundary>
               {isWidgetVisible('realm-invite') && (
                 <FeatureErrorBoundary feature="Realm Invite" compact>
                   <DashboardRealmInvite />
