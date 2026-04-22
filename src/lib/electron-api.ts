@@ -283,7 +283,7 @@ const LOCAL_USER: AuthUser = {
   email: 'local@lifeos.app',
   user_metadata: { full_name: 'Local User' },
   app_metadata: { provider: 'local' },
-  created_at: new Date().toISOString(),
+  created_at: '2020-01-01T00:00:00.000Z', // Fixed past date so progressive disclosure shows all features
 };
 
 const LOCAL_SESSION: AuthSession = {

@@ -138,7 +138,7 @@ const FEATURES: FeatureModule[] = [
     mobileNavGroup: 'more-growth',
     sidebarOrder: 7,
     mobileNavOrder: 7,
-    revealAfterDays: 3, // Advanced: show after 3 days of use
+    revealAfterDays: 1, // Show after 1 day of use
   },
   {
     id: 'reflect',
@@ -167,7 +167,7 @@ const FEATURES: FeatureModule[] = [
     mobileNavGroup: 'more-growth',
     sidebarOrder: 9,
     mobileNavOrder: 9,
-    revealAfterDays: 5, // Advanced: show after 5 days
+    revealAfterDays: 2, // Show after 2 days
   },
   {
     id: 'lessons',
@@ -182,7 +182,7 @@ const FEATURES: FeatureModule[] = [
     mobileNavGroup: 'more-growth',
     sidebarOrder: 10,
     mobileNavOrder: 10,
-    revealAfterDays: 7, // Niche: show after 1 week
+    revealAfterDays: 3, // Show after 3 days
   },
   {
     id: 'replicator',
@@ -197,7 +197,7 @@ const FEATURES: FeatureModule[] = [
     mobileNavGroup: 'more-life',
     sidebarOrder: 11,
     mobileNavOrder: 11,
-    revealAfterDays: 5, // Advanced: show after 5 days
+    revealAfterDays: 2, // Show after 2 days
   },
   {
     id: 'sage',
