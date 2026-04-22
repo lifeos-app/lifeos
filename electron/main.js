@@ -145,11 +145,15 @@ function createWindow() {
 // URL: lifeos-media:///mnt/data/tmp/academy/study-music/file.mp3
 // ═══════════════════════════════════════════════════════════════
 
-const ALLOWED_DIRS = [
+// Media directories allowed for the lifeos-media:// protocol.
+// Override at runtime by setting LIFEOS_ALLOWED_DIRS (colon-separated paths).
+const _defaultAllowedDirs = [
   '/mnt/data/tmp/academy/',
-  '/mnt/data/prodigy/creative-engine/LifeOS/',
-  '/home/tewedros/clawd/lifeOS_data/',
+  join(app.getPath('home'), 'clawd', 'lifeOS_data') + '/',
 ];
+const ALLOWED_DIRS = process.env.LIFEOS_ALLOWED_DIRS
+  ? process.env.LIFEOS_ALLOWED_DIRS.split(':').filter(Boolean).map(d => d.endsWith('/') ? d : d + '/')
+  : _defaultAllowedDirs;
 
 function isPathAllowed(filePath) {
   try {
@@ -292,9 +296,11 @@ function registerIpcHandlers() {
 
       // Stop the popup from navigating AWAY to our callback URL
       // (we want to read the tokens from it, not actually load the page)
-      authWin.webContents.on('will-redirect', (event, url) => {
+      // Electron 41 passes a details object as first arg (url is details.url)
+      authWin.webContents.on('will-redirect', (details) => {
+        const url = typeof details === 'string' ? details : (details.url || '');
         if (url.includes('access_token=') || url.includes('#access_token=')) {
-          event.preventDefault();
+          if (typeof details.preventDefault === 'function') details.preventDefault();
           tryResolveFromUrl(url);
         }
       });
@@ -404,14 +410,14 @@ if (isJetson) {
   // Jetson Orin Nano: Mesa/ARM GPU crashes Chromium repeatedly.
   // Must use full software rendering stack — no GPU process at all.
   // These flags MUST be set before app.whenReady().
-  app.disableHardwareAcceleration(); // kills GPU process entirely
+  app.disableHardwareAcceleration(); // kills GPU process entirely — Chromium falls back to Skia software rasterizer
   app.commandLine.appendSwitch('no-sandbox');
   app.commandLine.appendSwitch('disable-gpu');
   app.commandLine.appendSwitch('disable-gpu-compositing');
-  app.commandLine.appendSwitch('disable-software-rasterizer');
+  // NOTE: do NOT add disable-software-rasterizer here — that kills the only rendering path left
+  // after disableHardwareAcceleration(). SwiftShader/ANGLE also removed: they are GPU paths
+  // and are irrelevant once hardware accel is disabled.
   app.commandLine.appendSwitch('disable-gpu-sandbox');
-  app.commandLine.appendSwitch('use-gl', 'angle');
-  app.commandLine.appendSwitch('use-angle', 'swiftshader');
   app.commandLine.appendSwitch('disable-features', 'VaapiVideoDecoder,VaapiVideoEncoder,VaapiVideoDecodeLinuxGL');
   app.commandLine.appendSwitch('enable-features', 'SharedArrayBuffer');
   // Jetson /dev/shm has limited permissions and stale IPC files from NVIDIA services.
@@ -453,17 +459,18 @@ app.whenReady().then(async () => {
   });
 });
 
-// GPU process crash handler — prevents hard exit on Jetson ARM
-app.on('gpu-process-crashed', (_event, details) => {
-  console.error('[electron] GPU process crashed:', details);
+// Child process crash handler (replaces removed gpu-process-crashed event in Electron 39+)
+app.on('child-process-gone', (_event, details) => {
+  console.error('[electron] Child process gone:', details.type, details.reason, details.exitCode);
   // Don't exit — let the app continue with software rendering fallback
 });
 
 // Render process gone handler — try to recover window
+// details.reason is a string in Electron 41: 'clean-exit'|'abnormal-exit'|'killed'|'crashed'|'oom'|'launch-failed'|'integrity-failure'
 app.on('render-process-gone', (_event, webContents, details) => {
-  console.error('[electron] Render process gone:', details);
-  // Try to reload the window if possible
-  if (!details.killed && mainWindow && !mainWindow.isDestroyed()) {
+  console.error('[electron] Render process gone:', details.reason, 'exitCode:', details.exitCode);
+  // Only auto-reload on abnormal exits, not on intentional kills
+  if (details.reason !== 'killed' && details.reason !== 'clean-exit' && mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.reload();
   }
 });

@@ -149,13 +149,13 @@ class QueryBuilder<T = any> implements PromiseLike<PostgrestResponse<T>> {
   // ── Query type setters ──
 
   select(columns: string = '*', options?: { count?: 'exact' | 'planned' | 'estimated' }): this {
-    this._method = 'GET';
+    // Only switch to GET if there's no pending insert/upsert body.
+    // When called after insert() (e.g. .insert({}).select()), keep the POST method
+    // and set _returnSelect so the response includes the created row.
+    if (!this._body) this._method = 'GET';
     this._columns = columns;
     if (options?.count) this._count = options.count;
-    // If called after insert/upsert, it means "return the inserted row"
-    if (this._body && (this._method === 'POST' || this._method === 'PUT')) {
-      this._returnSelect = true;
-    }
+    if (this._body) this._returnSelect = true;
     return this;
   }
 
@@ -489,6 +489,10 @@ const localAuth = {
     return { data: res.data, error: res.error };
   },
 
+  async resend(_opts: any): Promise<{ data: any; error: any }> {
+    return { data: null, error: { message: 'Email resend not available in local mode', details: '', hint: '', code: 'LOCAL_NO_RESEND' } };
+  },
+
   onAuthStateChange(callback: AuthChangeCallback): { data: { subscription: { unsubscribe: () => void } } } {
     _authListeners.add(callback);
 
@@ -520,6 +524,17 @@ export const supabase = {
       body: params ? JSON.stringify(params) : undefined,
     });
   },
+
+  // No-op Realtime stubs — local-api uses HTTP, not WebSockets
+  channel(_name: string, _opts?: any) {
+    const noopChannel = {
+      on: (..._args: any[]) => noopChannel,
+      subscribe: (_cb?: any) => noopChannel,
+      unsubscribe: () => Promise.resolve('ok' as const),
+    };
+    return noopChannel;
+  },
+  removeChannel(_channel: any) { return Promise.resolve('ok' as const); },
 
   auth: localAuth,
 };

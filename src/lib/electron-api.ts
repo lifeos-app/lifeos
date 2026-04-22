@@ -218,6 +218,7 @@ class QueryBuilder<T = any> implements PromiseLike<PostgrestResponse<T>> {
   range(from: number, to: number): this { this._offsetVal = from; this._limitVal = to - from + 1; return this; }
   single(): this { this._single = true; return this; }
   maybeSingle(): this { this._maybeSingle = true; return this; }
+  abortSignal(_signal?: AbortSignal): this { return this; } // no-op: Electron IPC cannot be aborted
 
   // ── Execute ──
   private _buildQueryParams(): QueryParams {
@@ -330,6 +331,10 @@ const localAuth = {
 
   async resetPasswordForEmail(_email: string, _options?: any): Promise<{ data: any; error: any }> {
     return { data: null, error: { message: 'Password reset not needed in local mode', details: '', hint: '', code: 'LOCAL_NO_RESET' } };
+  },
+
+  async resend(_opts: any): Promise<{ data: any; error: any }> {
+    return { data: null, error: { message: 'Email resend not available in local mode', details: '', hint: '', code: 'LOCAL_NO_RESEND' } };
   },
 
   onAuthStateChange(callback: AuthChangeCallback): { data: { subscription: { unsubscribe: () => void } } } {

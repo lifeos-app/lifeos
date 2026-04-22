@@ -237,6 +237,14 @@ export const useUserStore = create<UserState>((set, get) => ({
       // In Electron mode, the cloud client has persistSession=true,
       // so the session survives restarts in localStorage.
       (async () => {
+        // Safety timeout: if cloud auth check hangs (network issue), fall back to login screen
+        const electronAuthSafetyTimer = setTimeout(() => {
+          if (get().authLoading) {
+            logger.warn('[Auth] Electron initAuth safety timeout — forcing login screen');
+            set({ authLoading: false, connectionError: true, profileLoading: false });
+          }
+        }, 10000);
+
         try {
           const { supabase: cloudSupabase } = await import('../lib/supabase');
           const { data: { session: cloudSession } } = await cloudSupabase.auth.getSession();
@@ -290,6 +298,7 @@ export const useUserStore = create<UserState>((set, get) => ({
             }
 
             logger.log('[Auth] Electron: restored cloud session for', user.email);
+            clearTimeout(electronAuthSafetyTimer);
             return; // Cloud session restored — skip local fallback
           }
 
@@ -309,17 +318,20 @@ export const useUserStore = create<UserState>((set, get) => ({
               localStorage.setItem('lifeos_user_mode', 'synced');
               localStorage.setItem('lifeos_current_user_id', user.id);
               logger.log('[Auth] Electron: refreshed cloud session for', user.email);
+              clearTimeout(electronAuthSafetyTimer);
               get().fetchProfile();
               return;
             }
           }
         } catch (e) {
+          clearTimeout(electronAuthSafetyTimer);
           logger.warn('[Auth] Electron: cloud session check failed, falling back to local:', e);
         }
 
         // No cloud session — show login page instead of auto-creating local user.
         // The Login page has both "Sign in with Google" and "Use Offline" buttons.
         // This ensures the user always sees the login screen on first launch.
+        clearTimeout(electronAuthSafetyTimer);
         set({
           user: null,
           mode: 'synced', // default — Login page shows Google + offline options
@@ -660,10 +672,14 @@ export const useUserStore = create<UserState>((set, get) => ({
       // no local servers, no cross-origin issues.
       const { supabase: cloudSupabase } = await import('../lib/supabase');
 
+      // In Electron the page loads via file:// so window.location.origin is "null".
+      // Use the Supabase project URL as the redirect target — the popup handler
+      // intercepts the redirect before it loads, so this is just a valid callback URL.
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://xedxvunxbagnokbaglgu.supabase.co';
       const { data, error } = await cloudSupabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/app/',
+          redirectTo: `${supabaseUrl}/auth/v1/callback`,
           skipBrowserRedirect: true,
         },
       });

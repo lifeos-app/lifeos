@@ -404,17 +404,15 @@ function AppRoutes() {
         <WelcomeWizard
           userId={user.id}
           onComplete={() => {
-            // Mark complete so we proceed to routes
-            useUserStore.getState().set(s => {
-              if (s.profile) s.profile.onboarding_complete = true;
-            });
+            // Mark complete so we proceed to routes — use proper Zustand set (no Immer)
+            const prev = useUserStore.getState().profile;
+            if (prev) useUserStore.setState({ profile: { ...prev, onboarding_complete: true } });
             refreshProfile();
           }}
           onSkip={() => {
             // Mark complete and proceed
-            useUserStore.getState().set(s => {
-              if (s.profile) s.profile.onboarding_complete = true;
-            });
+            const prev = useUserStore.getState().profile;
+            if (prev) useUserStore.setState({ profile: { ...prev, onboarding_complete: true } });
             supabase.from('user_profiles')
               .update({ onboarding_complete: true })
               .eq('user_id', user.id)

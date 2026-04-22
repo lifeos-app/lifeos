@@ -374,6 +374,8 @@ class QueryBuilder<T = any> implements PromiseLike<PostgrestResponse<T>> {
     return this;
   }
 
+  abortSignal(_signal?: AbortSignal): this { return this; } // no-op: Tauri IPC cannot be aborted
+
   // ── Build and execute ──
 
   private _buildQueryParams(): QueryParams {
@@ -670,6 +672,10 @@ const localAuth = {
       body: JSON.stringify({ email, ...options }),
     });
     return { data: res.data, error: res.error };
+  },
+
+  async resend(_opts: any): Promise<{ data: any; error: any }> {
+    return { data: null, error: { message: 'Email resend not available in local mode', details: '', hint: '', code: 'LOCAL_NO_RESEND' } };
   },
 
   onAuthStateChange(callback: AuthChangeCallback): { data: { subscription: { unsubscribe: () => void } } } {
