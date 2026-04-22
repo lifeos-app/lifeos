@@ -69,6 +69,7 @@ import {
   SageWidget,
   DailyRewardToast,
   ChallengeCard,
+  DashboardScheduleInsights,
 } from '../components/dashboard';
 import { ProactiveSuggestions } from '../components/dashboard/ProactiveSuggestions';
 import { HolyHermesOracle } from '../components/HolyHermesOracle';
@@ -509,6 +510,11 @@ export function Dashboard() {
               {isWidgetVisible('financial-pulse') && (
                 <FeatureErrorBoundary feature="Financial Pulse" compact>
                   <DashboardFinancialPulse />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('schedule-insights') && (
+                <FeatureErrorBoundary feature="Schedule Insights" compact>
+                  <DashboardScheduleInsights />
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('weekly-insight') && (

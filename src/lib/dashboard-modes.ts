@@ -54,6 +54,7 @@ const W = {
   holyHermes:       'holy-hermes',
   sageOracle:        'sage-oracle',
   lifePulse:        'life-pulse',
+  scheduleInsights: 'schedule-insights',
   sleepQuickLog:    'sleep-quick-log',
   completionRates:  'completion-rates',
   suggestions:      'suggestions',
@@ -79,6 +80,7 @@ const MORNING_WIDGETS: ModeWidgetConfig[] = [
   { id: W.proactiveSuggest, priority: 7,  collapsed: false },  // Proactive AI suggestions
   { id: W.triage,          priority: 7,  collapsed: false },  // Priority tasks
   { id: W.morningBrief,    priority: 6,  collapsed: false },  // Morning journal prompt
+  { id: W.scheduleInsights, priority: 6,  collapsed: false },  // Schedule suggestions
   { id: W.habits,          priority: 5,  collapsed: false },  // Habit check-in
   { id: W.streakMomentum,  priority: 4,  collapsed: true },
   { id: W.holyHermes,      priority: 3,  collapsed: true },
@@ -91,6 +93,7 @@ const ACTIVE_WIDGETS: ModeWidgetConfig[] = [
   { id: W.triage,          priority: 10, collapsed: false },  // Active task
   { id: W.dailyReward,    priority: 5,  collapsed: false },  // Daily login reward (lower mid-day)
   { id: W.financialPulse,  priority: 9,  collapsed: false },  // Financial pulse
+  { id: W.scheduleInsights, priority: 8,  collapsed: false },  // Schedule suggestions
   { id: W.quickActions,    priority: 8,  collapsed: false },  // Quick actions
   { id: W.proactiveSuggest, priority: 7,  collapsed: false },  // Proactive AI suggestions
   { id: W.tasks,           priority: 7,  collapsed: false },  // Live timeline
@@ -112,6 +115,7 @@ const EVENING_WIDGETS: ModeWidgetConfig[] = [
   { id: W.proactiveSuggest, priority: 7,  collapsed: false },  // Proactive AI suggestions
   { id: W.goals,           priority: 6,  collapsed: false },  // Goal progress
   { id: W.streakMomentum,  priority: 5,  collapsed: false },  // Streaks
+  { id: W.scheduleInsights, priority: 4,  collapsed: true },  // Schedule suggestions (collapsed evening)
   { id: W.schedule,        priority: 4,  collapsed: true },
   { id: W.holyHermes,      priority: 3,  collapsed: true },
   { id: W.financialPulse,  priority: 2,  collapsed: true },
@@ -128,6 +132,7 @@ const NIGHT_WIDGETS: ModeWidgetConfig[] = [
   { id: W.proactiveSuggest, priority: 7,  collapsed: false },  // Proactive AI suggestions
   { id: W.celestial,       priority: 6,  collapsed: false },  // Sleep reminder (ambient)
   { id: W.triage,          priority: 3,  collapsed: true },
+  { id: W.scheduleInsights, priority: 3,  collapsed: true },  // Schedule suggestions (collapsed night)
   { id: W.habits,          priority: 2,  collapsed: true },
   { id: W.holyHermes,      priority: 1,  collapsed: true },
 ];
