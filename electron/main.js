@@ -86,6 +86,7 @@ const dbPath = process.platform === 'linux'
 // ═══════════════════════════════════════════════════════════════
 
 let mainWindow = null;
+let activeAuthWin = null; // tracks the in-progress OAuth popup
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -244,15 +245,40 @@ function registerIpcHandlers() {
     return shell.openExternal(url);
   });
 
-  // OAuth popup — opens a new BrowserWindow for Google auth.
-  // Watches for navigation back to our app URL (with tokens in hash)
-  // and resolves the promise with the extracted tokens.
+  // Cancel any in-progress auth popup (called by the renderer's Cancel button)
+  ipcMain.handle('cancel-auth-popup', () => {
+    if (activeAuthWin && !activeAuthWin.isDestroyed()) {
+      activeAuthWin.close();
+      activeAuthWin = null;
+    }
+  });
+
+  // OAuth popup — opens a child BrowserWindow for Google auth, centered on
+  // the main window. Watches for navigation with tokens in the URL hash and
+  // resolves the promise with extracted tokens.
   ipcMain.handle('open-auth-popup', async (_event, authUrl) => {
+    // Close any existing auth popup before opening a new one
+    if (activeAuthWin && !activeAuthWin.isDestroyed()) {
+      activeAuthWin.close();
+      activeAuthWin = null;
+    }
+
     return new Promise((resolve, reject) => {
       let resolved = { done: false };
+
+      // Center the popup relative to the main window
+      const [mx, my] = mainWindow ? mainWindow.getPosition() : [0, 0];
+      const [mw, mh] = mainWindow ? mainWindow.getSize() : [1280, 800];
+      const popupW = 480, popupH = 640;
+      const x = Math.round(mx + (mw - popupW) / 2);
+      const y = Math.round(my + (mh - popupH) / 2);
+
       const authWin = new BrowserWindow({
-        width: 500,
-        height: 650,
+        width: popupW,
+        height: popupH,
+        x, y,
+        parent: mainWindow || undefined,
+        modal: false,
         show: true,
         webPreferences: {
           nodeIntegration: false,
@@ -260,7 +286,9 @@ function registerIpcHandlers() {
           sandbox: true,
         },
         title: 'Sign in with Google — LifeOS',
+        autoHideMenuBar: true,
       });
+      activeAuthWin = authWin;
 
       // Prevent the auth popup from creating MORE windows.
       // Google's sign-in page tries to open new windows for account picker,
@@ -316,6 +344,7 @@ function registerIpcHandlers() {
       });
 
       authWin.on('closed', () => {
+        activeAuthWin = null;
         if (!resolved.done) {
           resolved.done = true;
           clearTimeout(timeout);

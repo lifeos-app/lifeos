@@ -495,6 +495,10 @@
   to { opacity: 0.5; }
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .login-card {

@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useUserStore } from '../stores/useUserStore';
 import { supabase } from '../lib/data-access';
-import { Zap, WifiOff, Eye, EyeOff, Apple } from 'lucide-react';
+import { Zap, WifiOff, Eye, EyeOff, Apple, Loader2, X } from 'lucide-react';
 import './Login.css';
 import { getErrorMessage } from '../utils/error';
 
@@ -36,6 +36,8 @@ export function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
+  const [googlePending, setGooglePending] = useState(false);
+  const googleAbortRef = useRef(false);
 
   const switchView = (v: AuthView) => { setView(v); setError(''); setSuccess(''); };
 
@@ -70,10 +72,38 @@ export function Login() {
   };
 
   const handleGoogleSignIn = async () => {
-    setError(''); setLoading(true);
+    setError(''); setLoading(true); setSuccess('');
     const isElectronAuth = !!(window as any).electronAPI?.isElectron;
-    if (isElectronAuth) setSuccess('Opening browser for Google sign-in... Complete login there, then return here.');
-    try { await signInWithGoogle(); } catch (err: unknown) { setError(friendlyError(getErrorMessage(err))); setSuccess(''); setLoading(false); }
+
+    if (isElectronAuth) {
+      // Show the in-app overlay so the user knows what's happening
+      googleAbortRef.current = false;
+      setGooglePending(true);
+      setLoading(false);
+      try {
+        await signInWithGoogle();
+        // signInWithGoogle resolves when auth is done (or popup closed)
+        // If the user cancelled, googleAbortRef.current will be true
+      } catch (err: unknown) {
+        if (!googleAbortRef.current) {
+          setError(friendlyError(getErrorMessage(err)));
+        }
+      } finally {
+        setGooglePending(false);
+        googleAbortRef.current = false;
+      }
+    } else {
+      try { await signInWithGoogle(); }
+      catch (err: unknown) { setError(friendlyError(getErrorMessage(err))); setLoading(false); }
+    }
+  };
+
+  const handleCancelGoogle = async () => {
+    googleAbortRef.current = true;
+    setGooglePending(false);
+    setLoading(false);
+    // Tell the main process to close the popup window
+    await (window as any).electronAPI?.cancelAuthPopup?.();
   };
 
   const handleAppleSignIn = async () => {
@@ -100,6 +130,57 @@ export function Login() {
           <div key={i} className="login-star" />
         ))}
       </div>
+
+      {/* Google sign-in pending overlay */}
+      {googlePending && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 100,
+          background: 'rgba(5, 14, 26, 0.92)',
+          backdropFilter: 'blur(12px)',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          gap: 24,
+        }}>
+          {/* Spinner */}
+          <div style={{ animation: 'spin 1s linear infinite', color: '#00D4FF' }}>
+            <Loader2 size={48} />
+          </div>
+
+          <div style={{ textAlign: 'center', maxWidth: 320 }}>
+            <p style={{
+              color: '#fff', fontSize: 18, fontWeight: 600,
+              fontFamily: "'Poppins', sans-serif", margin: '0 0 8px',
+            }}>
+              Complete Google sign-in
+            </p>
+            <p style={{
+              color: '#8BA4BE', fontSize: 14, lineHeight: 1.6,
+              fontFamily: "'Poppins', sans-serif", margin: 0,
+            }}>
+              A sign-in window has opened. Complete authentication there — this screen will update automatically.
+            </p>
+          </div>
+
+          <button
+            onClick={handleCancelGoogle}
+            type="button"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '8px 20px',
+              background: 'transparent',
+              border: '1px solid #1A3A5C',
+              color: '#8BA4BE',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontSize: 13,
+              fontFamily: "'Poppins', sans-serif",
+            }}
+          >
+            <X size={14} />
+            Cancel
+          </button>
+        </div>
+      )}
 
       {/* Main card */}
       <div className="login-card">

@@ -12,6 +12,7 @@ interface ElectronAPI {
   getSteamStatus: () => Promise<any>;
   getAppInfo: () => Promise<any>;
   openAuthPopup: (url: string) => Promise<{ access_token: string; refresh_token: string } | null>;
+  cancelAuthPopup: () => Promise<void>;
 }
 
 declare global {
