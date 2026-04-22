@@ -283,7 +283,11 @@ function registerIpcHandlers() {
         webPreferences: {
           nodeIntegration: false,
           contextIsolation: true,
-          sandbox: true,
+          // Do NOT use sandbox: true here — Google's sign-in page needs localStorage,
+          // postMessage, and iframe APIs that Electron's sandbox blocks, causing a
+          // blank white page. We load Google's URL (not our code) so nodeIntegration
+          // false + contextIsolation true is sufficient.
+          sandbox: false,
         },
         title: 'Sign in with Google — LifeOS',
         autoHideMenuBar: true,
@@ -312,12 +316,17 @@ function registerIpcHandlers() {
       }, 120000);
 
       // Unified handler: check URL for tokens and resolve once.
-      // We use 'did-navigate' as the primary reliable event.
-      // 'will-redirect' is kept only to prevent the default redirect
-      // (which would navigate the popup away before we can read the URL).
+      // With implicit flow, Supabase redirects to redirectTo#access_token=...
+      // We intercept that before the page loads and extract the tokens.
       const tryResolveFromUrl = (url) => {
         if (resolved.done) return;
-        if (url.includes('access_token=') || url.includes('#access_token=')) {
+        // Implicit flow: tokens in URL hash
+        if (url.includes('access_token=')) {
+          extractTokensAndResolve(url, authWin, timeout, resolve, resolved);
+          return;
+        }
+        // PKCE fallback: code in query params — send to renderer to exchange
+        if (url.includes('app.runlifeos.com') && url.includes('code=')) {
           extractTokensAndResolve(url, authWin, timeout, resolve, resolved);
         }
       };

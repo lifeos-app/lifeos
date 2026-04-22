@@ -25,8 +25,10 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     autoRefreshToken: !_IS_TAURI,
     persistSession: !_IS_TAURI,
     detectSessionInUrl: !_IS_TAURI,
-    // Keep session alive — refresh before expiry
-    flowType: 'pkce',
+    // Electron uses implicit flow: tokens come directly in the URL hash fragment
+    // so the popup handler can extract them without a server-side code exchange.
+    // Web uses PKCE for better security.
+    flowType: _IS_ELECTRON ? 'implicit' : 'pkce',
   },
 });
 

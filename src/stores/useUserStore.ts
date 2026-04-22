@@ -673,13 +673,14 @@ export const useUserStore = create<UserState>((set, get) => ({
       const { supabase: cloudSupabase } = await import('../lib/supabase');
 
       // In Electron the page loads via file:// so window.location.origin is "null".
-      // Use the Supabase project URL as the redirect target — the popup handler
-      // intercepts the redirect before it loads, so this is just a valid callback URL.
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://xedxvunxbagnokbaglgu.supabase.co';
+      // Use the production web URL as redirectTo — it's registered in Supabase's
+      // allowed redirect list, and the popup handler intercepts the navigation
+      // (via will-redirect / did-navigate) before the page actually loads,
+      // extracting the tokens from the URL hash (implicit flow).
       const { data, error } = await cloudSupabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${supabaseUrl}/auth/v1/callback`,
+          redirectTo: 'https://app.runlifeos.com/app/',
           skipBrowserRedirect: true,
         },
       });
