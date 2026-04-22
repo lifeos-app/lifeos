@@ -682,6 +682,10 @@ export const useUserStore = create<UserState>((set, get) => ({
         options: {
           redirectTo: 'https://app.runlifeos.com/app/',
           skipBrowserRedirect: true,
+          queryParams: {
+            // Force account chooser to appear — prevents auto-login with stored Google session
+            prompt: 'select_account',
+          },
         },
       });
       if (error) throw error;
