@@ -5,10 +5,10 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.19.43
+- **Current Version:** 1.19.48
 - **Baseline Date:** 2026-04-20
-- **Last Audit:** 2026-04-21
-- **Completion:** 37/68 = 54.4%
+- **Last Audit:** 2026-04-22
+- **Completion:** 39/68 = 57.4%
 
 ## Vision Documents (Source of Truth)
 1. `/home/tewedros/Desktop/webapp/docs/vision/VISION.md` — "LifeOS IS an AI that has an app as its interface"
@@ -96,7 +96,7 @@
 - [x] [TD-004] Health.tsx orchestration vs Health-tabs subcomponents — ✅ DONE — Verified: 125 lines, clean split, no direct Supabase calls, all tabs in health-tabs/ directory, hooks architecture already proper
 - [ ] [TD-005] Finances.tsx: 657→302 lines — ✅ DONE — Date: 2026-04-21 — Extracted useFinanceActions (181 lines), useFinanceComputed (268 lines), FinanceSummary (74 lines), FinanceTabActions (33 lines). All direct Supabase calls moved to useFinanceStore methods. Zero direct Supabase imports in Finances.tsx.
 - [ ] [TD-006] Service worker — disabled in Electron (expected). Should work for PWA.
-- [ ] [TD-007] Offline-first completion — some stores still bypass local-db
+- [ ] [TD-007] Offline-first completion — ✅ IN PROGRESS — useLiveActivityStore + useAgentStore now local-first. Remaining: other stores that bypass local-db (search for direct supabase writes outside data-access.ts)
 - [ ] [TD-008] TypeScript strict mode — not enabled
 - [ ] [TD-009] Test coverage — 5 test files for 592 source files (0.8%)
 - [ ] [TD-010] RLS migration SQL ready but not applied — supabase/migrations/20260418_rls_critical_tables.sql needs manual paste
@@ -139,3 +139,4 @@
 - 2026-04-21: Hermes cycle 2. 3 items DONE: P3-001 Intent engine action execution (6 real CRUD handlers), P4-001 Daily reward system (escalating XP tiers + streaks + toast), TD-005 Finances refactor (657→302 lines, zero direct Supabase). Score: 31/68 = 45.6%. Version: 1.19.41.
 - 2026-04-21: Hermes cycle 3. 4 items DONE: P3-003 Proactive suggestions (5 generators + Dashboard widget), P4-002 Challenge system (weekly/monthly, 200-1000XP), TD-004 Health.tsx verified clean (125 lines), TD-005 Finances refactor confirmed. Score: 34/68 = 50.0%. Version: 1.19.42.
 - 2026-04-22: Hermes cron cycle. 3 items DONE: P2-006 Test coverage (5→8 test files, 41→150 tests — pattern-engine/error-handler/xp-engine), P3-006 Pre-populated intelligence (data-seed.ts, 575 lines, onboarding-aware seeding), P3-007 Junction game library (10→18 traditions, 8 secular Junctions with quest tiers, 6 new categories). Also committed accumulated work from prior sessions. Score: 37/68 = 54.4%. Version: 1.19.43.
+- 2026-04-22: Hermes local-first fix cycle. T1-A + T1-B DONE: useLiveActivityStore + useAgentStore now route all writes through local-db (offline-first). Added unified_events, event_completions, ai_insights to IDB STORES (v8), sync-engine SYNC_TABLES, and STATIC_COLUMNS. Score: 39/68 = 57.4%. Version: 1.19.48.
