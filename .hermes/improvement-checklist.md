@@ -5,10 +5,10 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.19.48
+- **Current Version:** 1.19.49
 - **Baseline Date:** 2026-04-20
 - **Last Audit:** 2026-04-22
-- **Completion:** 39/68 = 57.4%
+- **Completion:** 40/68 = 58.8%
 
 ## Vision Documents (Source of Truth)
 1. `/home/tewedros/Desktop/webapp/docs/vision/VISION.md` — "LifeOS IS an AI that has an app as its interface"
@@ -52,7 +52,7 @@
 - [x] [P3-005] Pattern Engine — ✅ DONE — Commit: 501d35a — Date: 2026-04-20 — Created src/lib/pattern-engine.ts (286 lines): 7 detectors (productivity_peak, energy_cycle, habit_anchor, goal_neglect, spending_spike, streak_risk, optimal_schedule)
 - [x] [P3-006] Pre-populated intelligence — ✅ DONE — Commit: b208d73 — Date: 2026-04-22 — data-seed.ts (575 lines): seedInitialData() creates 6 habits, 3 goals, schedule scaffolding, 3 expense categories based on onboarding answers. Idempotent via localStorage marker. Offline-first via localInsert.
 - [x] [P3-007] Junction as game library — 🔨 DONE — Commit: b208d73 — Date: 2026-04-22 — Expanded from 10 thin traditions to 18 rich Junctions (added 8 secular: The Game, Iron Protocol, The Grind, Clean Slate, Brain Forge, Gut Check, Monk Mode, Stack Overflow). 6 new tradition categories. JUNCTION_QUEST_TIERS with 24 tiers and ~78 quests. Updated TraditionSelector and SwitchJunctionModal to use CATEGORY_TABS.
-- [ ] [P3-008] Junction AI Recommender — ❌ MISSING — VISION-v2: "Junction AI doesn't just let you browse — it actively helps you choose. Smart matching." — Impact: 3/5
+- [x] [P3-008] Junction AI Recommender — ✅ DONE — Commit: 5336af5 — Date: 2026-04-22 — junction-recommender.ts scores 18 Junctions against user profile (focus, occupation, preferences, habits). HermesRecommendsPanel on Junction page shows top 3 with reasoning and Why This? tooltip.
 
 ## Priority 4: ENGAGEMENT (Retention and daily use)
 
