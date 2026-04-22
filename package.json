@@ -2,7 +2,7 @@
   "name": "lifeos-app",
   "private": true,
   "version": "1.19.50",
-  "description": "LifeOS \u2014 Personal life operating system by Teddy's Cleaning Systems",
+  "description": "LifeOS — Personal life operating system by Teddy's Cleaning Systems",
   "author": "Tewedros Gebrewubet <tewedros@teddyscleaning.com.au>",
   "type": "module",
   "main": "electron/main.js",
@@ -26,6 +26,10 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
+    "@capacitor-community/sqlite": "^8.1.0",
+    "@capacitor/android": "^8.3.1",
+    "@capacitor/cli": "^8.3.1",
+    "@capacitor/core": "^8.3.1",
     "@fontsource/orbitron": "^5.2.8",
     "@fontsource/poppins": "^5.2.7",
     "@supabase/supabase-js": "^2.95.3",

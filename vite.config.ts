@@ -91,6 +91,7 @@ export default defineConfig(({ mode }) => {
     __APP_VERSION__: JSON.stringify(pkg.version),
     __IS_TAURI__: JSON.stringify(!!process.env.TAURI_ENV_PLATFORM),
     __IS_ELECTRON__: JSON.stringify(!!process.env.ELECTRON_ENV),
+    __IS_CAPACITOR__: JSON.stringify(!!process.env.CAPACITOR_ENV),
   },
   plugins: [
     tailwindcss(),

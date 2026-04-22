@@ -3,10 +3,13 @@ import { BrowserRouter, HashRouter, Routes, Route, Navigate } from 'react-router
 
 declare const __IS_TAURI__: boolean;
 declare const __IS_ELECTRON__: boolean;
+declare const __IS_CAPACITOR__: boolean;
 const isDesktop = (typeof __IS_TAURI__ !== 'undefined' && __IS_TAURI__) ||
   (typeof __IS_ELECTRON__ !== 'undefined' && __IS_ELECTRON__) ||
+  (typeof __IS_CAPACITOR__ !== 'undefined' && __IS_CAPACITOR__) ||
   '__TAURI_INTERNALS__' in window || '__TAURI__' in window ||
-  !!(window as any).electronAPI;
+  !!(window as any).electronAPI ||
+  !!(globalThis as any).Capacitor?.isNativePlatform?.();
 const Router = isDesktop ? HashRouter : BrowserRouter;
 import { Mail } from 'lucide-react';
 import { useUserStore } from './stores/useUserStore';

@@ -17,15 +17,29 @@
 
 // ─── Environment Detection ──────────────────────────────────────────
 
-export type DataEnvironment = 'supabase' | 'local-api' | 'tauri' | 'electron';
+export type DataEnvironment = 'supabase' | 'local-api' | 'tauri' | 'electron' | 'capacitor';
 
 declare const __IS_TAURI__: boolean;
 declare const __IS_ELECTRON__: boolean;
+declare const __IS_CAPACITOR__: boolean;
 
 let _detectedEnv: DataEnvironment | null = null;
 
 export function getEnvironment(): DataEnvironment {
   if (_detectedEnv) return _detectedEnv;
+
+  // Build-time Capacitor detection (set by CAPACITOR_ENV via Vite define)
+  if (typeof __IS_CAPACITOR__ !== 'undefined' && __IS_CAPACITOR__) {
+    _detectedEnv = 'capacitor';
+    return 'capacitor';
+  }
+
+  // Runtime Capacitor detection (globalThis.Capacitor injected by native runtime)
+  if (typeof (globalThis as any).Capacitor !== 'undefined' &&
+    !!(globalThis as any).Capacitor?.isNativePlatform?.()) {
+    _detectedEnv = 'capacitor';
+    return 'capacitor';
+  }
 
   // Build-time Electron detection (set by ELECTRON_ENV via Vite define)
   if (typeof __IS_ELECTRON__ !== 'undefined' && __IS_ELECTRON__) {
@@ -80,18 +94,20 @@ function env(): DataEnvironment {
   return _env;
 }
 
-// All four adapters are statically imported. Only the active one is used at runtime.
+// All adapters are statically imported. Only the active one is used at runtime.
 import { supabase as supabaseCloud, dedup as dedupCloud } from './supabase';
 import { supabase as supabaseLocal, dedup as dedupLocal } from './local-api';
 import { supabase as supabaseTauri, dedup as dedupTauri } from './tauri-api';
 import { supabase as supabaseElectron, dedup as dedupElectron } from './electron-api';
+import { supabase as supabaseCapacitor, dedup as dedupCapacitor } from './capacitor-api';
 
 /**
  * Get the correct db adapter based on detected environment.
  */
 function getDb() {
   const e = env();
-  return e === 'electron' ? supabaseElectron
+  return e === 'capacitor' ? supabaseCapacitor
+       : e === 'electron' ? supabaseElectron
        : e === 'tauri' ? supabaseTauri
        : e === 'local-api' ? supabaseLocal
        : supabaseCloud;
@@ -113,7 +129,8 @@ export const db: typeof supabaseTauri = new Proxy({} as any, {
  */
 export const dedup = (...args: any[]) => {
   const e = env();
-  const d = e === 'electron' ? dedupElectron
+  const d = e === 'capacitor' ? dedupCapacitor
+          : e === 'electron' ? dedupElectron
           : e === 'tauri' ? dedupTauri
           : e === 'local-api' ? dedupLocal
           : dedupCloud;
