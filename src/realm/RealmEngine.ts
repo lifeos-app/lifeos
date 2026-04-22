@@ -155,7 +155,7 @@ export class RealmEngine {
     );
 
     // Derive world state from stores
-    this.worldState = deriveWorldState(character, getFloraCache());
+    this.worldState = deriveWorldState(character, getFloraCache(), this.xpToday);
 
     // Set initial player position
     if (character?.position) {
@@ -175,6 +175,15 @@ export class RealmEngine {
 
     // Set celestial state
     this.updateCelestialState();
+
+    // Set XP vibrancy from world state
+    if (this.worldState) {
+      this.renderer.lighting.setVibrancy(
+        this.worldState.xpVibrancy,
+        this.worldState.streakMultiplier,
+      );
+      this.renderer.particles.setStreakMultiplier(this.worldState.streakMultiplier);
+    }
 
     // Subscribe to event bus for companion bond XP
     if (userId) {
@@ -303,8 +312,23 @@ export class RealmEngine {
 
   /** Refresh world state from stores */
   refreshWorldState(): void {
-    this.worldState = deriveWorldState(this.rpgCharacter, getFloraCache());
+    this.worldState = deriveWorldState(this.rpgCharacter, getFloraCache(), this.xpToday);
+    // Apply vibrancy to lighting whenever world state refreshes
+    if (this.worldState) {
+      this.renderer.lighting.setVibrancy(
+        this.worldState.xpVibrancy,
+        this.worldState.streakMultiplier,
+      );
+      this.renderer.particles.setStreakMultiplier(this.worldState.streakMultiplier);
+    }
   }
+
+  /** Set XP earned today (called from React layer) */
+  setXPToday(xp: number): void {
+    this.xpToday = xp;
+  }
+
+  private xpToday = 0;
 
   getPlayerPosition(): { x: number; y: number; map: string } {
     return { x: this.playerX, y: this.playerY, map: this.zone.id };
@@ -409,6 +433,14 @@ export class RealmEngine {
     const todayEvent = getTodayEvent(now);
     const meteorActive = todayEvent?.type === 'meteor_shower';
     this.renderer.lighting.setCelestialState(moonPhase, meteorActive, palette.ambientBoost);
+
+    // Also refresh vibrancy (in case xpToday was updated since last refresh)
+    if (this.worldState) {
+      this.renderer.lighting.setVibrancy(
+        this.worldState.xpVibrancy,
+        this.worldState.streakMultiplier,
+      );
+    }
   }
 
   private movePlayer(dx: number, dy: number, direction: 'up' | 'down' | 'left' | 'right'): void {

@@ -104,6 +104,10 @@ export class LightingSystem {
   private meteorActive = false;
   private shootingStars: ShootingStar[] = [];
 
+  // XP-driven vibrancy
+  private xpVibrancy = 0.6; // default: dim (no activity)
+  private streakMultiplier = 1;
+
   constructor() {
     this.state = { timeOfDay: 'day', ...TIME_CONFIGS.day };
     // Pre-generate stars
@@ -140,6 +144,32 @@ export class LightingSystem {
     this.seasonAmbientBoost = seasonAmbientBoost;
   }
 
+  /**
+   * Set XP-driven vibrancy: productive days make the world brighter.
+   * xpVibrancy (0.6–1.0) acts as a floor for ambientBrightness.
+   * streakMultiplier (1–3) scales particle effect intensity.
+   */
+  setVibrancy(xpVibrancy: number, streakMultiplier: number): void {
+    this.xpVibrancy = Math.max(0.6, Math.min(1.0, xpVibrancy));
+    this.streakMultiplier = Math.max(1, Math.min(3, streakMultiplier));
+
+    // Apply vibrancy as a floor to ambientBrightness immediately
+    // so even in dim times-of-day, productive activity lifts the world
+    if (this.state.ambientBrightness < this.xpVibrancy) {
+      this.state = {
+        ...this.state,
+        ambientBrightness: this.xpVibrancy,
+      };
+    }
+  }
+
+  /**
+   * Get the current streak multiplier (for particle scaling)
+   */
+  getStreakMultiplier(): number {
+    return this.streakMultiplier;
+  }
+
   getMoonPhase(): number {
     return this.moonPhase;
   }
@@ -155,6 +185,10 @@ export class LightingSystem {
       config.ambientBrightness = Math.max(0, Math.min(1,
         config.ambientBrightness + this.seasonAmbientBoost,
       ));
+      // Apply XP vibrancy as a floor — productive days stay brighter
+      if (config.ambientBrightness < this.xpVibrancy) {
+        config.ambientBrightness = this.xpVibrancy;
+      }
       this.state = { timeOfDay: tod, ...config };
     }
 

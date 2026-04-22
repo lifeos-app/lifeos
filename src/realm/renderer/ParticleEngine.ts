@@ -29,6 +29,9 @@ export class ParticleEngine {
   private particles: Particle[] = [];
   private pool: Particle[] = [];
 
+  /** Streak multiplier (1–3) scales particle emission frequency and count */
+  private streakMult = 1;
+
   /** Pre-allocate pool */
   constructor() {
     for (let i = 0; i < MAX_PARTICLES; i++) {
@@ -49,6 +52,13 @@ export class ParticleEngine {
     if (this.pool.length > 0) return this.pool.pop()!;
     if (this.particles.length >= MAX_PARTICLES) return null;
     return this.createBlank();
+  }
+
+  /**
+   * Set streak multiplier (1–3). Higher streaks → more particles per emission.
+   */
+  setStreakMultiplier(mult: number): void {
+    this.streakMult = Math.max(1, Math.min(3, mult));
   }
 
   /**
@@ -76,7 +86,10 @@ export class ParticleEngine {
       gravity = 0,
     } = opts;
 
-    for (let i = 0; i < count; i++) {
+    // Scale particle count by streak multiplier (weekly streaks = more visual feedback)
+    const scaledCount = Math.round(count * this.streakMult);
+
+    for (let i = 0; i < scaledCount; i++) {
       const p = this.acquire();
       if (!p) break;
 

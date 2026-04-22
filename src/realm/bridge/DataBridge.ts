@@ -93,6 +93,10 @@ export interface RealmWorldState {
   moonXPMultiplier: number;
   /** Current season */
   season: Season;
+  /** XP-driven world vibrancy (0.6–1.0). 0.6 = no activity, 1.0 = 100+ XP today */
+  xpVibrancy: number;
+  /** Streak-driven particle multiplier (1–3). Higher streaks = more particles */
+  streakMultiplier: number;
 }
 
 export interface GardenPlant {
@@ -123,6 +127,10 @@ export interface GardenPlant {
 /**
  * Derive the full realm world state from Zustand stores.
  * Called once per entry and periodically during gameplay.
+ *
+ * @param rpgCharacter — RPG character data (may be null for new users)
+ * @param flora — cached flora species map (optional)
+ * @param xpToday — XP earned today (0 if unknown); used to drive world vibrancy
  */
 export function deriveWorldState(
   rpgCharacter: {
@@ -134,6 +142,7 @@ export function deriveWorldState(
     position: { map: string; x: number; y: number };
   } | null,
   flora?: Map<string, FloraSpecies>,
+  xpToday: number = 0,
 ): RealmWorldState {
   const habits = useHabitsStore.getState().habits;
   const habitLogs = useHabitsStore.getState().logs;
@@ -342,6 +351,17 @@ export function deriveWorldState(
   // ── Best Streak ──
   const bestStreak = habits.reduce((max, h) => Math.max(max, h.streak_current || 0), 0);
 
+  // ── XP Vibrancy ──
+  // If xpToday was not provided, estimate from today's habit logs:
+  // each logged habit ≈ 5 XP base + streak multiplier, so rough estimate
+  const estimatedXpToday = xpToday > 0
+    ? xpToday
+    : todayLogs.length * 10; // conservative: ~10 XP per logged habit on average
+  const xpVibrancy = Math.min(1.0, 0.6 + (estimatedXpToday / 100) * 0.4);
+
+  // ── Streak Multiplier ── (1–3 scale for particle effects)
+  const streakMultiplier = Math.min(3, 1 + (bestStreak / 14) * 2);
+
   // ── Energy Score ──
   const energyScore = health?.energy_level ?? 3;
 
@@ -410,6 +430,8 @@ export function deriveWorldState(
     companion,
     moonXPMultiplier,
     season,
+    xpVibrancy,
+    streakMultiplier,
   };
 }
 
