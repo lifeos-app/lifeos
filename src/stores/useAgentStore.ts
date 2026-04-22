@@ -2,10 +2,15 @@
  * Agent Store — ZeroClaw Agent State
  *
  * Manages: conversation history, pending actions, nudges, agent status
+ *
+ * ALL ai_insights writes go through local-db first (offline-first),
+ * then sync to Supabase when online.
  */
 import { create } from 'zustand';
 import { logger } from '../utils/logger';
 import { db as supabase } from '../lib/data-access';
+import { localInsert, localUpdate, localQuery, getEffectiveUserId } from '../lib/local-db';
+import { isOnline } from '../lib/offline';
 import {
   agentChat,
   agentChatStream,
@@ -145,14 +150,31 @@ export const useAgentStore = create<AgentState>((set, get) => ({
     try {
       const nudges = await agentNudges(userId);
 
-      // Deduplicate: don't add nudges of the same type already persisted in last 24h
-      const { data: recent } = await supabase
-        .from('ai_insights')
-        .select('insight_type, created_at')
-        .eq('user_id', userId)
-        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+      // Deduplicate: check local-first, then Supabase for recent insights
+      const recentTypes = new Set<string>();
 
-      const recentTypes = new Set((recent || []).map(r => r.insight_type));
+      // Always check local DB first (works offline)
+      const localInsights = await localQuery<Record<string, unknown>>('ai_insights', 'user_id', userId);
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      for (const row of localInsights) {
+        const createdAt = row.created_at as string;
+        if (createdAt && createdAt >= oneDayAgo) {
+          recentTypes.add(row.type as string || row.insight_type as string);
+        }
+      }
+
+      // Also check Supabase if online (for cross-device dedup)
+      if (isOnline()) {
+        const { data: recent } = await supabase
+          .from('ai_insights')
+          .select('insight_type, created_at')
+          .eq('user_id', userId)
+          .gte('created_at', oneDayAgo);
+
+        for (const r of (recent || [])) {
+          recentTypes.add(r.insight_type);
+        }
+      }
 
       const newNudges = nudges
         .filter(n => !recentTypes.has(n.type))
@@ -162,7 +184,7 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 
       set({ nudges: newNudges });
 
-      // Persist new insights to Supabase
+      // Persist new insights (local-first)
       for (const nudge of newNudges) {
         get().persistInsight(userId, nudge);
       }
@@ -173,25 +195,56 @@ export const useAgentStore = create<AgentState>((set, get) => ({
     set(s => ({
       nudges: s.nudges.map(n => n.id === nudgeId ? { ...n, dismissed: true } : n),
     }));
-    // Mark dismissed in Supabase if it's a persisted insight
-    supabase
-      .from('ai_insights')
-      .update({ dismissed_at: new Date().toISOString() })
-      .eq('id', nudgeId)
-      .then(() => {})
-      .catch(e => logger.warn('[agent] dismiss nudge sync failed:', e));
+    // Mark dismissed in local DB first (offline-safe)
+    localUpdate('ai_insights', nudgeId, {
+      is_dismissed: true,
+      dismissed_at: new Date().toISOString(),
+      synced: false,
+    }).catch(e => logger.warn('[agent] dismiss local update failed:', e));
+
+    // Also mark in Supabase if online
+    if (isOnline()) {
+      supabase
+        .from('ai_insights')
+        .update({ dismissed_at: new Date().toISOString() })
+        .eq('id', nudgeId)
+        .then(() => {})
+        .catch(e => logger.warn('[agent] dismiss nudge sync failed:', e));
+    }
   },
 
   persistInsight: async (userId, nudge) => {
     try {
-      await supabase.from('ai_insights').insert({
+      // Write to local DB first (always succeeds)
+      await localInsert('ai_insights', {
+        id: nudge.id,
         user_id: userId,
-        insight_type: nudge.type,
+        type: nudge.type,
         title: nudge.title,
-        summary: nudge.summary,
-        priority: nudge.priority,
-        data: { actions: nudge.actions, generatedAt: nudge.generatedAt },
+        content: nudge.summary,
+        data: { actions: nudge.actions, generatedAt: nudge.generatedAt, priority: nudge.priority },
+        source: 'zeroclaw',
+        is_read: false,
+        is_dismissed: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        synced: false,
       });
+
+      // Sync to Supabase if online
+      if (isOnline()) {
+        supabase.from('ai_insights').insert({
+          id: nudge.id,
+          user_id: userId,
+          insight_type: nudge.type,
+          title: nudge.title,
+          summary: nudge.summary,
+          priority: nudge.priority,
+          data: { actions: nudge.actions, generatedAt: nudge.generatedAt },
+        }).then(({ error }) => {
+          if (error) logger.warn('[Agent] Supabase insight insert failed:', error.message);
+        }).catch(() => {});
+      }
     } catch (err) {
       logger.warn('[Agent] Failed to persist insight:', err);
     }
@@ -199,6 +252,38 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 
   fetchPersistedInsights: async (userId) => {
     try {
+      // Always try local DB first (works offline)
+      const localInsights = await localQuery<Record<string, unknown>>('ai_insights', 'user_id', userId);
+      const activeInsights = localInsights
+        .filter(r => !r.is_dismissed && !r.dismissed_at)
+        .sort((a, b) => (b.created_at as string || '').localeCompare(a.created_at as string || ''))
+        .slice(0, 10);
+
+      if (activeInsights.length > 0) {
+        const persistedNudges: AgentNudge[] = activeInsights.map(row => ({
+          id: row.id as string,
+          type: (row.type || row.insight_type) as string,
+          title: row.title as string,
+          summary: (row.content || row.summary || '') as string,
+          priority: (row.priority || ((row.data as Record<string, unknown>)?.priority) || 'medium') as string,
+          dismissed: false,
+          actions: ((row.data as Record<string, unknown>)?.actions || []) as AgentAction[],
+          generatedAt: (row.created_at as string) || new Date().toISOString(),
+        }));
+
+        // Merge with existing nudges, avoiding duplicates by type
+        const existing = get().nudges;
+        const existingTypes = new Set(existing.map(n => n.type));
+        const newOnes = persistedNudges.filter(n => !existingTypes.has(n.type));
+        if (newOnes.length > 0) {
+          set({ nudges: [...existing, ...newOnes] });
+        }
+        return; // Local data found, no need for network call
+      }
+
+      // Fallback: fetch from Supabase if online and local DB is empty
+      if (!isOnline()) return;
+      
       const { data } = await supabase
         .from('ai_insights')
         .select('*')
@@ -219,7 +304,24 @@ export const useAgentStore = create<AgentState>((set, get) => ({
           generatedAt: row.created_at,
         }));
 
-        // Merge with existing nudges, avoiding duplicates by type
+        // Persist to local DB for offline access
+        for (const row of data) {
+          await localInsert('ai_insights', {
+            id: row.id,
+            user_id: userId,
+            type: row.insight_type,
+            title: row.title,
+            content: row.summary || '',
+            data: row.data,
+            source: 'zeroclaw',
+            is_read: false,
+            is_dismissed: false,
+            created_at: row.created_at,
+            updated_at: row.updated_at || row.created_at,
+            synced: true, // Already synced from Supabase
+          }).catch(() => {}); // Ignore if already exists
+        }
+
         const existing = get().nudges;
         const existingTypes = new Set(existing.map(n => n.type));
         const newOnes = persistedNudges.filter(n => !existingTypes.has(n.type));

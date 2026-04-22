@@ -17,7 +17,7 @@ import { genId } from '../utils/date';
 import { logger } from '../utils/logger';
 
 const DB_NAME = 'lifeos-local';
-const DB_VERSION = 7;
+const DB_VERSION = 8;
 
 // All object stores (tables)
 const STORES = {
@@ -73,6 +73,13 @@ const STORES = {
 
   // Lessons
   lesson_progress: 'id',
+
+  // Activity & Events
+  unified_events: 'id',
+  event_completions: 'id',
+
+  // AI
+  ai_insights: 'id',
 
   // Meta (sync state)
   sync_meta: 'table_name',
@@ -138,6 +145,18 @@ export async function openLocalDB(): Promise<IDBDatabase> {
           }
           if (storeName === 'health_metrics') {
             store.createIndex('date', 'date', { unique: false });
+          }
+          if (storeName === 'unified_events') {
+            store.createIndex('timestamp', 'timestamp', { unique: false });
+            store.createIndex('type', 'type', { unique: false });
+          }
+          if (storeName === 'event_completions') {
+            store.createIndex('completed_at', 'completed_at', { unique: false });
+            store.createIndex('schedule_event_id', 'schedule_event_id', { unique: false });
+          }
+          if (storeName === 'ai_insights') {
+            store.createIndex('type', 'type', { unique: false });
+            store.createIndex('created_at', 'created_at', { unique: false });
           }
         }
       }

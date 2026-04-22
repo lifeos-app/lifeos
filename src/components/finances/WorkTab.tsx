@@ -12,8 +12,10 @@ import {
 } from 'lucide-react';
 import { KMLogger, VehicleLogbook, InvoiceTracker, TCSGrowthOverview } from '../tcs';
 import { MonthlyRevenueCard, RouteOptimizerIndicator, ContractStatusCards, QuickInvoiceButton, BusinessHealthScore } from '../tcs';
+import { useTCSEnabled } from '../../hooks/useTCSEnabled';
 
 export const WorkTab = React.memo(function WorkTab() {
+  const tcsEnabled = useTCSEnabled();
   const ctx = useFinances();
   const {
     income, transactions, som, clients, bills, monthIncome,
@@ -73,26 +75,30 @@ export const WorkTab = React.memo(function WorkTab() {
 
   return (
     <div className="fin-work">
-      {/* ── TCS Operations ── */}
-      <KMLogger />
-      <VehicleLogbook />
-      <InvoiceTracker />
-      <TCSGrowthOverview />
+      {tcsEnabled && (
+        <>
+          {/* ── TCS Operations ── */}
+          <KMLogger />
+          <VehicleLogbook />
+          <InvoiceTracker />
+          <TCSGrowthOverview />
 
-      {/* ── Quick Invoice ── */}
-      <QuickInvoiceButton />
+          {/* ── Quick Invoice ── */}
+          <QuickInvoiceButton />
 
-      {/* ── Revenue + Health Score ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <MonthlyRevenueCard />
-        <BusinessHealthScore />
-      </div>
+          {/* ── Revenue + Health Score ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <MonthlyRevenueCard />
+            <BusinessHealthScore />
+          </div>
 
-      {/* ── Route + Contracts ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <RouteOptimizerIndicator />
-        <ContractStatusCards />
-      </div>
+          {/* ── Route + Contracts ── */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <RouteOptimizerIndicator />
+            <ContractStatusCards />
+          </div>
+        </>
+      )}
 
       {/* ── Projected Monthly Income ── */}
       {businessFinancials.length > 0 && (

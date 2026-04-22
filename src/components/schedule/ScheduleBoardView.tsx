@@ -20,7 +20,7 @@ export function ScheduleBoardView({
   return (
     <div className="sched-board-view">
       <div className="sbv-header glass-card">
-        <h2 className="sbv-title">TCS Growth Plan</h2>
+        <h2 className="sbv-title">Growth Plan</h2>
         <span className="sbv-subtitle">{growthTasks.length} tasks across 3 milestones</span>
       </div>
       <KanbanBoard
@@ -39,7 +39,7 @@ export function ScheduleBoardView({
       />
       {growthTasks.length === 0 && (
         <div className="sbv-empty glass-card">
-          <p>No growth plan tasks yet. Seed the 90-day plan from the TCS Growth Overview on the Work tab.</p>
+          <p>No growth plan tasks yet. Add tasks linked to a financial goal to see them here.</p>
         </div>
       )}
     </div>

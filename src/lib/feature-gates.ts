@@ -29,6 +29,33 @@ const OWNER_EMAILS = [
   // Add your own email here if you're self-hosting
 ];
 
+// ── TCS Plugin Gate ────────────────────────────────────────────────────────
+// TCS (Teddy's Cleaning Systems) components are business-specific.
+// They auto-enable for these emails; all other users get a clean experience.
+// Users can also manually opt-in via profile.preferences.tcs_enabled = true.
+export const TCS_OWNER_EMAILS = [
+  'tewedross12@gmail.com',
+  'tewedros@teddyscleaning.com.au',
+];
+
+/**
+ * Check if TCS (Teddy's Cleaning Systems) plugin is enabled for a user.
+ *
+ * TCS is enabled if:
+ *  - The user's email is in TCS_OWNER_EMAILS (auto-enabled for the business owner), OR
+ *  - The user explicitly opted in via profile.preferences.tcs_enabled = true
+ *
+ * This gate controls all TCS-specific UI components so non-TCS users see a
+ * clean, generic LifeOS experience without cleaning-business widgets.
+ */
+export function isTCSEnabled(
+  userEmail: string | null | undefined,
+  preferences: Record<string, unknown> | null | undefined,
+): boolean {
+  if (userEmail && TCS_OWNER_EMAILS.includes(userEmail.toLowerCase())) return true;
+  return preferences?.tcs_enabled === true;
+}
+
 // Features that show a "Coming Soon" overlay for non-owner users
 export const COMING_SOON_FEATURES = ['story'] as const;
 export type ComingSoonFeature = typeof COMING_SOON_FEATURES[number];

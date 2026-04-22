@@ -3,6 +3,9 @@
  *
  * Tracks active live sessions (e.g., "Working at Site A", "Driving to work").
  * Handles start/stop/update lifecycle and distributes data on completion.
+ *
+ * ALL writes go through local-db first (offline-first), then sync to Supabase.
+ * No direct Supabase writes in distribution engine.
  */
 
 import { create } from 'zustand';
@@ -10,7 +13,7 @@ import { db as supabase } from '../lib/data-access';
 import { genId } from '../utils/date';
 import { logger } from '../utils/logger';
 import { isOnline } from '../lib/offline';
-import { localInsert, localUpdate, getEffectiveUserId } from '../lib/local-db';
+import { localInsert, localUpdate, localQuery, localGet, getEffectiveUserId } from '../lib/local-db';
 import { syncNow } from '../lib/sync-engine';
 import { showToast } from '../components/Toast';
 
@@ -73,7 +76,8 @@ const MOOD_SCORES: Record<string, number> = {
   energised: 5, focused: 4, happy: 5, sad: 2,
 };
 
-// ─── Distribution Engine ────────────────────────────
+// ─── Distribution Engine (all local-first) ─────────────
+
 async function distributeActivityData(event: LiveEvent) {
   const meta = event.metadata || {};
   const userId = event.user_id;
@@ -98,8 +102,9 @@ async function distributeActivityData(event: LiveEvent) {
             is_recurring: false,
           });
           logger.log(`✅ Income distributed: $${amount}`);
-        } catch (err: any) {
-          logger.warn('Income distribution failed:', err?.message || err);
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : String(err);
+          logger.warn('Income distribution failed:', msg);
         }
       })()
     );
@@ -125,61 +130,85 @@ async function distributeActivityData(event: LiveEvent) {
               is_recurring: false,
             });
             logger.log(`✅ Mileage distributed: ${km}km = $${mileageAmount.toFixed(2)}`);
-          } catch (err: any) {
-            logger.warn('Mileage distribution failed:', err?.message || err);
+          } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : String(err);
+            logger.warn('Mileage distribution failed:', msg);
           }
         })()
       );
     }
   }
 
-  // 3. Auto-log health/mood
+  // 3. Auto-log health/mood — LOCAL-FIRST via localInsert/localUpdate
   if (meta.mood) {
     const moodScore = MOOD_SCORES[String(meta.mood).toLowerCase()] || 3;
     const today = new Date().toISOString().slice(0, 10);
 
     promises.push(
       (async () => {
-        const { data: existing } = await supabase
-          .from('health_metrics')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('date', today)
-          .limit(1);
+        try {
+          // Check for existing health metric for today (local first)
+          const existing = await localQuery<Record<string, unknown>>('health_metrics', 'date', today);
+          const userEntry = existing.find(r => r.user_id === userId);
 
-        if (existing?.length) {
-          await supabase.from('health_metrics')
-            .update({ mood_score: moodScore, updated_at: new Date().toISOString() })
-            .eq('id', existing[0].id);
-        } else {
-          await supabase.from('health_metrics')
-            .insert({ user_id: userId, date: today, mood_score: moodScore });
+          if (userEntry) {
+            // Update existing entry
+            await localUpdate('health_metrics', userEntry.id as string, {
+              mood_score: moodScore,
+              updated_at: new Date().toISOString(),
+              synced: false,
+            });
+          } else {
+            // Insert new entry
+            await localInsert('health_metrics', {
+              id: genId(),
+              user_id: userId,
+              date: today,
+              mood_score: moodScore,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              synced: false,
+            });
+          }
+          logger.log(`✅ Mood distributed: ${meta.mood} (${moodScore}/5)`);
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : String(err);
+          logger.warn('Mood distribution failed:', msg);
         }
-        logger.log(`✅ Mood distributed: ${meta.mood} (${moodScore}/5)`);
       })()
     );
   }
 
-  // 4. Log to unified_events
+  // 4. Log to unified_events — LOCAL-FIRST via localInsert
   promises.push(
-    Promise.resolve(supabase.from('unified_events').insert({
-      user_id: userId,
-      type: 'activity',
-      timestamp: event.start_time,
-      title: event.title,
-      details: {
-        ...meta,
-        end_time: event.end_time,
-        duration_seconds: event.end_time
-          ? Math.round((new Date(event.end_time).getTime() - new Date(event.start_time).getTime()) / 1000)
-          : null,
-      },
-      source: 'live_activity',
-      is_deleted: false,
-      module_source: 'live_activity',
-    }).then(({ error }) => {
-      if (error) logger.warn('Unified event insert failed:', error.message);
-    }))
+    (async () => {
+      try {
+        await localInsert('unified_events', {
+          id: genId(),
+          user_id: userId,
+          type: 'activity',
+          timestamp: event.start_time,
+          title: event.title,
+          details: {
+            ...meta,
+            end_time: event.end_time,
+            duration_seconds: event.end_time
+              ? Math.round((new Date(event.end_time).getTime() - new Date(event.start_time).getTime()) / 1000)
+              : null,
+          },
+          source: 'live_activity',
+          is_deleted: false,
+          module_source: 'live_activity',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          synced: false,
+        });
+        logger.log('✅ Unified event logged locally');
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        logger.warn('Unified event insert failed:', msg);
+      }
+    })()
   );
 
   await Promise.allSettled(promises);
@@ -230,16 +259,20 @@ export const useLiveActivityStore = create<LiveActivityState>((set, get) => ({
       logger.warn('Local insert for live activity failed:', e);
     }
 
-    // Attempt Supabase write if online
+    // Sync to Supabase if online
     if (isOnline()) {
-      const { error } = await supabase.from('schedule_events').insert(eventData);
-      if (error) {
-        logger.warn('Supabase insert failed (queued for sync):', error.message);
-        showToast('Activity saved offline', undefined, '#F97316');
+      try {
+        const { error } = await supabase.from('schedule_events').insert(eventData);
+        if (error) {
+          logger.warn('Supabase insert failed (queued for sync):', error.message);
+          showToast('Activity saved offline', undefined, '#F97316');
+        }
+      } catch {
+        showToast('Activity saved offline — will sync when online', undefined, '#F97316');
+        syncNow(userId).catch(() => {});
       }
     } else {
       showToast('Activity saved offline — will sync when online', undefined, '#F97316');
-      // Trigger sync when back online
       syncNow(userId).catch(() => {});
     }
 
@@ -309,16 +342,23 @@ export const useLiveActivityStore = create<LiveActivityState>((set, get) => ({
 
     // Write to IndexedDB first (always succeeds offline)
     try {
-      await localUpdate('schedule_events', activeEvent.id, updatePayload);
+      await localUpdate('schedule_events', activeEvent.id, {
+        ...updatePayload,
+        synced: false,
+      });
     } catch (e) {
       logger.warn('Local update for stop activity failed:', e);
     }
 
-    // Attempt Supabase write if online
+    // Sync to Supabase if online
     if (isOnline()) {
-      const { error } = await supabase.from('schedule_events').update(updatePayload).eq('id', activeEvent.id);
-      if (error) {
-        logger.warn('Supabase update failed (queued for sync):', error.message);
+      try {
+        const { error } = await supabase.from('schedule_events').update(updatePayload).eq('id', activeEvent.id);
+        if (error) {
+          logger.warn('Supabase update failed (queued for sync):', error.message);
+        }
+      } catch {
+        logger.warn('Supabase update failed (queued for sync)');
       }
     }
 
@@ -336,25 +376,29 @@ export const useLiveActivityStore = create<LiveActivityState>((set, get) => ({
       logger.warn('Distribution engine error:', err);
     }
 
-    // Award XP via gamification system with anti-abuse guards
+    // Award XP via gamification system with anti-abuse guards — LOCAL-FIRST
     try {
       const durationMin = Math.round((new Date(finalEndTime).getTime() - new Date(activeEvent.start_time).getTime()) / 60000);
-      
+
       // Guard 1: Minimum duration (5 minutes)
       if (durationMin < 5) {
         logger.log(`⚠️ XP denied: event too short (${durationMin}min, need 5min minimum)`);
       } else {
-        // Guard 2: Rate limiting - check recent completions
+        // Guard 2: Rate limiting — check recent completions from local DB
         const oneHourAgo = new Date(Date.now() - 3600000).toISOString();
-        const { data: recentCompletions } = await supabase
-          .from('event_completions')
-          .select('id, xp_awarded')
-          .eq('user_id', activeEvent.user_id)
-          .gte('completed_at', oneHourAgo);
-        
-        const recentXP = (recentCompletions || []).reduce((sum, c) => sum + (c.xp_awarded || 0), 0);
-        const recentCount = (recentCompletions || []).length;
-        
+        const recentCompletions = await localQuery<Record<string, unknown>>('event_completions', 'user_id', activeEvent.user_id);
+
+        const recentXP = recentCompletions
+          .filter(c => {
+            const completedAt = c.completed_at as string;
+            return completedAt && completedAt >= oneHourAgo;
+          })
+          .reduce((sum, c) => sum + ((c.xp_awarded as number) || 0), 0);
+        const recentCount = recentCompletions.filter(c => {
+          const completedAt = c.completed_at as string;
+          return completedAt && completedAt >= oneHourAgo;
+        }).length;
+
         // Guard 3: Max 200 XP per hour, max 10 completions per hour
         if (recentXP >= 200) {
           logger.log(`⚠️ XP denied: hourly XP cap reached (${recentXP}/200)`);
@@ -362,16 +406,21 @@ export const useLiveActivityStore = create<LiveActivityState>((set, get) => ({
           logger.log(`⚠️ XP denied: hourly completion cap reached (${recentCount}/10)`);
         } else {
           // Guard 4: Cap XP to remaining hourly budget
-          const baseXP = Math.max(10, Math.min(100, Math.round(durationMin * 0.5))); // 0.5 XP per minute, capped 10-100
+          const baseXP = Math.max(10, Math.min(100, Math.round(durationMin * 0.5)));
           const xpAmount = Math.min(200 - recentXP, baseXP);
 
-          await supabase.from('event_completions').insert({
+          // Write XP to local DB first
+          await localInsert('event_completions', {
+            id: genId(),
             user_id: activeEvent.user_id,
             schedule_event_id: activeEvent.id,
             event_type: finalMetadata.category || 'live_activity',
             duration_min: durationMin,
             xp_awarded: xpAmount,
             metadata: { title: activeEvent.title, ...finalMetadata },
+            completed_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+            synced: false,
           });
 
           logger.log(`✅ XP awarded: +${xpAmount} XP for ${activeEvent.title}`);
@@ -407,7 +456,11 @@ export const useLiveActivityStore = create<LiveActivityState>((set, get) => ({
 
     set({ metadata: newMetadata });
 
-    const updatePayload = { metadata: newMetadata, updated_at: new Date().toISOString() };
+    const updatePayload = {
+      metadata: newMetadata,
+      updated_at: new Date().toISOString(),
+      synced: false,
+    };
 
     // Write to IndexedDB first
     try {
@@ -418,9 +471,13 @@ export const useLiveActivityStore = create<LiveActivityState>((set, get) => ({
 
     // Persist to Supabase if online
     if (isOnline()) {
-      const { error } = await supabase.from('schedule_events').update(updatePayload).eq('id', activeEvent.id);
-      if (error) {
-        logger.warn('Failed to update metadata:', error.message);
+      try {
+        const { error } = await supabase.from('schedule_events').update(updatePayload).eq('id', activeEvent.id);
+        if (error) {
+          logger.warn('Failed to update metadata:', error.message);
+        }
+      } catch {
+        logger.warn('Failed to update metadata (offline)');
       }
     }
   },

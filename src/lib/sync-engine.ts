@@ -113,6 +113,11 @@ const SYNC_TABLES: TableName[] = [
   'events',        // FK → expense_categories (maps to schedule_events)
   'habit_logs',    // FK → habits
   'transactions',  // FK → businesses, clients, tasks, events
+
+  // Tier 3: Activity & AI
+  'unified_events',    // Activity log entries
+  'event_completions', // XP award records for live activity
+  'ai_insights',       // AI-generated insights
 ];
 
 // Tables that were previously synced but no longer are — clean up their retry queue entries
@@ -167,6 +172,9 @@ const STATIC_COLUMNS: Record<string, Set<string>> = {
   asset_maintenance: new Set(['id','user_id','asset_id','title','description','date','cost','provider','status','next_date','notes','created_at','updated_at','is_deleted','sync_status']),
   asset_bills: new Set(['id','user_id','asset_id','title','amount','due_date','is_recurring','recurrence_rule','status','paid_date','payment_url','notes','created_at','updated_at','is_deleted','sync_status']),
   asset_documents: new Set(['id','user_id','asset_id','title','type','file_url','file_size','mime_type','notes','created_at','updated_at','is_deleted','sync_status']),
+  unified_events: new Set(['id','user_id','type','timestamp','title','details','source','is_deleted','created_at','updated_at','module_source']),
+  event_completions: new Set(['id','user_id','schedule_event_id','event_type','duration_min','xp_awarded','metadata','completed_at','created_at']),
+  ai_insights: new Set(['id','user_id','type','title','content','data','source','is_read','is_dismissed','created_at','updated_at']),
 };
 
 // ── Runtime Schema Cache ──

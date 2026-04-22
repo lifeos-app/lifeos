@@ -84,6 +84,7 @@ import { ErrorCard } from '../components/ui/ErrorCard';
 import { EmptyState } from '../components/EmptyState';
 import { FeatureErrorBoundary } from '../components/FeatureErrorBoundary';
 import { TCSTodayCard, DailyCheckin, TCSDrivingWidget } from '../components/tcs';
+import { useTCSEnabled } from '../hooks/useTCSEnabled';
 
 type DashTab = 'today' | 'schedule' | 'goals' | 'habits' | 'insights';
 
@@ -109,6 +110,7 @@ const MODE_ICONS: Record<DashboardMode, React.ReactNode> = {
 export function Dashboard() {
   const user = useUserStore(s => s.user);
   const profile = useUserStore(s => s.profile);
+  const tcsEnabled = useTCSEnabled();
   const layout = useDashboardLayout();
   const dashMode = useDashboardMode(profile?.display_name ?? user?.email ?? '');
   const navigate = useNavigate();
@@ -393,15 +395,21 @@ export function Dashboard() {
               <FeatureErrorBoundary feature="Quick Actions" compact>
                 <DashboardQuickActions />
               </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="TCS Tonight" compact>
-                <TCSTodayCard />
-              </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="TCS Check-in" compact>
-                <DailyCheckin />
-              </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="TCS Driving" compact>
-                <TCSDrivingWidget />
-              </FeatureErrorBoundary>
+              {tcsEnabled && (
+                <FeatureErrorBoundary feature="TCS Tonight" compact>
+                  <TCSTodayCard />
+                </FeatureErrorBoundary>
+              )}
+              {tcsEnabled && (
+                <FeatureErrorBoundary feature="TCS Check-in" compact>
+                  <DailyCheckin />
+                </FeatureErrorBoundary>
+              )}
+              {tcsEnabled && (
+                <FeatureErrorBoundary feature="TCS Driving" compact>
+                  <TCSDrivingWidget />
+                </FeatureErrorBoundary>
+              )}
               <FeatureErrorBoundary feature="Streak Warnings" compact>
                 <DashboardStreakWarnings />
               </FeatureErrorBoundary>
