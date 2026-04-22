@@ -241,12 +241,13 @@ class QueryBuilder<T = any> implements PromiseLike<PostgrestResponse<T>> {
 
   select(columns: string = '*', options?: { count?: 'exact' | 'planned' | 'estimated' }): this {
     this._method = 'select';
-    this._httpMethod = 'GET';
+    // Only switch to GET if there's no pending insert/upsert body.
+    // When called after insert() (e.g. .insert({}).select()), keep the POST http method
+    // and set _returnSelect so the response includes the created row.
+    if (!this._body) this._httpMethod = 'GET';
     this._columns = columns;
     if (options?.count) this._count = options.count;
-    if (this._body && (this._httpMethod === 'POST' || this._httpMethod === 'PUT')) {
-      this._returnSelect = true;
-    }
+    if (this._body) this._returnSelect = true;
     return this;
   }
 
