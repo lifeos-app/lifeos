@@ -15,6 +15,7 @@ import {
   type ProactiveSuggestion,
   type SuggestionInput,
 } from '../../lib/proactive-suggestions';
+import { generateHabitCoaching, coachingToSuggestion } from '../../lib/habit-coaching';
 import { executeIntent } from '../../lib/intent/action-executor';
 import { useScheduleStore } from '../../stores/useScheduleStore';
 import { useHabitsStore } from '../../stores/useHabitsStore';
@@ -68,8 +69,19 @@ export function ProactiveSuggestions() {
     };
 
     const all = generateProactiveSuggestions(input);
+
+    // Merge in habit coaching insights
+    const coachingInsights = generateHabitCoaching({
+      habits,
+      habitLogs,
+      userId,
+    });
+    const coachingSuggestions = coachingInsights.map(coachingToSuggestion);
+
+    const merged = [...all, ...coachingSuggestions].sort((a, b) => (a.priority ?? 3) - (b.priority ?? 3));
+
     // Filter out dismissed ones
-    const visible = all.filter(s => !isSuggestionDismissed(s));
+    const visible = merged.filter(s => !isSuggestionDismissed(s));
     setSuggestion(visible.length > 0 ? visible[0] : null);
     setHidden(false);
   }, [tasks, habits, habitLogs, goals, events, healthMetrics, bills, userId]);
