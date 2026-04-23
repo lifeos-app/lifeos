@@ -54,6 +54,8 @@ const PALETTES: Record<string, SpeciesPalette> = {
   spiritual:    { trunk: '#4E342E', leaf: '#1B5E20', accent: '#2E7D32', special: '#B0BEC5' },
   productivity: { trunk: '#A89F68', leaf: '#7CB342', accent: '#9CCC65', special: '#C5E1A5' },
   creative:     { trunk: '#8D6E63', leaf: '#F48FB1', accent: '#FF80AB', special: '#FCE4EC' },
+  social:       { trunk: '#5D4037', leaf: '#FFD54F', accent: '#FFA726', special: '#FF6F00' },
+  health:       { trunk: '#4E342E', leaf: '#66BB6A', accent: '#A5D6A7', special: '#B2FF59' },
   other:        { trunk: '#4E342E', leaf: '#4CAF50', accent: '#81C784', special: '#00E5FF' },
 };
 
@@ -304,6 +306,8 @@ export class GardenRenderer {
         case 'spiritual':    this.drawCedar(args); break;
         case 'productivity': this.drawBamboo(args); break;
         case 'creative':     this.drawCherryBlossom(args); break;
+        case 'social':       this.drawSunflower(args); break;
+        case 'health':       this.drawNeemTree(args); break;
         default:             this.drawFern(args); break;
       }
 
@@ -1012,6 +1016,168 @@ export class GardenRenderer {
           ctx.arc(tx, ty, u * 1.5, 0, Math.PI * 2);
           ctx.fill();
         }
+      }
+    }
+  }
+
+  // ── Sunflower (social category) ──────────────
+
+  private drawSunflower(a: DrawArgs): void {
+    const { ctx, cx, cy, u, stage, scale, sway, leaf, accent, special, frameCount, index } = a;
+    const s = scale;
+
+    if (stage === 1) {
+      // Small stem + 2 round leaves
+      ctx.fillStyle = '#5D4037';
+      ctx.fillRect(cx - u * 0.3, cy - u * s, u * 0.6, u * 5 * s);
+      ctx.fillStyle = leaf;
+      ctx.beginPath();
+      ctx.ellipse(cx - u * 1.2 + sway * 0.2, cy - u * 0.5 * s, u * 1.5 * s, u * 0.8 * s, -0.3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(cx + u * 1.2 + sway * 0.2, cy - u * 0.8 * s, u * 1.5 * s, u * 0.8 * s, 0.3, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (stage === 2) {
+      // Taller stem + small bud
+      ctx.fillStyle = '#5D4037';
+      ctx.fillRect(cx - u * 0.4, cy - u * 3 * s, u * 0.8, u * 7 * s);
+      ctx.fillStyle = leaf;
+      for (let l = 0; l < 3; l++) {
+        const ly = cy + u * 2 - l * u * 2 * s;
+        const dir = l % 2 === 0 ? -1 : 1;
+        ctx.beginPath();
+        ctx.ellipse(cx + dir * u * 1.5 + sway * 0.2, ly, u * 1.8 * s, u * 0.6 * s, dir * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // Green bud
+      ctx.fillStyle = '#558B2F';
+      ctx.beginPath();
+      ctx.arc(cx + sway * 0.4, cy - u * 3 * s, u * 2 * s, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (stage >= 3) {
+      // Full sunflower: tall stem, leaves, large head
+      ctx.fillStyle = '#5D4037';
+      ctx.fillRect(cx - u * 0.5, cy - u * 5 * s, u, u * 9 * s);
+      // Leaves along stem
+      ctx.fillStyle = leaf;
+      for (let l = 0; l < 4; l++) {
+        const ly = cy + u * 3 - l * u * 2.5 * s;
+        const dir = l % 2 === 0 ? -1 : 1;
+        ctx.beginPath();
+        ctx.ellipse(cx + dir * u * 2 + sway * 0.15, ly, u * 2.5 * s, u * 0.7 * s, dir * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // Sunflower head — brown centre + yellow petals
+      const headY = cy - u * 5 * s + sway * 0.3;
+      const headR = u * (3 + stage * 0.7) * s;
+      // Petals
+      const petalCount = stage >= 4 ? 16 : 12;
+      for (let p = 0; p < petalCount; p++) {
+        const angle = (p / petalCount) * Math.PI * 2 + Math.sin(frameCount * 0.01 + index) * 0.05;
+        const px = cx + Math.cos(angle) * headR * 0.9;
+        const py = headY + Math.sin(angle) * headR * 0.9;
+        ctx.fillStyle = stage >= 4 ? accent : leaf;
+        ctx.beginPath();
+        ctx.ellipse(px, py, u * 2 * s, u * 0.8 * s, angle, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // Brown centre
+      ctx.fillStyle = '#5D4037';
+      ctx.beginPath();
+      ctx.arc(cx + sway * 0.3, headY, headR * 0.45, 0, Math.PI * 2);
+      ctx.fill();
+      // Centre dots
+      ctx.fillStyle = '#3E2723';
+      for (let d = 0; d < 5; d++) {
+        const da = (d / 5) * Math.PI * 2 + frameCount * 0.001;
+        ctx.beginPath();
+        ctx.arc(cx + sway * 0.3 + Math.cos(da) * headR * 0.2, headY + Math.sin(da) * headR * 0.2, u * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // Stage 4: golden glow
+      if (stage === 4) {
+        const glowA = 0.12 + Math.sin(frameCount * 0.04 + index) * 0.06;
+        const grad = ctx.createRadialGradient(cx + sway * 0.3, headY, 0, cx + sway * 0.3, headY, u * 8 * s);
+        grad.addColorStop(0, `rgba(255,167,38,${glowA})`);
+        grad.addColorStop(1, 'transparent');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(cx + sway * 0.3, headY, u * 8 * s, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  // ── Neem / Healing Tree (health category) ──
+
+  private drawNeemTree(a: DrawArgs): void {
+    const { ctx, cx, cy, u, stage, scale, sway, trunk, leaf, accent, special, frameCount, index } = a;
+    const s = scale;
+
+    if (stage === 1) {
+      // Thin stem + compound leaves
+      ctx.fillStyle = trunk;
+      ctx.fillRect(cx - u * 0.25, cy - u * 1.5 * s, u * 0.5, u * 5 * s);
+      // Neem compound leaves (serrated look)
+      ctx.fillStyle = leaf;
+      for (let l = 0; l < 3; l++) {
+        const angle = (l - 1) * 0.6;
+        ctx.beginPath();
+        ctx.ellipse(cx + Math.sin(angle) * u * 1.5 + sway * 0.2, cy - u * (1.5 + l * 0.3) * s, u * 1.2 * s, u * 0.5 * s, angle * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (stage === 2) {
+      // Growing trunk + wider canopy
+      ctx.fillStyle = trunk;
+      ctx.beginPath();
+      ctx.moveTo(cx - u * 0.8, cy + u * 4);
+      ctx.lineTo(cx - u * 0.3, cy - u * 3 * s);
+      ctx.lineTo(cx + u * 0.3, cy - u * 3 * s);
+      ctx.lineTo(cx + u * 0.8, cy + u * 4);
+      ctx.fill();
+      // Canopy - multiple leaf clusters
+      ctx.fillStyle = leaf;
+      const topY = cy - u * 4 * s + sway * 0.3;
+      for (let c = 0; c < 4; c++) {
+        const cx2 = cx + (c - 1.5) * u * 2 * s + Math.sin(frameCount * 0.02 + c) * u * 0.3;
+        const cy2 = topY + (c % 2) * u * s;
+        ctx.beginPath();
+        ctx.arc(cx2, cy2, u * 2 * s, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (stage >= 3) {
+      // Full neem tree - broad shade canopy
+      ctx.fillStyle = trunk;
+      ctx.beginPath();
+      ctx.moveTo(cx - u * 1.2, cy + u * 4);
+      ctx.lineTo(cx - u * 0.5, cy - u * 5 * s);
+      ctx.lineTo(cx + u * 0.5, cy - u * 5 * s);
+      ctx.lineTo(cx + u * 1.2, cy + u * 4);
+      ctx.fill();
+      // Wide spreading canopy
+      ctx.fillStyle = leaf;
+      const topY = cy - u * 7 * s + sway * 0.4;
+      ctx.beginPath();
+      ctx.moveTo(cx - u * 6 * s, topY + u * 2);
+      ctx.bezierCurveTo(cx - u * 5 * s, topY - u * 2, cx - u * 2 * s, topY - u * 3, cx, topY - u * 2);
+      ctx.bezierCurveTo(cx + u * 2 * s, topY - u * 3, cx + u * 5 * s, topY - u * 2, cx + u * 6 * s, topY + u * 2);
+      ctx.bezierCurveTo(cx + u * 4 * s, topY + u * 4, cx - u * 4 * s, topY + u * 4, cx - u * 6 * s, topY + u * 2);
+      ctx.fill();
+      // Lighter green inner foliage
+      ctx.fillStyle = accent;
+      ctx.beginPath();
+      ctx.ellipse(cx + sway * 0.3, topY + u * 1, u * 3.5 * s, u * 2 * s, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Stage 4: healing green glow
+      if (stage === 4) {
+        const glowA = 0.1 + Math.sin(frameCount * 0.04 + index) * 0.06;
+        const grad = ctx.createRadialGradient(cx, topY + u * 2, 0, cx, topY + u * 2, u * 7 * s);
+        grad.addColorStop(0, `rgba(178,255,89,${glowA})`);
+        grad.addColorStop(1, 'transparent');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(cx, topY + u * 2, u * 7 * s, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
   }
