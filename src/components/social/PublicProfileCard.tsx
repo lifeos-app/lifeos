@@ -2,7 +2,7 @@
 // v2: Shows ladder class, separate Friend / Partner request buttons, improved design
 
 import { useState } from 'react';
-import { Users, MessageCircle, Loader2, UserPlus, Shield, Flame, ChevronDown, ChevronUp } from 'lucide-react';
+import { Users, MessageCircle, Loader2, UserPlus, Shield, Flame, ChevronDown, ChevronUp, Share2 } from 'lucide-react';
 import { StatsRadar } from '../gamification/StatsRadar';
 import { getAchievement, RARITY_COLORS } from '../../lib/gamification';
 import { xpForLevel } from '../../lib/gamification';
@@ -10,6 +10,7 @@ import { getLadder } from '../../lib/gamification/ladder';
 import type { LadderKey } from '../../lib/gamification/ladder';
 import type { PublicProfile } from '../../lib/social/types';
 import type { UserStats } from '../../lib/gamification';
+import { ShareCard } from './ShareCard';
 import './social.css';
 
 interface PublicProfileCardProps {
@@ -339,6 +340,27 @@ export function PublicProfileCard({
               Partner Up
             </button>
           )}
+
+          {/* Share profile button */}
+          <button
+            className="profile-card__btn"
+            onClick={() => {
+              const text = `${profile.display_name} — Level ${profile.level} ${ladderDisplay} on LifeOS\n${profile.bio || 'Living the quest.'}\nJoin LifeOS: https://teddyscleaning.com.au/lifeos`;
+              navigator.clipboard.writeText(text).then(() => {
+                const el = document.getElementById(`share-toast-${profile.user_id}`);
+                if (el) { el.textContent = 'Copied!'; setTimeout(() => { el.textContent = ''; }, 1500); }
+              });
+            }}
+            title="Share profile"
+            style={{ width: '100%', marginBottom: 8, color: '#5A7A9A', borderColor: 'rgba(90,122,154,0.2)' }}
+          >
+            <Share2 size={13} />
+            Share Profile
+            <span id={`share-toast-${profile.user_id}`} style={{ marginLeft: 'auto', fontSize: 10, color: '#39FF14' }} />
+          </button>
+
+          {/* Canvas-based shareable card image */}
+          <ShareCard profile={profile} />
 
           {/* Block option */}
           {!isFriend && !isPartner && (
