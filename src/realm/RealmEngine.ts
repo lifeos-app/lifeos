@@ -10,7 +10,7 @@ import { KeyboardController } from './input/KeyboardController';
 import { TouchController } from './input/TouchController';
 import { findPath, isTileWalkable } from './input/Pathfinding';
 import { TILE_SIZE, type TileType } from './data/tiles';
-import { LIFE_TOWN, type ZoneDef, type PortalPlacement, type BuildingPlacement } from './data/zones';
+import { LIFE_TOWN, IRONWORKS, WISDOM_SUMMIT, HEALERS_SANCTUARY, MARKET_QUARTER, SOCIAL_SQUARE, type ZoneDef, type PortalPlacement, type BuildingPlacement } from './data/zones';
 import { deriveWorldState, deriveDialogueContext, type RealmWorldState, type GardenPlant, type DynamicEntity } from './bridge/DataBridge';
 import type { FloraSpecies } from './data/flora';
 import { getFloraCache } from './hooks/useFlora';
