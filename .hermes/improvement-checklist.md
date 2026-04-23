@@ -5,10 +5,10 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.19.57
+- **Current Version:** 1.19.58
 - **Baseline Date:** 2026-04-20
 - **Last Audit:** 2026-04-23
-- **Completion:** 50/68 = 73.5%
+- **Completion:** 51/68 = 75.0%
 
 ## Vision Documents (Source of Truth)
 1. `/home/tewedros/Desktop/webapp/docs/vision/VISION.md` — "LifeOS IS an AI that has an app as its interface"
@@ -71,7 +71,7 @@
 - [ ] [P5-004] Biome choice — ❌ MISSING — WORLD-CLASS-ROADMAP Gap 4: "6 biomes (Woodland, Tropical, Highland, Savanna, Coastal, Tundra)." — Impact: 2/5
 - [ ] [P5-005] Dynamic XP→World — 🔨 PARTIAL — WORLD-CLASS-ROADMAP Gap 5: "Daily XP = world vibrancy (60-100%). Weekly streak = music layers add." Mood→weather exists but XP→brightness missing. — Impact: 2/5
 - [ ] [P5-006] All Realm zones — ❌ MISSING — LIFEOS-ROADMAP 4.1: "5 more zones: Ironworks District, Wisdom Summit, Healer's Sanctuary, Market Quarter, Social Square." Only Life Town. — Impact: 2/5
-- [ ] [P5-007] NPC friendship system — ❌ MISSING — LIFEOS-ROADMAP 4.3: "NPC friendship levels 1-10. NPC quests. NPC gifts at milestones. NPC mood from user behavior." — Impact: 2/5
+- [x] [P5-007] NPC friendship system — ✅ DONE — Commit: a73b60d — Date: 2026-04-23 — npc-friendship.ts: 10 friendship tiers (Stranger→Eternal Bond), exponential XP, daily interaction +1 XP, unlocks at 3/6/10, 6 NPC definitions, gift system, quest system, friendship greeting modifier, serialization to npc_bonds in user preferences.
 - [ ] [P5-008] MapleStory chibi sprites — ❌ MISSING — WORLD-CLASS-ROADMAP: "Characters are colored rectangles (embarrassment). Need chibi sprites." — Impact: 2/5
 - [ ] [P5-009] RPG Genesis Quest onboarding — ❌ MISSING — MASTER_BUILD_PLAN Phase 4 + WORLD-CLASS-ROADMAP: "Character creation → Genesis Garden tutorial → First Quest → Portal to Life Town." — Impact: 2/5
 
