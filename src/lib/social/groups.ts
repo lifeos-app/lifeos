@@ -1,8 +1,9 @@
 // LifeOS Social — Goal-based Group Chats
 
 import { supabase } from '../data-access';
-import type { GoalGroup, GoalGroupMember, Message } from './types';
+import type { GoalGroup, GoalGroupMember, Message, GoalCategory, GuildMemberWithContribution } from './types';
 import { logger } from '../../utils/logger';
+import { awardXP } from '../gamification/xp-engine';
 
 /** Create a new goal group */
 export async function createGroup(
@@ -210,6 +211,14 @@ export async function logGuildContribution(
     logger.error('[social/groups] logGuildContribution error:', error);
     return false;
   }
+
+  // Award XP for guild contribution (15 base XP)
+  try {
+    await awardXP(supabase, userId, 'guild_contribute', { description: note });
+  } catch {
+    // XP award failure is non-critical — don't block the contribution
+  }
+
   return true;
 }
 

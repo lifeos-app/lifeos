@@ -30,7 +30,8 @@ export type ActionType =
   | 'goal_create'
   | 'healer_consult'
   | 'scholar_study'
-  | 'daily_reward';
+  | 'daily_reward'
+  | 'guild_contribute';
 
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type GoalCategory = 'goal' | 'epic' | 'objective';
@@ -77,6 +78,7 @@ const BASE_XP: Record<ActionType, number> = {
   healer_consult: 10,
   scholar_study: 10,
   daily_reward: 0, // Base is 0 — actual XP amount comes from daily-rewards utility via metadata
+  guild_contribute: 15,
 };
 
 // Task priority multipliers
