@@ -6,11 +6,12 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Play, Square, Flame, Plus, DollarSign, UtensilsCrossed, Activity, BookOpen, Droplets, Smile, Timer } from 'lucide-react';
+import { Play, Square, Flame, Plus, DollarSign, UtensilsCrossed, Activity, BookOpen, Droplets, Smile, Timer, Receipt } from 'lucide-react';
 import { QuickStartActivity } from './quick-actions/QuickStartActivity';
 import { QuickLogHabit } from './quick-actions/QuickLogHabit';
 import { QuickAddTask } from './quick-actions/QuickAddTask';
 import { QuickLogIncome } from './quick-actions/QuickLogIncome';
+import { QuickLogExpense } from './quick-actions/QuickLogExpense';
 import { QuickLogMeal } from './quick-actions/QuickLogMeal';
 import { QuickLogHealth } from './quick-actions/QuickLogHealth';
 import { QuickJournal } from './quick-actions/QuickJournal';
@@ -18,11 +19,11 @@ import { useLiveActivityStore } from '../../stores/useLiveActivityStore';
 import { useHealthStore } from '../../stores/useHealthStore';
 import { useUserStore } from '../../stores/useUserStore';
 import { useScheduleStore } from '../../stores/useScheduleStore';
-import { supabase } from '../../lib/data-access';
+import { HealthService } from '../../lib/services/health-service';
 import { localDateStr } from '../../utils/date';
 import { showToast } from '../Toast';
 
-type SheetType = 'start' | 'habit' | 'task' | 'income' | 'meal' | 'health' | 'journal' | null;
+type SheetType = 'start' | 'habit' | 'task' | 'income' | 'expense' | 'meal' | 'health' | 'journal' | null;
 
 const MOOD_ICONS = ['😫', '😕', '😐', '🙂', '😄'];
 
@@ -54,23 +55,26 @@ export function DashboardQuickActions() {
   const handleLogWater = useCallback(async () => {
     if (!userId) return;
     const next = waterCount + 1;
-    await supabase.from('health_metrics').upsert(
+    // Use a simple upsert via data-access (HealthService doesn't have water method yet)
+    const { db } = await import('../../lib/data-access');
+    await db.from('health_metrics').upsert(
       { user_id: userId, date: localDateStr(), water_glasses: next, updated_at: new Date().toISOString() },
       { onConflict: 'user_id,date' }
     );
     invalidateHealth();
-    showToast(`Water: ${next} glass${next !== 1 ? 'es' : ''} today`, '💧', '#74B9FF');
+    showToast(`Water: ${next} glass${next !== 1 ? 'es' : ''} today`, '', '#74B9FF');
   }, [userId, waterCount, invalidateHealth]);
 
   const handleLogMood = useCallback(async (score: number) => {
     if (!userId) return;
-    await supabase.from('health_metrics').upsert(
-      { user_id: userId, date: localDateStr(), mood_score: score, updated_at: new Date().toISOString() },
-      { onConflict: 'user_id,date' }
-    );
-    invalidateHealth();
-    setMoodOpen(false);
-    showToast(`Mood logged: ${MOOD_ICONS[score - 1]}`, '✅', '#00D4FF');
+    try {
+      await HealthService.logMood(score);
+      invalidateHealth();
+      setMoodOpen(false);
+      showToast(`Mood logged: ${MOOD_ICONS[score - 1]}`, '', '#00D4FF');
+    } catch {
+      showToast('Failed to log mood', '', '#F43F5E');
+    }
   }, [userId, invalidateHealth]);
 
   const handleStartFocus = useCallback(async () => {
@@ -151,6 +155,10 @@ export function DashboardQuickActions() {
           <DollarSign size={18} />
           <span>Income</span>
         </button>
+        <button className="qa-btn" onClick={() => openSheet('expense')} title="Log expense">
+          <Receipt size={18} />
+          <span>Expense</span>
+        </button>
         <button className="qa-btn" onClick={() => openSheet('meal')} title="Log a meal">
           <UtensilsCrossed size={18} />
           <span>Meal</span>
@@ -212,6 +220,7 @@ export function DashboardQuickActions() {
       <QuickLogHabit open={activeSheet === 'habit'} onClose={closeSheet} />
       <QuickAddTask open={activeSheet === 'task'} onClose={closeSheet} />
       <QuickLogIncome open={activeSheet === 'income'} onClose={closeSheet} />
+      <QuickLogExpense open={activeSheet === 'expense'} onClose={closeSheet} />
       <QuickLogMeal open={activeSheet === 'meal'} onClose={closeSheet} />
       <QuickLogHealth open={activeSheet === 'health'} onClose={closeSheet} />
       <QuickJournal open={activeSheet === 'journal'} onClose={closeSheet} />
