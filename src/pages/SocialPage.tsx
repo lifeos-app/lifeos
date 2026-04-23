@@ -2,7 +2,7 @@
 // v4: Fullscreen immersive mode via FullscreenPage
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Users, Search, Globe, MessageCircle, UserCircle, UserPlus, Lock, User, Handshake, Crown, ChevronDown, ChevronUp } from 'lucide-react';
+import { Users, Search, Globe, MessageCircle, UserCircle, UserPlus, Lock, User, Handshake, Crown, ChevronDown, ChevronUp, Trophy } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUserStore } from '../stores/useUserStore';
 import { isComingSoon } from '../lib/feature-gates';
@@ -12,6 +12,7 @@ import { FriendsList } from '../components/social/FriendsList';
 import { PartnerActivityFeed } from '../components/social/PartnerActivityFeed';
 import { FindPartners } from '../components/social/FindPartners';
 import { GuildsTab } from '../components/social/GuildsTab';
+import { LeaderboardTab } from '../components/social/LeaderboardTab';
 import { ConversationList } from '../components/social/ConversationList';
 import { ChatPanel } from '../components/social/ChatPanel';
 import { KingdomView } from '../components/social/KingdomView';
@@ -23,17 +24,18 @@ import { FullscreenPage } from '../components/FullscreenPage';
 import { logger } from '../utils/logger';
 import '../components/social/social.css';
 
-type Tab = 'friends' | 'find' | 'guilds' | 'kingdom' | 'messages';
+type Tab = 'friends' | 'find' | 'guilds' | 'leaderboard' | 'kingdom' | 'messages';
 
 const SOCIAL_TABS = [
   { id: 'friends',  label: 'Friends',  icon: UserPlus,      color: '#39FF14' },
   { id: 'find',     label: 'Discover', icon: Search,        color: '#00D4FF' },
   { id: 'guilds',   label: 'Guilds',   icon: Globe,         color: '#A855F7' },
+  { id: 'leaderboard', label: 'Ranks', icon: Trophy,       color: '#FFD700' },
   { id: 'kingdom',  label: 'Kingdom',  icon: Crown,         color: '#FFD700' },
   { id: 'messages', label: 'Messages', icon: MessageCircle, color: '#F97316' },
 ];
 
-const VALID_TABS: Tab[] = ['friends', 'find', 'guilds', 'kingdom', 'messages'];
+const VALID_TABS: Tab[] = ['friends', 'find', 'guilds', 'leaderboard', 'kingdom', 'messages'];
 
 interface ActiveChat {
   partnerId: string;
@@ -250,6 +252,7 @@ export function SocialPage() {
 
       {/* ── GUILDS TAB ── */}
       {activeTab === 'guilds' && <GuildsTab userId={userId} onOpenDM={(partnerId) => openChat(partnerId, 'Guild Member', null)} />}
+      {activeTab === 'leaderboard' && <LeaderboardTab />}
 
       {/* ── KINGDOM TAB ── */}
       {activeTab === 'kingdom' && <KingdomView />}
