@@ -5,10 +5,10 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.19.56
+- **Current Version:** 1.19.57
 - **Baseline Date:** 2026-04-20
 - **Last Audit:** 2026-04-23
-- **Completion:** 49/68 = 72.1%
+- **Completion:** 50/68 = 73.5%
 
 ## Vision Documents (Source of Truth)
 1. `/home/tewedros/Desktop/webapp/docs/vision/VISION.md` — "LifeOS IS an AI that has an app as its interface"
@@ -67,7 +67,7 @@
 
 - [ ] [P5-001] Living Garden species-aware — 🔨 PARTIAL — GardenRenderer.ts exists with 9 species refs. WORLD-CLASS-ROADMAP Gap 1: "32 priority plants mapped to 10 habit categories, 6 growth stages + dormancy, sprite sheets." — Impact: 3/5
 - [ ] [P5-002] Companion system — 🔨 PARTIAL — CompanionRenderer.ts exists, companions.ts data exists. WORLD-CLASS-ROADMAP Gap 2: "30 companion species, earned via 7-day combos, bond level 1-10." — Impact: 3/5
-- [ ] [P5-003] Celestial layer — 🔨 PARTIAL — DashboardCelestial.tsx (136 lines) + celestial.ts exist. WORLD-CLASS-ROADMAP Gap 3: "Real moon phase, hemisphere-aware seasons, Ethiopian calendar." Needs depth. — Impact: 2/5
+- [x] [P5-003] Celestial layer — ✅ DONE — Commit: 2b4c1aa — Date: 2026-04-23 — Real moon phase (Julian Day Number), hemisphere-aware seasons, Ethiopian calendar date overlay (toEthiopian()), full moon XP +10% gold indicator, upcoming 3 events with urgency colouring, illumination progress bar. DashboardCelestial.tsx rewritten.
 - [ ] [P5-004] Biome choice — ❌ MISSING — WORLD-CLASS-ROADMAP Gap 4: "6 biomes (Woodland, Tropical, Highland, Savanna, Coastal, Tundra)." — Impact: 2/5
 - [ ] [P5-005] Dynamic XP→World — 🔨 PARTIAL — WORLD-CLASS-ROADMAP Gap 5: "Daily XP = world vibrancy (60-100%). Weekly streak = music layers add." Mood→weather exists but XP→brightness missing. — Impact: 2/5
 - [ ] [P5-006] All Realm zones — ❌ MISSING — LIFEOS-ROADMAP 4.1: "5 more zones: Ironworks District, Wisdom Summit, Healer's Sanctuary, Market Quarter, Social Square." Only Life Town. — Impact: 2/5
