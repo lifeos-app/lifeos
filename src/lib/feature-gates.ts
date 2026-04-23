@@ -90,18 +90,18 @@ export function isComingSoon(feature: ComingSoonFeature, userId: string | undefi
 /**
  * Check if user can access a feature based on their tier
  * 
- * EARLY ADOPTER MODE: All users get Pro features for free.
- * When ready to monetise, remove the early return below and
- * route the upgrade button to Stripe.
+ * EARLY ADOPTER MODE: When VITE_STRIPE_ENABLED is not 'true',
+ * all users get Pro features for free.
+ * When Stripe is activated, tier from user_profiles drives access.
  */
-export function canAccess(_feature: ProFeature, _tier: 'free' | 'pro'): boolean {
-  // 🎉 Early Adopter — everyone gets Pro for free
-  return true;
-  
+export function canAccess(_feature: ProFeature, tier: 'free' | 'pro'): boolean {
+  // Early Adopter — everyone gets Pro for free
+  if (import.meta.env.VITE_STRIPE_ENABLED !== 'true') return true;
+
   // Pro users have access to everything
-  // if (tier === 'pro') return true;
+  if (tier === 'pro') return true;
   // Free users can't access pro features
-  // return !PRO_FEATURES[feature];
+  return !PRO_FEATURES[_feature];
 }
 
 /**
