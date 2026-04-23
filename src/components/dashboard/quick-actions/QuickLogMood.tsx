@@ -2,15 +2,22 @@
  * QuickLogMood — 1-tap mood logging on a 1-5 scale.
  * Instant save via HealthService.logMood(). No form, just tap and done.
  * Closes automatically after selection for zero-friction UX.
+ *
+ * Includes Polarity transmutation card when mood is at extreme (1 or 5),
+ * offering Hermetic guidance to transmute the polarized state.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { SmilePlus } from 'lucide-react';
 import { BottomSheet } from '../../BottomSheet';
 import { useHealthStore } from '../../../stores/useHealthStore';
 import { HealthService } from '../../../lib/services/health-service';
-import { HermeticPrincipleBar } from '../../shared/HermeticPrincipleBar';
+import { HermeticPrincipleOverlay } from '../../shared/HermeticPrincipleOverlay';
 import { showToast } from '../../Toast';
+import { detectPolarityState, isExtremeValue } from '../../../lib/hermetic-polarity';
+import type { PolarityState } from '../../../lib/hermetic-polarity';
+import { type PrincipleInsight } from '../../../lib/hermetic-principle-insight';
+import { SEVEN_PRINCIPLES } from '../../../lib/hermetic-integration';
 
 interface Props {
   open: boolean;
@@ -34,6 +41,24 @@ export function QuickLogMood({ open, onClose }: Props) {
     // The tap handler below auto-closes after save
   }, [open]);
 
+  // Detect polarity state for mood
+  const polarityState: PolarityState | null = useMemo(() => {
+    if (currentMood === null) return null;
+    if (!isExtremeValue(currentMood)) return null;
+
+    // Build recent mood values for detection
+    // Start with current mood, then use today's data as context
+    const recentValues = [currentMood];
+
+    // Try to get recent mood data from store metrics
+    // If the store has historical mood data, we could expand this
+    // For now, use the single value with a day count of 1
+    // The detectPolarityState function handles threshold logic
+    const result = detectPolarityState('mood', recentValues);
+
+    return result;
+  }, [currentMood]);
+
   const handleMoodTap = async (value: number) => {
     try {
       await HealthService.logMood(value);
@@ -44,6 +69,9 @@ export function QuickLogMood({ open, onClose }: Props) {
       showToast('Failed to log mood', '', '#F43F5E');
     }
   };
+
+  // Determine pole label for display
+  const poleLabel = polarityState?.currentPole === 'negative' ? 'Low Pole' : 'High Pole';
 
   return (
     <BottomSheet open={open} onClose={onClose} title="How are you feeling?" icon={<SmilePlus size={18} />}>
@@ -97,6 +125,53 @@ export function QuickLogMood({ open, onClose }: Props) {
           marginBottom: 4,
         }}>
           Current: {MOODS.find(m => m.value === currentMood)?.emoji} {MOODS.find(m => m.value === currentMood)?.label}
+        </div>
+      )}
+
+      {/* Polarity transmutation card — shown when mood is extreme */}
+      {polarityState && isExtremeValue(currentMood ?? 0) && (
+        <div style={{
+          margin: '8px 0 4px',
+          padding: '10px 12px',
+          borderRadius: 10,
+          background: 'linear-gradient(135deg, #FACC15 0%, #F97316 100%)',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          {/* Subtle radial overlay for depth */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'radial-gradient(circle at 80% 20%, rgba(255,255,255,0.15) 0%, transparent 60%)',
+            pointerEvents: 'none',
+          }} />
+
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '1px',
+              textTransform: 'uppercase',
+              color: '#1a1a2e',
+              marginBottom: 4,
+            }}>
+              Polarity — {poleLabel}
+            </div>
+            <div style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontSize: 11,
+              fontWeight: 400,
+              lineHeight: 1.5,
+              color: '#1a1a2e',
+              opacity: 0.85,
+            }}>
+              {polarityState.transmutationHint || 'The pendulum holds both poles within you. Transmutation begins with awareness.'}
+            </div>
+          </div>
         </div>
       )}
 

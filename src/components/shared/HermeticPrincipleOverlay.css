@@ -1,0 +1,90 @@
+/* HermeticPrincipleOverlay — Glass morphism card for data-driven Hermetic wisdom */
+
+.hermetic-overlay {
+  font-family: 'Poppins', sans-serif;
+  margin-top: 8px;
+  background: #0A1628;
+  border-radius: 10px;
+  border-left: 4px solid var(--hermetic-color, #00D4FF);
+  box-shadow: 0 0 12px -4px var(--hermetic-color, #00D4FF);
+  overflow: hidden;
+}
+
+.hermetic-overlay__header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px 2px;
+}
+
+.hermetic-overlay__principle-name {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--hermetic-color, #00D4FF);
+  opacity: 0.8;
+}
+
+.hermetic-overlay__axiom {
+  font-size: 9px;
+  font-style: italic;
+  color: var(--hermetic-color, #00D4FF);
+  opacity: 0.5;
+}
+
+.hermetic-overlay__wisdom {
+  padding: 4px 10px 4px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.hermetic-overlay__practice {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 0 10px 6px;
+  font-size: 9.5px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.hermetic-overlay__practice-bullet {
+  flex-shrink: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--hermetic-color, #00D4FF);
+  opacity: 0.45;
+  margin-top: 4px;
+}
+
+.hermetic-overlay__miracle-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  transition: color 0.2s;
+}
+
+.hermetic-overlay__miracle-toggle:hover {
+  color: var(--hermetic-color, #00D4FF);
+}
+
+.hermetic-overlay__miracle-content {
+  padding: 0 10px 8px;
+  font-size: 9.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.55);
+  font-style: italic;
+}

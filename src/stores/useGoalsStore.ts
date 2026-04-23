@@ -16,6 +16,8 @@ import { useUserStore } from './useUserStore';
 import { genId } from '../utils/date';
 import type { Goal, Business } from '../types/database';
 import { logger } from '../utils/logger';
+import type { HermeticForce } from '../lib/hermetic-gender-balance';
+import { suggestForce } from '../lib/hermetic-gender-balance';
 
 /**
  * GoalNode extends database Goal type with UI-specific fields
@@ -26,6 +28,8 @@ export interface GoalNode extends Goal {
   color: string | null;
   sort_order: number;
   priority: string | null;
+  /** Hermetic Gender principle classification — vision (feminine), action (masculine), or balanced */
+  hermeticForce?: HermeticForce;
 }
 
 interface GoalsState {
@@ -110,12 +114,17 @@ export const useGoalsStore = create<GoalsState>((set, get) => ({
 
   createGoal: async (data) => {
     try {
+      // Auto-suggest hermeticForce from title/description if not explicitly set
+      const hermeticForce: HermeticForce | undefined =
+        data.hermeticForce ?? suggestForce(data.title ?? '', data.description);
+
       const newGoal = await localInsert('goals', {
         id: genId(),
         user_id: data.user_id || getEffectiveUserId(),
         is_deleted: false,
         created_at: new Date().toISOString(),
         ...data,
+        hermeticForce,
       });
       
       // Optimistic
@@ -142,12 +151,17 @@ export const useGoalsStore = create<GoalsState>((set, get) => ({
 
     try {
       for (const data of goals) {
+        // Auto-suggest hermeticForce from title/description if not explicitly set
+        const hermeticForce: HermeticForce | undefined =
+          data.hermeticForce ?? suggestForce(data.title ?? '', data.description);
+
         const newGoal = await localInsert('goals', {
           id: data.id || genId(),
           user_id: data.user_id || getEffectiveUserId(),
           is_deleted: false,
           created_at: new Date().toISOString(),
           ...data,
+          hermeticForce,
         });
         ids.push(newGoal.id);
         created.push(newGoal as GoalNode);

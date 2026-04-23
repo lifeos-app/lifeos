@@ -1,0 +1,48 @@
+.energy-wave-container {
+  background: #0A1628;
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  border-radius: 12px;
+  padding: 10px 12px 6px;
+  width: 280px;
+  font-family: 'Poppins', sans-serif;
+  overflow: hidden;
+}
+
+.energy-wave-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.energy-wave-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #A855F7;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.energy-wave-stats {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.energy-wave-stat {
+  font-size: 8px;
+  font-weight: 400;
+  color: #5A7A9A;
+  white-space: nowrap;
+}
+
+.energy-wave-stat-sep {
+  font-size: 8px;
+  color: rgba(168, 85, 247, 0.2);
+  padding: 0 2px;
+}
+
+.energy-wave-canvas {
+  display: block;
+  border-radius: 6px;
+}

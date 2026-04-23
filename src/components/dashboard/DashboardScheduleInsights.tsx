@@ -15,8 +15,8 @@ import { useHabitsStore } from '../../stores/useHabitsStore';
 import { useGoalsStore } from '../../stores/useGoalsStore';
 import { useFinanceStore } from '../../stores/useFinanceStore';
 import { useOverdueItems } from '../../hooks/useOverdueItems';
-import { predictScheduleSuggestions, type ScheduleSlotSuggestion } from '../../lib/pattern-engine';
-import { HermeticPrincipleBar } from '../shared/HermeticPrincipleBar';
+import { predictScheduleSuggestions, detectPatterns, type ScheduleSlotSuggestion } from '../../lib/pattern-engine';
+import { HermeticPrincipleOverlay } from '../shared/HermeticPrincipleOverlay';
 import { showToast } from '../Toast';
 
 const CARD_STYLE: React.CSSProperties = {
@@ -85,6 +85,16 @@ export function DashboardScheduleInsights() {
       return predictScheduleSuggestions(
         tasks, habits ?? [], habitLogs ?? [], goals ?? [], bills ?? [],
       ).slice(0, 2); // max 2 predictions shown
+    } catch {
+      return [];
+    }
+  }, [tasks, habits, habitLogs, goals, bills]);
+
+  // Detected patterns for Hermetic overlay
+  const detectedPatterns = useMemo(() => {
+    if (!tasks || tasks.length < 3) return [];
+    try {
+      return detectPatterns({ tasks, habits: habits ?? [], habitLogs: habitLogs ?? [], goals: goals ?? [], bills: bills ?? [] });
     } catch {
       return [];
     }
@@ -370,7 +380,7 @@ export function DashboardScheduleInsights() {
       )}
 
       {/* Hermetic principle — Rhythm governs scheduling */}
-      <HermeticPrincipleBar domain="schedule" />
+      <HermeticPrincipleOverlay insight={null} patterns={detectedPatterns} />
     </div>
   );
 }

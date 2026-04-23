@@ -9,7 +9,9 @@ import { useMemo, useState } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, ArrowUpRight, ArrowDownRight, AlertTriangle, Lightbulb, ChevronDown, ChevronUp } from 'lucide-react';
 import { useFinanceStore } from '../../stores/useFinanceStore';
 import { generateFinancialInsights, type FinancialInsight } from '../../lib/financial-intelligence';
-import { HermeticPrincipleBar } from '../shared/HermeticPrincipleBar';
+import { HermeticPrincipleOverlay } from '../shared/HermeticPrincipleOverlay';
+import { patternToInsight, type PrincipleInsight } from '../../lib/hermetic-principle-insight';
+import type { DetectedPattern } from '../../lib/pattern-engine';
 
 const CARD_STYLE: React.CSSProperties = {
   background: 'rgba(17, 24, 39, 0.5)',
@@ -108,6 +110,38 @@ export function DashboardFinancialPulse() {
     generateFinancialInsights({ income, expenses }),
     [income, expenses]
   );
+
+  // Derive a PrincipleInsight from spending patterns for the Hermetic overlay
+  const financeInsight = useMemo<PrincipleInsight | null>(() => {
+    // Build a lightweight DetectedPattern from spending trends for the overlay
+    if (expenseTrend > 20) {
+      const pattern: DetectedPattern = {
+        id: 'fin-spend-spike',
+        type: 'spending_spike',
+        title: 'Spending above average',
+        description: `Expenses are ${Math.round(expenseTrend)}% above last month`,
+        confidence: Math.min(Math.abs(expenseTrend) / 100, 1),
+        hermeticPrinciple: 5, // CAUSE & EFFECT
+        detectedAt: new Date().toISOString(),
+        data: { overPct: Math.round(expenseTrend), week: 'this month', averageWeekly: monthExpenses / 4 },
+      };
+      return patternToInsight(pattern);
+    }
+    if (incomeTrend > 20) {
+      const pattern: DetectedPattern = {
+        id: 'fin-income-rise',
+        type: 'spending_spike',
+        title: 'Income trend rising',
+        description: `Income is ${Math.round(incomeTrend)}% above last month`,
+        confidence: Math.min(incomeTrend / 100, 1),
+        hermeticPrinciple: 5,
+        detectedAt: new Date().toISOString(),
+        data: { overPct: Math.round(incomeTrend), week: 'this month', averageWeekly: monthIncome / 4 },
+      };
+      return patternToInsight(pattern);
+    }
+    return null;
+  }, [expenseTrend, incomeTrend, monthExpenses, monthIncome]);
 
   const topInsight = insights[0] ?? null;
   const extraInsights = insights.slice(1, 4);
@@ -217,7 +251,7 @@ export function DashboardFinancialPulse() {
       )}
 
       {/* Hermetic principle — Cause & Effect governs finance */}
-      <HermeticPrincipleBar domain="finance" />
+      <HermeticPrincipleOverlay insight={financeInsight} />
     </div>
   );
 }
