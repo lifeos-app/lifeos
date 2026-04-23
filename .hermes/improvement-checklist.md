@@ -65,8 +65,8 @@
 
 ## Priority 5: DEPTH (Richness and completeness)
 
-- [ ] [P5-001] Living Garden species-aware — 🔨 PARTIAL — GardenRenderer.ts exists with 9 species refs. WORLD-CLASS-ROADMAP Gap 1: "32 priority plants mapped to 10 habit categories, 6 growth stages + dormancy, sprite sheets." — Impact: 3/5
-- [ ] [P5-002] Companion system — 🔨 PARTIAL — CompanionRenderer.ts exists, companions.ts data exists. WORLD-CLASS-ROADMAP Gap 2: "30 companion species, earned via 7-day combos, bond level 1-10." — Impact: 3/5
+- [x] [P5-001] Living Garden species-aware — ✅ v1.19.59 — All 10 habit categories have distinct Canvas renderers: Lotus (wellness), Oak (fitness), Olive (learning), MoneyTree (finance), Cedar (spiritual), Bamboo (productivity), CherryBlossom (creative), Sunflower (social), NeemTree (health), Fern (other). 32 species in flora data, 6 growth stages + dormancy, sprite sheet fallback, Ancient golden aura.
+- [x] [P5-002] Companion system — ✅ v1.19.59 — 24 species across 8 categories, 4 body types (canine/feline/bird/large), CompanionRenderer (371 lines), useFauna hook, checkCompanionEligibility (7-day 3+ domain streak), bond system 10 levels, NPC friendship (npc-friendship.ts 403 lines), Supabase tables with RLS, species palettes for Canvas rendering.
 - [x] [P5-003] Celestial layer — ✅ DONE — Commit: 2b4c1aa — Date: 2026-04-23 — Real moon phase (Julian Day Number), hemisphere-aware seasons, Ethiopian calendar date overlay (toEthiopian()), full moon XP +10% gold indicator, upcoming 3 events with urgency colouring, illumination progress bar. DashboardCelestial.tsx rewritten.
 - [ ] [P5-004] Biome choice — ❌ MISSING — WORLD-CLASS-ROADMAP Gap 4: "6 biomes (Woodland, Tropical, Highland, Savanna, Coastal, Tundra)." — Impact: 2/5
 - [ ] [P5-005] Dynamic XP→World — 🔨 PARTIAL — WORLD-CLASS-ROADMAP Gap 5: "Daily XP = world vibrancy (60-100%). Weekly streak = music layers add." Mood→weather exists but XP→brightness missing. — Impact: 2/5
@@ -94,9 +94,9 @@
 - [x] [TD-002] Goals.tsx: 1827→300 lines — ✅ DONE — Split into 4 files. Commit: 566ec24
 - [x] [TD-003] Intent Engine: 2324→25 lines — ✅ DONE — Decomposed into 12 modules. Commit: 0402d50
 - [x] [TD-004] Health.tsx orchestration vs Health-tabs subcomponents — ✅ DONE — Verified: 125 lines, clean split, no direct Supabase calls, all tabs in health-tabs/ directory, hooks architecture already proper
-- [ ] [TD-005] Finances.tsx: 657→302 lines — ✅ DONE — Date: 2026-04-21 — Extracted useFinanceActions (181 lines), useFinanceComputed (268 lines), FinanceSummary (74 lines), FinanceTabActions (33 lines). All direct Supabase calls moved to useFinanceStore methods. Zero direct Supabase imports in Finances.tsx.
+- [x] [TD-005] Finances.tsx: 657→302 lines — ✅ DONE — Date: 2026-04-21 — Extracted useFinanceActions (181 lines), useFinanceComputed (268 lines), FinanceSummary (74 lines), FinanceTabActions (33 lines). All direct Supabase calls moved to useFinanceStore methods. Zero direct Supabase imports in Finances.tsx.
 - [ ] [TD-006] Service worker — disabled in Electron (expected). Should work for PWA.
-- [ ] [TD-007] Offline-first completion — ✅ IN PROGRESS — useLiveActivityStore + useAgentStore now local-first. Remaining: other stores that bypass local-db (search for direct supabase writes outside data-access.ts)
+- [x] [TD-007] Offline-first completion — ✅ v1.19.59 — All write-heavy stores now route through local-db. No direct supabase.from() in stores. useLiveActivityStore, useAgentStore, useFinanceStore, useGoalsStore, useHabitsStore, useHealthStore, useScheduleStore, useJournalStore, useInventoryStore all use local-first pattern. Engines import supabase from data-access (correct architecture).
 - [ ] [TD-008] TypeScript strict mode — not enabled
 - [ ] [TD-009] Test coverage — 5 test files for 592 source files (0.8%)
 - [ ] [TD-010] RLS migration SQL ready but not applied — supabase/migrations/20260418_rls_critical_tables.sql needs manual paste

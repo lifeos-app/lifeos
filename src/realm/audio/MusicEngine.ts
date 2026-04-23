@@ -21,6 +21,7 @@ export class MusicEngine {
   private mood = 3;
   private timeOfDay = 'day';
   private volume = 0.4;
+  private streakDays = 0;
 
   // Tone.js nodes
   private droneSynth: OscillatorNode | null = null;
@@ -159,6 +160,18 @@ export class MusicEngine {
     if (this.playing) this.applyMood();
   }
 
+  /**
+   * Set current streak length — longer streaks unlock richer music layers.
+   * 0-2 days: baseline (drone + sparse melody)
+   * 3-6 days: + rhythm layer
+   * 7-13 days: + full melody, louder ambient
+   * 14+ days: all layers at full vibrancy
+   */
+  setStreakLength(days: number): void {
+    this.streakDays = days;
+    if (this.playing) this.applyMood();
+  }
+
   setTimeOfDay(tod: string): void {
     this.timeOfDay = tod;
     if (this.playing) this.applyTimeOfDay();
@@ -197,21 +210,46 @@ export class MusicEngine {
     if (!this.initialized) return;
     const now = '+0.5';
 
-    // Mood 1-2: drone only
-    // Mood 3: drone + quiet melody
-    // Mood 4-5: all layers
+    // Streak multiplier: gradually unlock layers
+    // 0-2 days: drone + sparse melody
+    // 3-6 days: + rhythm
+    // 7-13 days: richer melody + louder ambient
+    // 14+ days: all layers at full vibrancy
+    const streakBoost = this.streakDays >= 14 ? 1.0
+      : this.streakDays >= 7 ? 0.7
+      : this.streakDays >= 3 ? 0.4
+      : 0;
+
+    // Mood 1-2: drone only (streak can partially add melody)
+    // Mood 3: drone + quiet melody (streak can add rhythm)
+    // Mood 4-5: all layers (streak enriches volume)
     if (this.mood <= 2) {
-      this.melodyGain.gain.rampTo(0, 1);
-      this.rhythmGain.gain.rampTo(0, 1);
-      this.droneGain.gain.rampTo(0.35, 1);
+      const melodyVol = Math.min(0.15, 0.05 + streakBoost * 0.1);
+      const rhythmVol = streakBoost > 0 ? 0.02 + streakBoost * 0.04 : 0;
+      const droneVol = 0.35;
+      this.melodyGain.gain.rampTo(melodyVol, 1);
+      this.rhythmGain.gain.rampTo(rhythmVol, 1);
+      this.droneGain.gain.rampTo(droneVol, 1);
     } else if (this.mood === 3) {
-      this.melodyGain.gain.rampTo(0.12, 1);
-      this.rhythmGain.gain.rampTo(0, 1);
-      this.droneGain.gain.rampTo(0.3, 1);
+      const melodyVol = 0.12 + streakBoost * 0.08;
+      const rhythmVol = streakBoost > 0 ? 0.04 + streakBoost * 0.06 : 0;
+      const droneVol = 0.3;
+      this.melodyGain.gain.rampTo(melodyVol, 1);
+      this.rhythmGain.gain.rampTo(rhythmVol, 1);
+      this.droneGain.gain.rampTo(droneVol, 1);
     } else {
-      this.melodyGain.gain.rampTo(0.2, 1);
-      this.rhythmGain.gain.rampTo(0.08, 1);
-      this.droneGain.gain.rampTo(0.25, 1);
+      const melodyVol = 0.2 + streakBoost * 0.05;
+      const rhythmVol = 0.08 + streakBoost * 0.06;
+      const droneVol = 0.25;
+      this.melodyGain.gain.rampTo(melodyVol, 1);
+      this.rhythmGain.gain.rampTo(rhythmVol, 1);
+      this.droneGain.gain.rampTo(droneVol, 1);
+    }
+
+    // Streak also enriches ambient layer
+    const ambientBoost = 0.12 + streakBoost * 0.1;
+    if (this.ambientGain) {
+      this.ambientGain.gain.rampTo(Math.min(0.25, ambientBoost), 2);
     }
   }
 

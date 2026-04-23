@@ -278,6 +278,7 @@ export class RealmEngine {
       this.music.init().then(() => {
         this.music.play(this.zone.id);
         if (this.worldState) {
+          this.music.setStreakLength(this.worldState.bestStreak);
           this.music.setMood(this.worldState.moodScore);
         }
       });
@@ -288,7 +289,10 @@ export class RealmEngine {
     if (enabled) {
       this.music.init().then(() => {
         this.music.play(this.zone.id);
-        if (this.worldState) this.music.setMood(this.worldState.moodScore);
+        if (this.worldState) {
+          this.music.setStreakLength(this.worldState.bestStreak);
+          this.music.setMood(this.worldState.moodScore);
+        }
       });
     } else {
       this.music.stop();
@@ -320,6 +324,9 @@ export class RealmEngine {
         this.worldState.streakMultiplier,
       );
       this.renderer.particles.setStreakMultiplier(this.worldState.streakMultiplier);
+      // Push streak to music engine
+      this.music.setStreakLength(this.worldState.bestStreak);
+      this.music.setMood(this.worldState.moodScore);
     }
   }
 
@@ -398,8 +405,9 @@ export class RealmEngine {
     // Update weather
     this.renderer.weatherRenderer.setWeather(this.worldState.weather);
 
-    // Update music mood/time
+    // Update music mood/time/streak every ~1s
     if (this.frameCount % 60 === 0) {
+      this.music.setStreakLength(this.worldState.bestStreak);
       this.music.setMood(this.worldState.moodScore);
       const tod = this.renderer.lighting.getState().timeOfDay;
       this.music.setTimeOfDay(tod);

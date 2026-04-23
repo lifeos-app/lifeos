@@ -1820,5 +1820,214 @@ def academy_overview():
 
 init_db()
 
+# ═══════════════════════════════════════════════════════════════
+# Pendo Dashboard — plain HTML for Android 4.2.2 WebKit
+# No JS frameworks, no ES6, no fetch. Meta-refresh only.
+# ═══════════════════════════════════════════════════════════════
+
+@app.route('/pendo')
+def pendo_dashboard():
+    db = get_db()
+    user_id = DEFAULT_USER_ID
+
+    # Jetson vitals
+    import subprocess, platform, time
+    uptime_s = time.time() - float(open('/proc/uptime').read().split()[0]) if False else None
+    try:
+        with open('/proc/uptime') as f:
+            uptime_sec = float(f.read().split()[0])
+        uptime_h = int(uptime_sec // 3600)
+        uptime_m = int((uptime_sec % 3600) // 60)
+        uptime_str = f"{uptime_h}h {uptime_m}m"
+    except Exception:
+        uptime_str = "?"
+
+    try:
+        with open('/proc/loadavg') as f:
+            load = f.read().split()[:3]
+        load_str = " / ".join(load)
+    except Exception:
+        load_str = "?"
+
+    try:
+        thermal = []
+        import os, glob
+        for tz in sorted(glob.glob('/sys/class/thermal/thermal_zone*/temp'))[:4]:
+            t = int(open(tz).read().strip()) // 1000
+            thermal.append(f"{t}°C")
+        temp_str = "  ".join(thermal) if thermal else "?"
+    except Exception:
+        temp_str = "?"
+
+    try:
+        mem = {}
+        for line in open('/proc/meminfo'):
+            k, v = line.split(':')
+            mem[k.strip()] = int(v.strip().split()[0])
+        mem_used = (mem['MemTotal'] - mem['MemAvailable']) // 1024
+        mem_total = mem['MemTotal'] // 1024
+        mem_str = f"{mem_used} MB / {mem_total} MB"
+    except Exception:
+        mem_str = "?"
+
+    # Today's schedule
+    today = date.today().isoformat()
+    schedule = db.execute("""
+        SELECT title, start_time, end_time, event_type, location
+        FROM schedule_events
+        WHERE user_id=? AND date(start_time)=? AND is_deleted=0
+        ORDER BY start_time ASC LIMIT 12
+    """, (user_id, today)).fetchall()
+
+    # Today's habits
+    habits = db.execute("""
+        SELECT h.title, h.icon,
+               COALESCE(hl.completed, 0) as done,
+               h.streak_current
+        FROM habits h
+        LEFT JOIN habit_logs hl
+          ON hl.habit_id=h.id AND hl.date=? AND hl.user_id=?
+        WHERE h.user_id=? AND h.is_active=1 AND h.is_deleted=0
+        ORDER BY done ASC, h.title ASC LIMIT 10
+    """, (today, user_id, user_id)).fetchall()
+
+    # Active tasks due today or overdue
+    tasks = db.execute("""
+        SELECT title, status, priority, due_date
+        FROM tasks
+        WHERE user_id=? AND status!='done' AND is_deleted=0
+          AND (due_date<=? OR due_date IS NULL)
+        ORDER BY
+          CASE priority WHEN 'urgent' THEN 1 WHEN 'high' THEN 2
+                        WHEN 'medium' THEN 3 ELSE 4 END,
+          due_date ASC NULLS LAST
+        LIMIT 10
+    """, (user_id, today)).fetchall()
+
+    # XP / level
+    xp_row = db.execute(
+        "SELECT total_xp, level FROM user_xp WHERE user_id=?", (user_id,)
+    ).fetchone()
+    xp = xp_row['total_xp'] if xp_row else 0
+    level = xp_row['level'] if xp_row else 1
+
+    # Build HTML — inline everything, no external resources
+    def row_bg(i):
+        return '#1a1a2e' if i % 2 == 0 else '#16213e'
+
+    schedule_rows = ""
+    for i, e in enumerate(schedule):
+        t_start = (e['start_time'] or '')[-8:-3] if e['start_time'] else '--:--'
+        t_end   = (e['end_time']   or '')[-8:-3] if e['end_time']   else ''
+        time_str = f"{t_start}–{t_end}" if t_end else t_start
+        loc = f" @ {e['location']}" if e['location'] else ''
+        schedule_rows += (
+            f'<tr style="background:{row_bg(i)}">'
+            f'<td style="padding:6px 8px;color:#64ffda;white-space:nowrap">{time_str}</td>'
+            f'<td style="padding:6px 8px">{e["title"]}{loc}</td>'
+            f'</tr>'
+        )
+    if not schedule_rows:
+        schedule_rows = '<tr><td colspan="2" style="padding:8px;color:#555">No events today</td></tr>'
+
+    habit_rows = ""
+    for i, h in enumerate(habits):
+        icon = h['icon'] or ''
+        done_mark = '&#10003;' if h['done'] else '&#9675;'
+        done_color = '#64ffda' if h['done'] else '#888'
+        streak = f" &nbsp;&#128293;{h['streak_current']}" if h['streak_current'] > 1 else ''
+        habit_rows += (
+            f'<tr style="background:{row_bg(i)}">'
+            f'<td style="padding:6px 8px;color:{done_color};font-size:18px;text-align:center">{done_mark}</td>'
+            f'<td style="padding:6px 8px">{icon} {h["title"]}{streak}</td>'
+            f'</tr>'
+        )
+    if not habit_rows:
+        habit_rows = '<tr><td colspan="2" style="padding:8px;color:#555">No habits tracked</td></tr>'
+
+    priority_colors = {'urgent': '#ff4444', 'high': '#ff9944', 'medium': '#ffdd44', 'low': '#aaaaaa'}
+    task_rows = ""
+    for i, t in enumerate(tasks):
+        p_color = priority_colors.get(t['priority'] or 'medium', '#aaa')
+        overdue = t['due_date'] and t['due_date'] < today
+        due_str = f" <span style='color:#ff4444'>(overdue)</span>" if overdue else (f" <span style='color:#888'>{t['due_date']}</span>" if t['due_date'] else '')
+        task_rows += (
+            f'<tr style="background:{row_bg(i)}">'
+            f'<td style="padding:4px 8px;color:{p_color};text-align:center;font-size:10px">{(t["priority"] or "med").upper()}</td>'
+            f'<td style="padding:4px 8px">{t["title"]}{due_str}</td>'
+            f'</tr>'
+        )
+    if not task_rows:
+        task_rows = '<tr><td colspan="2" style="padding:8px;color:#64ffda">&#10003; All clear!</td></tr>'
+
+    now_str = datetime.now().strftime('%a %d %b  %H:%M')
+
+    html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="refresh" content="60">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TeddyBot</title>
+<style>
+  body{{margin:0;padding:0;background:#0d1117;color:#e6edf3;font-family:Arial,sans-serif;font-size:14px}}
+  h2{{margin:0 0 6px 0;font-size:13px;text-transform:uppercase;letter-spacing:2px;color:#58a6ff}}
+  .card{{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:10px;margin:8px}}
+  table{{width:100%;border-collapse:collapse}}
+  .vitals{{display:block}}
+  .v-item{{padding:4px 0;border-bottom:1px solid #21262d}}
+  .v-label{{color:#58a6ff;display:inline-block;width:80px;font-size:12px}}
+  .v-value{{color:#e6edf3}}
+  .header{{background:#161b22;border-bottom:2px solid #21262d;padding:10px 12px;display:block}}
+  .title{{font-size:18px;font-weight:bold;color:#64ffda;letter-spacing:1px}}
+  .subtitle{{font-size:11px;color:#888;margin-top:2px}}
+  .xp-bar-bg{{background:#21262d;height:8px;border-radius:4px;margin-top:4px}}
+  .xp-bar{{background:#64ffda;height:8px;border-radius:4px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="title">&#9889; TeddyBot</span>
+  <div class="subtitle">Federation Node &mdash; Brisbane, QLD &mdash; {now_str}</div>
+  <div style="margin-top:4px;font-size:12px;color:#888">Lv {level} &nbsp;&#11088; {xp:,} XP</div>
+</div>
+
+<div class="card">
+  <h2>&#9881; Jetson Status</h2>
+  <div class="vitals">
+    <div class="v-item"><span class="v-label">Uptime</span><span class="v-value">{uptime_str}</span></div>
+    <div class="v-item"><span class="v-label">Load</span><span class="v-value">{load_str}</span></div>
+    <div class="v-item"><span class="v-label">Temp</span><span class="v-value">{temp_str}</span></div>
+    <div class="v-item"><span class="v-label">Memory</span><span class="v-value">{mem_str}</span></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>&#128197; Today &mdash; {today}</h2>
+  <table>{schedule_rows}</table>
+</div>
+
+<div class="card">
+  <h2>&#9679; Habits</h2>
+  <table>{habit_rows}</table>
+</div>
+
+<div class="card">
+  <h2>&#9654; Tasks</h2>
+  <table>{task_rows}</table>
+</div>
+
+<div style="text-align:center;padding:8px;font-size:10px;color:#333">
+  Auto-refreshes every 60s &mdash; TeddyBot v1
+</div>
+
+</body>
+</html>"""
+
+    from flask import Response
+    return Response(html, mimetype='text/html')
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
