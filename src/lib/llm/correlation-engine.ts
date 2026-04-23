@@ -11,6 +11,7 @@ import type {
   Habit, HabitLog, Task, ScheduleEvent, Goal,
   Transaction, Bill, HealthMetric,
 } from '../../types/database';
+import { SEVEN_PRINCIPLES } from '../hermetic-integration';
 
 // ── TYPES ────────────────────────────────────────────────────────────────────
 
@@ -22,6 +23,10 @@ export interface Correlation {
   description: string;
   data: Record<string, unknown>;
   detectedAt: string;
+  /** Index into SEVEN_PRINCIPLES — proves Correspondence (as above so below) */
+  hermeticPrinciple?: number;
+  /** True when the correlation is negative, reflecting Polarity */
+  polarityDetected?: boolean;
 }
 
 export interface CorrelationInput {
@@ -90,7 +95,12 @@ function gid(): string {
 }
 
 function makeCorr(domains: [string, string], r: number, desc: string, data?: Record<string, unknown>): Correlation {
-  return { id: gid(), type: corrType(r), domains, strength: r, description: desc, data: data ?? {}, detectedAt: new Date().toISOString() };
+  const type = corrType(r);
+  return {
+    id: gid(), type, domains, strength: r, description: desc, data: data ?? {}, detectedAt: new Date().toISOString(),
+    hermeticPrinciple: 1, // CORRESPONDENCE — "As above, so below"
+    ...(type === 'negative' ? { polarityDetected: true } : {}),
+  };
 }
 
 // ── HABITS ↔ SCHEDULE ─────────────────────────────────────────────────────

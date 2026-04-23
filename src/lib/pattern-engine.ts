@@ -19,7 +19,8 @@ import type { Task, Habit, HabitLog, Goal, Bill, Transaction } from '../types/da
 
 export type PatternType =
   | 'productivity_peak' | 'energy_cycle' | 'habit_anchor'
-  | 'goal_neglect' | 'spending_spike' | 'streak_risk' | 'optimal_schedule';
+  | 'goal_neglect' | 'spending_spike' | 'streak_risk' | 'optimal_schedule'
+  | 'rhythm_swing';
 
 export interface PatternInput {
   tasks: Task[];
@@ -38,6 +39,8 @@ export interface DetectedPattern {
   description: string;
   data: Record<string, any>;
   detectedAt: string;
+  /** Index into SEVEN_PRINCIPLES — the Hermetic principle governing this pattern */
+  hermeticPrinciple?: number;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -83,6 +86,7 @@ export function detectProductivityPeaks(tasks: Task[], _habitLogs: HabitLog[]): 
     description: `You complete the most tasks around ${peakHours.map(h=>`${h}:00`).join(', ')} on ${peakDays.map(d=>DAY_NAMES[d]).join(', ')}. Peak time block: ${topBlock[0]}.`,
     data: { peakHours, peakDays, peakDayNames: peakDays.map(d=>DAY_NAMES[d]), hourDistribution: byHour, dayDistribution: byDay, timeBlockDistribution: byBlock, totalCompleted: done.length },
     detectedAt: new Date().toISOString(),
+    hermeticPrinciple: 4, // RHYTHM — peak hours are where rhythm and will converge
   }];
 }
 
@@ -117,6 +121,7 @@ export function detectEnergyCycles(habitLogs: HabitLog[]): DetectedPattern[] {
     description: `Strongest completion in the ${sorted[0][0]} (${Math.round(sorted[0][1]*100)}%). Lightest period: ${sorted[2][0]} (${Math.round(sorted[2][1]*100)}%).`,
     data: { rates, bestBlock: sorted[0][0], worstBlock: sorted[2][0], uniqueDays: uniqueDays.size, totalLogs: logs.length },
     detectedAt: new Date().toISOString(),
+    hermeticPrinciple: 4, // RHYTHM — energy cycles are life's pendulum swings
   }];
 }
 
@@ -143,6 +148,7 @@ export function detectHabitAnchors(habits: Habit[], habitLogs: HabitLog[]): Dete
     description: `${anchors[0].habit.title} is your most consistent habit, done on ${Math.round(anchors[0].rate*100)}% of days. Use it as an anchor to chain new habits.`,
     data: { anchors: anchors.map(a => ({ id: a.habit.id, title: a.habit.title, completionRate: Math.round(a.rate*100), uniqueDays: a.days, streak: a.streak })) },
     detectedAt: new Date().toISOString(),
+    hermeticPrinciple: 2, // VIBRATION — consistent habits vibrate at the highest frequency
   }];
 }
 
@@ -176,6 +182,7 @@ export function detectGoalNeglect(goals: Goal[], tasks: Task[]): DetectedPattern
       description: `"${goal.title}" has had no activity for ${label}. Consider revisiting or updating its status.`,
       data: { goalId: goal.id, goalTitle: goal.title, daysSinceActivity: daysSince, lastActivity: lastDate, taskCount: gt.length, status: goal.status },
       detectedAt: new Date().toISOString(),
+      hermeticPrinciple: 5, // CAUSE & EFFECT — neglect is a cause with compounding effects
     });
   }
 
@@ -210,6 +217,7 @@ export function detectSpendingSpikes(bills: Bill[], transactions?: Transaction[]
       description: `Spending in ${week} was $${Math.round(total)}, ${overPct}% above your weekly average of $${Math.round(avg)}.`,
       data: { week, totalSpent: total, averageWeekly: Math.round(avg), overAverageBy: Math.round(total-avg), overPct },
       detectedAt: new Date().toISOString(),
+      hermeticPrinciple: 5, // CAUSE & EFFECT — spending is an effect; what caused it?
     };
   });
 }
@@ -237,6 +245,7 @@ export function detectStreakRisk(habits: Habit[], habitLogs: HabitLog[]): Detect
       description: `"${h.title}" has a ${h.streak_current}-day streak but was not completed yesterday. Complete it today to keep it alive.`,
       data: { habitId: h.id, habitTitle: h.title, currentStreak: h.streak_current, bestStreak: h.streak_best, frequency: h.frequency },
       detectedAt: new Date().toISOString(),
+      hermeticPrinciple: 2, // VIBRATION — a frequency about to break
     }));
 }
 
@@ -268,7 +277,91 @@ export function detectOptimalSchedule(tasks: Task[], habitLogs: HabitLog[]): Det
     description: `Most productive block: ${suggestions[0].block}. ${suggestions[0].recommendation}.`,
     data: { taskByBlock: taskBlock, habitByBlock: habitBlock, suggestions },
     detectedAt: new Date().toISOString(),
+    hermeticPrinciple: 4, // RHYTHM — schedule is rhythm; flow with your cycles
   }];
+}
+
+// ── Rhythm Swing (Pendulum Transition) ─────────────────────────
+
+/**
+ * Detects when the user is at a productivity peak and likely about to swing down,
+ * or at a trough and about to swing up. Makes the Law of Rhythm's "pendulum swing"
+ * visible and actionable — the deepest structural expression of Rhythm in LifeOS.
+ */
+export function detectRhythmSwing(tasks: Task[]): DetectedPattern[] {
+  const done = tasks.filter(t => t.status === 'done' && t.completed_at && withinDays(t.completed_at, 14) && !t.is_deleted);
+  if (done.length < 7) return [];
+
+  // Count completions per day for last 14 days
+  const dayCounts: Record<string, number> = {};
+  for (const t of done) {
+    const day = t.completed_at!.split('T')[0];
+    dayCounts[day] = (dayCounts[day] || 0) + 1;
+  }
+
+  const days = Object.entries(dayCounts).sort((a, b) => a[0].localeCompare(b[0]));
+  if (days.length < 5) return [];
+
+  const counts = days.map(([, c]) => c);
+  const avg = counts.reduce((s, c) => s + c, 0) / counts.length;
+
+  // Check for 3+ consecutive high days followed by a dip (peak → swing down)
+  const highThreshold = avg * 1.3;
+  let consecutiveHigh = 0;
+  let recentDip = false;
+
+  for (let i = counts.length - 1; i >= 0; i--) {
+    if (counts[i] >= highThreshold) {
+      consecutiveHigh++;
+    } else if (consecutiveHigh >= 3) {
+      recentDip = true;
+      break;
+    } else {
+      consecutiveHigh = 0;
+    }
+  }
+
+  // Also check for 3+ consecutive low days (trough → swing up)
+  const lowThreshold = avg * 0.5;
+  let consecutiveLow = 0;
+  let recentRecovery = false;
+
+  for (let i = counts.length - 1; i >= 0; i--) {
+    if (counts[i] <= lowThreshold) {
+      consecutiveLow++;
+    } else if (consecutiveLow >= 3) {
+      recentRecovery = true;
+      break;
+    } else {
+      consecutiveLow = 0;
+    }
+  }
+
+  if (recentDip && consecutiveHigh >= 3) {
+    return [{
+      type: 'rhythm_swing',
+      confidence: Math.min(consecutiveHigh / 7, 0.9),
+      title: 'Rhythmic Peak Declining',
+      description: `After ${consecutiveHigh} high-productivity days, your rhythm is naturally swinging toward rest. The pendulum law: what rises must descend — but only to rise again.`,
+      data: { direction: 'descending', consecutiveHigh, avgProductivity: Math.round(avg), highThreshold: Math.round(highThreshold) },
+      detectedAt: new Date().toISOString(),
+      hermeticPrinciple: 4, // RHYTHM — the pendulum swing made visible
+    }];
+  }
+
+  if (recentRecovery && consecutiveLow >= 3) {
+    return [{
+      type: 'rhythm_swing',
+      confidence: Math.min(consecutiveLow / 7, 0.9),
+      title: 'Rhythmic Trough Rising',
+      description: `After ${consecutiveLow} low-activity days, your rhythm is preparing to swing upward. The pendulum cannot stay at rest — what descends must ascend.`,
+      data: { direction: 'ascending', consecutiveLow, avgProductivity: Math.round(avg), lowThreshold: Math.round(lowThreshold) },
+      detectedAt: new Date().toISOString(),
+      hermeticPrinciple: 4,
+    }];
+  }
+
+  return [];
 }
 
 // ── Predictive Schedule ──────────────────────────────────────────
@@ -437,5 +530,6 @@ export function detectPatterns(input: PatternInput): DetectedPattern[] {
     ...detectSpendingSpikes(input.bills, input.transactions),
     ...detectStreakRisk(input.habits, input.habitLogs),
     ...detectOptimalSchedule(input.tasks, input.habitLogs),
+    ...detectRhythmSwing(input.tasks),
   ].sort((a, b) => b.confidence - a.confidence);
 }

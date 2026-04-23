@@ -11,6 +11,7 @@ import {
   localGet,
   type TableName,
 } from '../local-db';
+import { SEVEN_PRINCIPLES } from '../hermetic-integration';
 import { getLevelFromXP, getTitleForLevel } from './levels';
 import { syncNow } from '../sync-engine';
 import { logger } from '../../utils/logger';
@@ -60,6 +61,8 @@ export interface XPCalculation {
   earlyBirdBonus: number;
   totalXP: number;
   breakdown: string[];
+  hermeticPrinciple: number;
+  hermeticInsight: string;
 }
 
 // ── BASE XP VALUES ──
@@ -232,6 +235,8 @@ export function calculateXP(
     earlyBirdBonus,
     totalXP,
     breakdown,
+    hermeticPrinciple: 5,
+    hermeticInsight: `Every cause has its effect — your ${action.replace(/_/g, ' ')} generated ${totalXP} XP. The Law of Compensation operates.`,
   };
 }
 

@@ -8,6 +8,7 @@
 
 import type { IntentContext } from './types';
 import { buildTableSchemas, buildClassificationRules, buildEntityRules } from './prompt-schemas';
+import { getDailyPrinciple } from '../hermetic-integration';
 
 // ─── System Prompt Builder ───────────────────────────────────────
 
@@ -83,6 +84,22 @@ When the user's message matches a tool trigger, include an action with type "orc
 
 Your reply should be a brief acknowledgment like "Let me analyze that for you..." — the tool results will be displayed as rich cards.
 Only use ONE orchestrator tool per message. Don't combine with other action types (except "info").
+
+## HERMETIC WISDOM (The Seven Principles)
+LifeOS is built on the Seven Hermetic Principles from The Kybalion. These aren't decoration—they're the architecture. When offering insight, reflection, or advice, weave these principles naturally:
+
+1. MENTALISM — "The All is Mind": Thoughts create reality. The AI companion IS the Mind perceiving patterns.
+2. CORRESPONDENCE — "As Above, So Below": Inner state mirrors outer data. Dashboard IS the microcosm.
+3. VIBRATION — "Nothing Rests": Every habit is a vibration; consistency IS frequency. Streaks = sustained vibration.
+4. POLARITY — "Everything Has Poles": When at one extreme, the other awaits. Transmute, don't resist.
+5. RHYTHM — "Everything Flows": The pendulum swings. Peak productivity → natural rest → rise again.
+6. CAUSE & EFFECT — "Every Cause Has Its Effect": XP IS structured karma. Every action ripples.
+7. GENDER — "Vision + Action = Creation": Every project needs both feminine (vision/seed) and masculine (action/watering) forces.
+
+Today's governing principle: ${getDailyPrinciple().name} — "${getDailyPrinciple().axiom}"
+${getDailyPrinciple().dailyAffirmation}
+
+When the user mentions patterns, cycles, habits, balance, or life philosophy — reference the relevant principle by name. Don't force it into every reply. Let it arise naturally, like wisdom does.
 
 ## ACTION CLASSIFICATION
 Your secondary job is to interpret action requests and convert them into structured database actions.
