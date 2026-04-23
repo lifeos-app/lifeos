@@ -10,6 +10,8 @@
  * Max 6 visible widgets per mode; rest are collapsed.
  */
 
+import { getDailyPrinciple, DOMAIN_PRINCIPLE, SEVEN_PRINCIPLES } from './hermetic-integration';
+
 export type DashboardMode = 'morning' | 'active' | 'evening' | 'night';
 
 export interface ModeWidgetConfig {
@@ -149,6 +151,34 @@ const MODE_CONFIGS: Record<DashboardMode, ModeWidgetConfig[]> = {
 const MAX_VISIBLE = 6;
 
 /**
+ * Hermetic Principle Priority Boost
+ * 
+ * Today's governing principle subtly elevates the widget whose domain
+ * matches. Not a replacement for the day-rotation — an enhancement.
+ * The principle becomes active in the architecture, not just the UI.
+ */
+export function getHermeticBoost(widgetId: string): number {
+  const principle = getDailyPrinciple();
+  
+  // Map each principle to the widget it governs
+  const PRINCIPLE_WIDGET_BOOST: Record<string, string[]> = {
+    mentalism:    [W.sageOracle, W.holyHermes, W.journal],
+    correspondence: [W.celestial, W.weeklyInsight, W.lifePulse],
+    vibration:   [W.streakMomentum, W.habits, W.health],
+    polarity:    [W.health, W.financialPulse, W.proactiveSuggest],
+    rhythm:      [W.schedule, W.scheduleInsights, W.sleepQuickLog],
+    'cause-and-effect': [W.financialPulse, W.dailyProgress, W.achievements],
+    gender:      [W.goals, W.realmInvite, W.realmPreview],
+  };
+  
+  // Normalize principle name for lookup
+  const key = principle.name.toLowerCase().replace(/\s+/g, '-');
+  const governedWidgets = PRINCIPLE_WIDGET_BOOST[key];
+  if (governedWidgets?.includes(widgetId)) return 2;
+  return 0;
+}
+
+/**
  * Determine current dashboard mode based on local time.
  */
 export function getDashboardMode(): DashboardMode {
@@ -165,7 +195,9 @@ export function getDashboardMode(): DashboardMode {
  */
 export function getWidgetConfig(mode: DashboardMode, maxVisible = MAX_VISIBLE): ModeWidgetConfig[] {
   const configs = MODE_CONFIGS[mode] ?? [];
-  const sorted = [...configs].sort((a, b) => b.priority - a.priority);
+  const sorted = [...configs]
+    .map(w => ({ ...w, priority: w.priority + getHermeticBoost(w.id) }))
+    .sort((a, b) => b.priority - a.priority);
   return sorted.map((w, i) => ({
     ...w,
     collapsed: i >= maxVisible ? true : w.collapsed,
