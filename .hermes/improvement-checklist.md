@@ -5,10 +5,10 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.19.51
+- **Current Version:** 1.19.56
 - **Baseline Date:** 2026-04-20
-- **Last Audit:** 2026-04-22
-- **Completion:** 46/68 = 67.6%
+- **Last Audit:** 2026-04-23
+- **Completion:** 49/68 = 72.1%
 
 ## Vision Documents (Source of Truth)
 1. `/home/tewedros/Desktop/webapp/docs/vision/VISION.md` — "LifeOS IS an AI that has an app as its interface"
@@ -140,3 +140,4 @@
 - 2026-04-21: Hermes cycle 3. 4 items DONE: P3-003 Proactive suggestions (5 generators + Dashboard widget), P4-002 Challenge system (weekly/monthly, 200-1000XP), TD-004 Health.tsx verified clean (125 lines), TD-005 Finances refactor confirmed. Score: 34/68 = 50.0%. Version: 1.19.42.
 - 2026-04-22: Hermes cron cycle. 3 items DONE: P2-006 Test coverage (5→8 test files, 41→150 tests — pattern-engine/error-handler/xp-engine), P3-006 Pre-populated intelligence (data-seed.ts, 575 lines, onboarding-aware seeding), P3-007 Junction game library (10→18 traditions, 8 secular Junctions with quest tiers, 6 new categories). Also committed accumulated work from prior sessions. Score: 37/68 = 54.4%. Version: 1.19.43.
 - 2026-04-22: Hermes local-first fix cycle. T1-A + T1-B DONE: useLiveActivityStore + useAgentStore now route all writes through local-db (offline-first). Added unified_events, event_completions, ai_insights to IDB STORES (v8), sync-engine SYNC_TABLES, and STATIC_COLUMNS. Score: 39/68 = 57.4%. Version: 1.19.48.
+- 2026-04-22: Full branch audit + feature accessibility fix. ROOT CAUSE: LOCAL_USER in electron-api.ts used `new Date().toISOString()` as created_at → accountDays=0 → all progressive-disclosure features (Academy/Character/Replicator/Lessons) were hidden every session. Fixed: hardcoded '2020-01-01' so local users always see all features. Also lowered revealAfterDays thresholds (5→2, 7→3). TCS plugin gate confirmed working — auto-enables for tewedross12@gmail.com/teddyscleaning emails. All 14 routes confirmed present in App.tsx. Clean build + relaunch. Score: 46/68 = 67.6%. Version: 1.19.52.

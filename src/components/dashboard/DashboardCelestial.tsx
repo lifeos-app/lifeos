@@ -1,19 +1,70 @@
 /**
- * DashboardCelestial — Moon Phase + Season + Upcoming Events Widget
+ * DashboardCelestial — Moon Phase + Season + Celestial Events + Ethiopian Date
  *
- * Uses canvas for moon phase rendering (per DESIGN-RULES: custom art only).
- * Reuses celestial.ts math from the Realm lighting system.
+ * Uses pure math for moon phase (Julian Day Number, no API).
+ * Hemisphere-aware seasons (Australian/Southern hemisphere detected via timezone).
+ * Ethiopian calendar date overlay.
+ * Canvas-rendered moon with proper shadow geometry.
  */
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 import {
   getMoonPhase,
   getMoonPhaseName,
   getSeason,
   getUpcomingEvents,
+  getHemisphere,
   type MoonPhaseName,
+  type Season,
 } from '../../realm/data/celestial';
 import './DashboardCelestial.css';
+
+// ── Ethiopian Calendar Conversion ────────────────────────
+
+/**
+ * Convert Gregorian date to Ethiopian calendar date.
+ * Ethiopian calendar: 13 months (12×30 + 1×5 or 6), starts ~Sept 11.
+ * Year is ~7-8 years behind Gregorian.
+ */
+function toEthiopian(date: Date): { year: number; month: number; day: number; monthName: string } {
+  const ETHIOPIAN_MONTHS = [
+    'Meskerem', 'Tikimt', 'Hidar', 'Tahsas', 'Tir', 'Yekatit',
+    'Megabit', 'Miazia', 'Ginbot', 'Sene', 'Hamle', 'Nehase', 'Pagumen',
+  ];
+
+  // Ethiopian New Year starts on September 11 (or 12 in Gregorian leap year before 2024)
+  const gYear = date.getFullYear();
+  const gMonth = date.getMonth(); // 0-indexed
+  const gDay = date.getDate();
+
+  // Ethiopian year offset: 8 years behind for dates after Sept 10, 7 before
+  const ethYearOffset = (gMonth >= 8 || (gMonth === 8 && gDay >= 11)) ? 8 : 7;
+  const ethYear = gYear - ethYearOffset;
+
+  // Calculate Ethiopian month and day
+  // Ethiopian year starts Meskerem 1 = September 11
+  const sept11 = new Date(gYear, 8, 11); // month 8 = September
+  let daysSinceSept11 = Math.floor((date.getTime() - sept11.getTime()) / 86400000);
+
+  // If before Sept 11, we're in the latter part of the previous Ethiopian year
+  if (daysSinceSept11 < 0) {
+    const prevSept11 = new Date(gYear - 1, 8, 11);
+    daysSinceSept11 = Math.floor((date.getTime() - prevSept11.getTime()) / 86400000);
+  }
+
+  // Ethiopian months: 1-12 are 30 days each, 13 (Pagumen) is 5 or 6 days
+  const ethMonth = Math.floor(daysSinceSept11 / 30) + 1;
+  const ethDay = (daysSinceSept11 % 30) + 1;
+
+  return {
+    year: ethYear,
+    month: Math.min(ethMonth, 13),
+    day: Math.max(1, Math.min(ethDay, ethMonth === 13 ? 6 : 30)),
+    monthName: ETHIOPIAN_MONTHS[Math.min(ethMonth - 1, 12)] || 'Pagumen',
+  };
+}
+
+// ── Constants ────────────────────────────────────────────
 
 const PHASE_LABELS: Record<MoonPhaseName, string> = {
   new: 'New Moon',
@@ -26,12 +77,30 @@ const PHASE_LABELS: Record<MoonPhaseName, string> = {
   waning_crescent: 'Waning Crescent',
 };
 
-const SEASON_LABELS: Record<string, string> = {
-  spring: 'Spring',
-  summer: 'Summer',
-  autumn: 'Autumn',
-  winter: 'Winter',
+const SEASON_ICONS: Record<Season, string> = {
+  spring: '🌱',
+  summer: '☀️',
+  autumn: '🍂',
+  winter: '❄️',
 };
+
+const PHASE_EMOJIS: Record<string, string> = {
+  new: '🌑',
+  waxing_crescent: '🌒',
+  first_quarter: '🌓',
+  waxing_gibbous: '🌔',
+  full: '🌕',
+  waning_gibbous: '🌖',
+  last_quarter: '🌗',
+  waning_crescent: '🌘',
+};
+
+const HEMISPHERE_LABELS = {
+  northern: 'Northern',
+  southern: 'Southern',
+};
+
+// ── Moon Canvas Rendering ────────────────────────────────
 
 function drawMoonPhase(ctx: CanvasRenderingContext2D, size: number, phase: number) {
   const cx = size / 2;
@@ -53,7 +122,7 @@ function drawMoonPhase(ctx: CanvasRenderingContext2D, size: number, phase: numbe
   ctx.fillStyle = '#E8E0D0';
   ctx.fill();
 
-  // Shadow overlay
+  // Shadow overlay using proper phase geometry
   const illumination = phase < 0.5 ? phase * 2 : (1 - phase) * 2;
   const shadowOffset = r * (1 - illumination);
 
@@ -84,6 +153,8 @@ function drawMoonPhase(ctx: CanvasRenderingContext2D, size: number, phase: numbe
   }
 }
 
+// ── Helper ─────────────────────────────────────────────────
+
 function daysUntil(dateStr: string): number {
   const target = new Date(dateStr + 'T00:00:00');
   const now = new Date();
@@ -91,14 +162,22 @@ function daysUntil(dateStr: string): number {
   return Math.ceil((target.getTime() - now.getTime()) / 86400000);
 }
 
+// ── Component ──────────────────────────────────────────────
+
 export function DashboardCelestial() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const now = new Date();
-  const phase = getMoonPhase(now);
-  const phaseName = getMoonPhaseName(phase);
-  const season = getSeason(now);
-  const upcoming = getUpcomingEvents(now, 90);
-  const nextEvent = upcoming[0] ?? null;
+
+  const phase = useMemo(() => getMoonPhase(now), []);
+  const phaseName = useMemo(() => getMoonPhaseName(phase), [phase]);
+  const season = useMemo(() => getSeason(now), []);
+  const hemisphere = useMemo(() => getHemisphere(), []);
+  const upcoming = useMemo(() => getUpcomingEvents(now, 90), []);
+  const ethiopian = useMemo(() => toEthiopian(now), []);
+
+  // Next 3 upcoming events
+  const nextEvents = upcoming.slice(0, 3);
+  const nextEvent = nextEvents[0] ?? null;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -107,30 +186,140 @@ export function DashboardCelestial() {
     if (!ctx) return;
 
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = 40 * dpr;
-    canvas.height = 40 * dpr;
+    canvas.width = 44 * dpr;
+    canvas.height = 44 * dpr;
     ctx.scale(dpr, dpr);
 
-    drawMoonPhase(ctx, 40, phase);
+    drawMoonPhase(ctx, 44, phase);
   }, [phase]);
+
+  const isFullMoon = Math.abs(phase - 0.5) <= 0.03;
 
   return (
     <div className="dash-celestial">
+      {/* Moon + Phase */}
       <div className="dc-header">
-        <canvas ref={canvasRef} className="dc-moon-canvas" width={40} height={40} />
+        <canvas
+          ref={canvasRef}
+          className="dc-moon-canvas"
+          width={44}
+          height={44}
+          style={{ width: 44, height: 44 }}
+        />
         <div className="dc-moon-info">
-          <div className="dc-phase-name">{PHASE_LABELS[phaseName]}</div>
-          <div className="dc-season">{SEASON_LABELS[season]}</div>
+          <div className="dc-phase-name" style={{
+            fontSize: 12,
+            fontWeight: 700,
+            color: isFullMoon ? '#FFD700' : '#00D4FF',
+            letterSpacing: 0.3,
+          }}>
+            {isFullMoon ? '✦ ' : ''}{PHASE_LABELS[phaseName]}{isFullMoon ? ' ✦' : ''}
+          </div>
+          <div className="dc-season" style={{
+            fontSize: 10,
+            color: '#8BA4BE',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+          }}>
+            <span>{SEASON_ICONS[season]}</span>
+            <span>{season.charAt(0).toUpperCase() + season.slice(1)}</span>
+            <span style={{ color: '#5A7A9A', fontSize: 9 }}>({HEMISPHERE_LABELS[hemisphere]})</span>
+          </div>
         </div>
       </div>
-      {nextEvent && (
-        <div className="dc-next-event">
-          <span className="dc-event-name">{nextEvent.name}</span>
-          <span className="dc-event-days">
-            {daysUntil(nextEvent.date) === 0 ? 'Today' : `in ${daysUntil(nextEvent.date)}d`}
-          </span>
+
+      {/* Illumination bar */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 6,
+        margin: '8px 0 4px', fontSize: 9, color: '#5A7A9A',
+      }}>
+        <span>{PHASE_EMOJIS[phaseName] || '🌙'}</span>
+        <div style={{
+          flex: 1, height: 3, borderRadius: 2,
+          background: 'rgba(255,255,255,0.06)',
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            width: `${(phase <= 0.5 ? phase * 2 : (1 - phase) * 2) * 100}%`,
+            height: '100%',
+            background: isFullMoon
+              ? 'linear-gradient(90deg, #FFD700, #FFA500)'
+              : 'linear-gradient(90deg, #1A3A5C, #00D4FF)',
+            borderRadius: 2,
+            transition: 'width 0.5s ease',
+          }} />
+        </div>
+        <span>{phase <= 0.5 ? (phase * 200).toFixed(0) : ((1 - phase) * 200).toFixed(0)}%</span>
+      </div>
+
+      {/* Full moon XP bonus indicator */}
+      {isFullMoon && (
+        <div style={{
+          fontSize: 10, fontWeight: 600, color: '#FFD700',
+          background: 'rgba(255,215,0,0.08)',
+          borderRadius: 6, padding: '3px 8px',
+          border: '1px solid rgba(255,215,0,0.15)',
+          textAlign: 'center', margin: '4px 0',
+        }}>
+          ✦ Full Moon XP +10% ✦
         </div>
       )}
+
+      {/* Ethiopian date */}
+      <div style={{
+        fontSize: 10, color: '#5A7A9A',
+        marginTop: 4, fontStyle: 'italic',
+      }}>
+        {ethiopian.monthName} {ethiopian.day}, {ethiopian.year} EC
+      </div>
+
+      {/* Upcoming events */}
+      {nextEvent && (
+        <div className="dc-next-event">
+          {nextEvents.map((evt, i) => {
+            const days = daysUntil(evt.date);
+            const isToday = days === 0;
+            const urgency = isToday ? 'today' : days <= 3 ? 'soon' : 'later';
+            return (
+              <div key={evt.date + evt.name} style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '3px 0',
+                fontSize: i === 0 ? 11 : 10,
+                color: i === 0 ? 'rgba(255,255,255,0.85)' : '#8BA4BE',
+                fontWeight: i === 0 ? 600 : 400,
+              }}>
+                <span style={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  maxWidth: '65%',
+                }}>
+                  {isToday && '★ '}{evt.name}
+                </span>
+                <span style={{
+                  fontSize: 9,
+                  color: urgency === 'today' ? '#FFD700' : urgency === 'soon' ? '#F97316' : '#5A7A9A',
+                  fontWeight: urgency === 'today' ? 700 : 400,
+                  whiteSpace: 'nowrap',
+                }}>
+                  {isToday ? 'Today!' : `${days}d`}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Hermetic touch */}
+      <div style={{
+        marginTop: 6, fontSize: 8, color: 'rgba(255,255,255,0.1)',
+        textAlign: 'center', fontStyle: 'italic',
+      }}>
+        As above, so below
+      </div>
     </div>
   );
 }
