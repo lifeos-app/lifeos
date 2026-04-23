@@ -88,3 +88,31 @@
   color: rgba(255, 255, 255, 0.55);
   font-style: italic;
 }
+
+/* Multifaith wisdom section */
+.hermetic-overlay__multifaith {
+  padding: 6px 10px 10px;
+}
+
+.hermetic-overlay__multifaith-divider {
+  border-top: 1px solid;
+  border-color: rgba(255, 255, 255, 0.08);
+  margin-bottom: 6px;
+}
+
+.hermetic-overlay__multifaith-quote {
+  font-size: 10px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+  letter-spacing: 0.1px;
+}
+
+.hermetic-overlay__multifaith-source {
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.35);
+  text-align: right;
+  margin-top: 3px;
+  letter-spacing: 0.4px;
+  font-weight: 500;
+}

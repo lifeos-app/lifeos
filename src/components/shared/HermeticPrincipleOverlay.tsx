@@ -113,6 +113,19 @@ export function HermeticPrincipleOverlay({ insight: insightProp, patterns, style
           {insight.miracle}
         </div>
       )}
+
+      {/* MULTIFAITH WISDOM — quote from across traditions */}
+      {insight.multifaithWisdom && (
+        <div className="hermetic-overlay__multifaith">
+          <div className="hermetic-overlay__multifaith-divider" style={{ borderColor: `${color}40` }} />
+          <div className="hermetic-overlay__multifaith-quote">
+            "{insight.multifaithWisdom.text}"
+          </div>
+          <div className="hermetic-overlay__multifaith-source">
+            — {insight.multifaithWisdom.tradition}, {insight.multifaithWisdom.source}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

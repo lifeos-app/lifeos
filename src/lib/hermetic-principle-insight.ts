@@ -15,6 +15,7 @@
 import type { DetectedPattern, PatternType } from './pattern-engine';
 import { SEVEN_PRINCIPLES, getDailyPrinciple } from './hermetic-integration';
 import type { HermeticPrinciple } from './hermetic-integration';
+import { getWisdomQuote, type WisdomQuote } from './multifaith-wisdom';
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -28,22 +29,24 @@ export type InsightSource = 'pattern' | 'correlation' | 'xp' | 'daily' | 'polari
 export interface PrincipleInsight {
   /** The governing Hermetic principle */
   principle: HermeticPrinciple;
-  /** Where this insight originated */
+  /** Origin realm of this insight */
   source: InsightSource;
-  /** Short display title */
+  /** Short title */
   title: string;
-  /** The Hermetic wisdom this data reveals */
+  /** Hermetic-framed wisdom — from the Kybalion tradition */
   wisdom: string;
-  /** A concrete practice the user can apply now */
+  /** What the user can DO about it — practice aligned with the principle */
   practice: string;
-  /** The transformation that unfolds when you align with this principle */
+  /** What becomes possible through this principle */
   miracle: string;
-  /** The principle's signature color */
+  /** Color associated with the principle */
   color: string;
-  /** How confident the engine is in this pattern (0–1) */
+  /** Confidence level of the underlying pattern (0-1) */
   confidence: number;
-  /** Raw engine data for deeper inspection or UI rendering */
+  /** Raw data from the engine that triggered this insight */
   data: Record<string, any>;
+  /** Multifaith wisdom — a quote from across 28+ traditions that illuminates this principle */
+  multifaithWisdom?: WisdomQuote;
 }
 
 // ── Pattern-Specific Wisdom Maps ─────────────────────────────────
@@ -215,6 +218,8 @@ export function patternToInsight(pattern: DetectedPattern): PrincipleInsight | n
 
   const source: InsightSource = wisdomMap.sourceOverride ?? 'pattern';
 
+  const multifaithQuote = getWisdomQuote(principle.name);
+
   return {
     principle,
     source,
@@ -225,6 +230,7 @@ export function patternToInsight(pattern: DetectedPattern): PrincipleInsight | n
     color: principle.color,
     confidence: pattern.confidence,
     data: pattern.data,
+    multifaithWisdom: multifaithQuote || undefined,
   };
 }
 
@@ -309,6 +315,10 @@ export function getCurrentPrincipleInsight(patterns: DetectedPattern[]): Princip
 
   // 4. Daily principle fallback — today's rotating Hermetic principle
   const daily = getDailyPrinciple();
+  
+  // Pull a multifaith wisdom quote for today's principle
+  const multifaithQuote = getWisdomQuote(daily.name);
+  
   return {
     principle: daily,
     source: 'daily',
@@ -319,6 +329,7 @@ export function getCurrentPrincipleInsight(patterns: DetectedPattern[]): Princip
     color: daily.color,
     confidence: 0.5, // moderate — no specific data, but the principle is ever-active
     data: { dailyRotation: true, dayOfYear: Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000) },
+    multifaithWisdom: multifaithQuote || undefined,
   };
 }
 
