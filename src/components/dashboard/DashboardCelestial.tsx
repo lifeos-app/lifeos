@@ -8,6 +8,7 @@
  */
 
 import { useRef, useEffect, useMemo } from 'react';
+import { HermeticPrincipleBar } from '../shared/HermeticPrincipleBar';
 import {
   getMoonPhase,
   getMoonPhaseName,
@@ -313,13 +314,8 @@ export function DashboardCelestial() {
         </div>
       )}
 
-      {/* Hermetic touch */}
-      <div style={{
-        marginTop: 6, fontSize: 8, color: 'rgba(255,255,255,0.1)',
-        textAlign: 'center', fontStyle: 'italic',
-      }}>
-        As above, so below
-      </div>
+      {/* Hermetic principle — Correspondence governs the cosmos */}
+      <HermeticPrincipleBar domain="dashboard" />
     </div>
   );
 }

@@ -7,6 +7,7 @@
 
 import { useMemo } from 'react';
 import { BarChart3, CheckCircle2, Flame, Zap } from 'lucide-react';
+import { HermeticPrincipleBar } from '../shared/HermeticPrincipleBar';
 import { useScheduleStore } from '../../stores/useScheduleStore';
 import { useHabitsStore } from '../../stores/useHabitsStore';
 import { useGamificationContext } from '../../lib/gamification/context';
@@ -139,15 +140,8 @@ export function DashboardWeeklyInsight() {
         </div>
       </div>
 
-      {/* Subtle hermetic touch: "As above, so below" — weekly reflection */}
-      <div style={{
-        marginTop: 8, paddingTop: 8,
-        borderTop: '1px solid rgba(255,255,255,0.04)',
-        fontSize: 9, color: 'rgba(255,255,255,0.2)',
-        textAlign: 'center', fontStyle: 'italic',
-      }}>
-        What you do this week echoes in what you become
-      </div>
+      {/* Hermetic principle — Cause & Effect governs weekly insight */}
+      <HermeticPrincipleBar domain="goals" />
     </div>
   );
 }

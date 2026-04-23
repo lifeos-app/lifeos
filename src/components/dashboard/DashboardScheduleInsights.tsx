@@ -16,6 +16,7 @@ import { useGoalsStore } from '../../stores/useGoalsStore';
 import { useFinanceStore } from '../../stores/useFinanceStore';
 import { useOverdueItems } from '../../hooks/useOverdueItems';
 import { predictScheduleSuggestions, type ScheduleSlotSuggestion } from '../../lib/pattern-engine';
+import { HermeticPrincipleBar } from '../shared/HermeticPrincipleBar';
 import { showToast } from '../Toast';
 
 const CARD_STYLE: React.CSSProperties = {
@@ -368,13 +369,8 @@ export function DashboardScheduleInsights() {
         </button>
       )}
 
-      {/* Hermetic touch */}
-      <div style={{
-        marginTop: 8, fontSize: 9, color: 'rgba(255,255,255,0.15)',
-        textAlign: 'center', fontStyle: 'italic',
-      }}>
-        As above, so scheduled
-      </div>
+      {/* Hermetic principle — Rhythm governs scheduling */}
+      <HermeticPrincipleBar domain="schedule" />
     </div>
   );
 }

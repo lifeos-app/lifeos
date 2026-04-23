@@ -9,6 +9,7 @@ import { SmilePlus } from 'lucide-react';
 import { BottomSheet } from '../../BottomSheet';
 import { useHealthStore } from '../../../stores/useHealthStore';
 import { HealthService } from '../../../lib/services/health-service';
+import { HermeticPrincipleBar } from '../../shared/HermeticPrincipleBar';
 import { showToast } from '../../Toast';
 
 interface Props {
@@ -99,13 +100,8 @@ export function QuickLogMood({ open, onClose }: Props) {
         </div>
       )}
 
-      {/* Hermetic touch */}
-      <div style={{
-        marginTop: 4, fontSize: 9, color: 'rgba(255,255,255,0.12)',
-        textAlign: 'center', fontStyle: 'italic',
-      }}>
-        AS ABOVE, SO WITHIN
-      </div>
+      {/* Hermetic principle — Polarity governs mood */}
+      <HermeticPrincipleBar domain="health" />
     </BottomSheet>
   );
 }

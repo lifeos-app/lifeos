@@ -9,6 +9,7 @@ import { useMemo, useState } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, ArrowUpRight, ArrowDownRight, AlertTriangle, Lightbulb, ChevronDown, ChevronUp } from 'lucide-react';
 import { useFinanceStore } from '../../stores/useFinanceStore';
 import { generateFinancialInsights, type FinancialInsight } from '../../lib/financial-intelligence';
+import { HermeticPrincipleBar } from '../shared/HermeticPrincipleBar';
 
 const CARD_STYLE: React.CSSProperties = {
   background: 'rgba(17, 24, 39, 0.5)',
@@ -215,13 +216,8 @@ export function DashboardFinancialPulse() {
         </div>
       )}
 
-      {/* Hermetic touch */}
-      <div style={{
-        marginTop: 8, fontSize: 9, color: 'rgba(255,255,255,0.15)',
-        textAlign: 'center', fontStyle: 'italic',
-      }}>
-        As within your ledger, so without your life
-      </div>
+      {/* Hermetic principle — Cause & Effect governs finance */}
+      <HermeticPrincipleBar domain="finance" />
     </div>
   );
 }

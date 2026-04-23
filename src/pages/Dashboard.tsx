@@ -73,6 +73,7 @@ import {
 } from '../components/dashboard';
 import { ProactiveSuggestions } from '../components/dashboard/ProactiveSuggestions';
 import { HolyHermesOracle } from '../components/HolyHermesOracle';
+import { DailyHermeticAffirmation } from '../components/dashboard/DailyHermeticAffirmation';
 import { Brain } from 'lucide-react';
 import { AgentNudgeBar } from '../components/agent';
 import { useAgentStore } from '../stores/useAgentStore';
@@ -547,6 +548,7 @@ export function Dashboard() {
               )}
               {isWidgetVisible('holy-hermes') && (
                 <FeatureErrorBoundary feature="Holy Hermes Oracle" compact>
+                  <DailyHermeticAffirmation />
                   <HolyHermesOracle />
                 </FeatureErrorBoundary>
               )}
