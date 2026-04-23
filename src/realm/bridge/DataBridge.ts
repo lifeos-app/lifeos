@@ -187,6 +187,7 @@ export function deriveWorldState(
 
   // Compute zone unlocks, then merge with persisted unlocks (persistence wins)
   const computedUnlocks: Record<string, boolean> = {
+    genesis_garden: true,
     life_town: true,
     ironworks: hasGoals,
     wisdom_summit: hasJournal,

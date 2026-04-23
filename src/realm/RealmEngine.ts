@@ -10,7 +10,7 @@ import { KeyboardController } from './input/KeyboardController';
 import { TouchController } from './input/TouchController';
 import { findPath, isTileWalkable } from './input/Pathfinding';
 import { TILE_SIZE, type TileType } from './data/tiles';
-import { LIFE_TOWN, IRONWORKS, WISDOM_SUMMIT, HEALERS_SANCTUARY, MARKET_QUARTER, SOCIAL_SQUARE, type ZoneDef, type PortalPlacement, type BuildingPlacement } from './data/zones';
+import { LIFE_TOWN, IRONWORKS, WISDOM_SUMMIT, HEALERS_SANCTUARY, MARKET_QUARTER, SOCIAL_SQUARE, GENESIS_GARDEN, type ZoneDef, type PortalPlacement, type BuildingPlacement } from './data/zones';
 import { deriveWorldState, deriveDialogueContext, type RealmWorldState, type GardenPlant, type DynamicEntity } from './bridge/DataBridge';
 import type { FloraSpecies } from './data/flora';
 import { getFloraCache } from './hooks/useFlora';
@@ -328,6 +328,55 @@ export class RealmEngine {
       this.music.setStreakLength(this.worldState.bestStreak);
       this.music.setMood(this.worldState.moodScore);
     }
+  }
+
+  /** Switch to a different zone. Teleports player to spawn point of new zone. */
+  setZone(zoneId: string): void {
+    const ZONE_MAP: Record<string, ZoneDef> = {
+      genesis_garden: GENESIS_GARDEN,
+      life_town: LIFE_TOWN,
+      ironworks: IRONWORKS,
+      wisdom_summit: WISDOM_SUMMIT,
+      healers_sanctuary: HEALERS_SANCTUARY,
+      market_quarter: MARKET_QUARTER,
+      social_square: SOCIAL_SQUARE,
+    };
+    const newZone = ZONE_MAP[zoneId];
+    if (!newZone) {
+      console.warn(`[Realm] Unknown zone: ${zoneId}`);
+      return;
+    }
+    this.zone = newZone;
+
+    // Move player to new zone's spawn point
+    const ts = TILE_SIZE * SCALE;
+    this.playerX = newZone.spawnX * ts + ts / 2;
+    this.playerY = newZone.spawnY * ts + ts / 2;
+    this.playerMoving = false;
+    this.path = [];
+
+    // Snap camera
+    this.renderer.camera.snapTo(this.playerX, this.playerY);
+
+    // Re-derive world state (zone-specific NPC/building data)
+    this.refreshWorldState();
+
+    // Update zone on multiplayer
+    const uid = (this.multiplayer as unknown as { userId?: string })?.userId;
+    if (uid) {
+      const payload = this.buildPresencePayload(uid);
+      if (payload) {
+        this.multiplayer?.leaveZone();
+        this.multiplayer?.joinZone(newZone.id, payload);
+      }
+    }
+
+    logger.info(`[Realm] Switched to zone: ${newZone.name}`);
+  }
+
+  /** Get the current zone definition */
+  getCurrentZone(): ZoneDef {
+    return this.zone;
   }
 
   /** Set XP earned today (called from React layer) */

@@ -34,12 +34,13 @@ import { useScheduleStore } from '../stores/useScheduleStore';
 import type { GardenPlant, DynamicEntity } from './bridge/DataBridge';
 import type { CharacterClass } from '../rpg/engine/types';
 import type { PortalPlacement } from './data/zones';
-import { LIFE_TOWN } from './data/zones';
+import { LIFE_TOWN, GENESIS_GARDEN } from './data/zones';
 import { RealmSessionGuard } from './bridge/RealmSessionGuard';
 import { useCharacterAppearanceStore } from '../stores/useCharacterAppearanceStore';
 import { SKIN_TONES, HAIR_COLORS } from '../rpg/data/sprites';
 import { getClassInfo } from '../rpg/data/classes';
 import { OnboardingQuest } from './onboarding/OnboardingQuest';
+import { TutorialQuest, markTutorialStep, isTutorialComplete, type TutorialStep } from './onboarding/TutorialQuest';
 import { NPCDialoguePanel } from './ui/NPCDialoguePanel';
 import { FeatureErrorBoundary } from '../components/FeatureErrorBoundary';
 import { CompanionProgress } from './ui/CompanionProgress';
@@ -110,6 +111,9 @@ export function RealmEntry({ onExit, fullscreen = false }: RealmEntryProps) {
 
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(false);
+  // Tutorial state — Genesis Garden in-Realm tutorial
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialComplete, setTutorialComplete] = useState(false);
 
   // Companion state
   const [selectedCompanion, setSelectedCompanion] = useState(false);
@@ -180,6 +184,11 @@ export function RealmEntry({ onExit, fullscreen = false }: RealmEntryProps) {
         setShowOnboarding(true);
       }
 
+      // If tutorial not completed, start in Genesis Garden
+      if (char && !isTutorialComplete()) {
+        setShowTutorial(true);
+      }
+
       // Celestial event toast
       const todayEvent = getTodayEvent(new Date());
       if (todayEvent) {
@@ -248,6 +257,8 @@ export function RealmEntry({ onExit, fullscreen = false }: RealmEntryProps) {
       },
       onNPCInteraction: (id, name, lines) => {
         if (Date.now() - dialogueClosedAt.current < 400) return;
+        // Mark tutorial step
+        markTutorialStep('interact');
         if (INTERACTIVE_NPCS.has(id)) {
           setTimeout(() => setActiveNPC({ id, name, lines }), 0);
         } else {
@@ -265,11 +276,22 @@ export function RealmEntry({ onExit, fullscreen = false }: RealmEntryProps) {
               getUnlockHint(portal.unlockCondition),
             ],
           }), 0);
+        } else {
+          // Unlocked portal — switch zone
+          // Mark tutorial step
+          markTutorialStep('portal');
+          const engine = engineRef.current;
+          if (engine) {
+            engine.setZone(portal.targetZone);
+            // Move player to portal's target coordinates
+            // (setZone already teleports to spawn, but portal targets are overridden)
+          }
         }
-        // TODO: Zone transition for unlocked portals
       },
       onPlantInteraction: (plant) => {
         if (Date.now() - dialogueClosedAt.current < 400) return;
+        // Mark tutorial step
+        markTutorialStep('water');
         setTimeout(() => setSelectedPlant(plant), 0);
       },
       onEntityInteraction: (entity) => {
@@ -298,6 +320,8 @@ export function RealmEntry({ onExit, fullscreen = false }: RealmEntryProps) {
       },
       onBuildingInteraction: (buildingType) => {
         if (buildingType === 'bulletin_board') {
+          // Mark tutorial step
+          markTutorialStep('quest_board');
           setTimeout(() => setShowQuestBoard(true), 0);
         }
       },
@@ -309,6 +333,11 @@ export function RealmEntry({ onExit, fullscreen = false }: RealmEntryProps) {
     // Apply biome
     const savedBiome = (localStorage.getItem('lifeos-realm-biome') as BiomeId) || 'woodland';
     engine.setTileBiome(BIOMES[savedBiome] ?? BIOMES.woodland);
+
+    // If tutorial not completed, start in Genesis Garden
+    if (!isTutorialComplete()) {
+      engine.setZone('genesis_garden');
+    }
 
     // Subscribe to chat messages
     const unsubChat = engine.onChatMessage((msg) => {
@@ -399,6 +428,8 @@ export function RealmEntry({ onExit, fullscreen = false }: RealmEntryProps) {
   }, [onExit]);
 
   const handleCanvasInteraction = useCallback(() => {
+    // Mark tutorial step — player started moving/interacting
+    markTutorialStep('move');
     if (!audioInitialized && engineRef.current) {
       engineRef.current.initAudio(musicEnabled);
       setAudioInitialized(true);
@@ -473,6 +504,29 @@ export function RealmEntry({ onExit, fullscreen = false }: RealmEntryProps) {
   const handleOnboardingComplete = useCallback((charData: RealmCharacterData) => {
     setCharData(charData);
     setShowOnboarding(false);
+    // Start the Genesis Garden tutorial if user hasn't completed it yet
+    if (!isTutorialComplete()) {
+      setShowTutorial(true);
+      // Switch engine to Genesis Garden zone
+      setTimeout(() => {
+        engineRef.current?.setZone('genesis_garden');
+      }, 100);
+    }
+  }, []);
+
+  const handleTutorialComplete = useCallback(() => {
+    setTutorialComplete(true);
+    setShowTutorial(false);
+    // Switch to Life Town
+    engineRef.current?.setZone('life_town');
+    // Persist tutorial completion
+    try {
+      localStorage.setItem('lifeos_tutorial_progress', JSON.stringify({
+        completedSteps: ['move', 'interact', 'water', 'quest_board', 'portal'],
+        currentStep: 'portal',
+        done: true,
+      }));
+    } catch { /* ignore */ }
   }, []);
 
   const handleSkipLater = useCallback(() => {
@@ -577,7 +631,7 @@ export function RealmEntry({ onExit, fullscreen = false }: RealmEntryProps) {
         <>
           <div className="realm-portal-enter" />
           <ZoneTransition
-            zoneName="Life Town"
+            zoneName={showTutorial ? 'Genesis Garden' : (engineRef.current?.getCurrentZone?.()?.name || 'Life Town')}
             zoneDescription="The central hub of your journey"
             onComplete={handleTransitionComplete}
           />
@@ -595,7 +649,7 @@ export function RealmEntry({ onExit, fullscreen = false }: RealmEntryProps) {
 
       {/* HUD overlay */}
       <RealmHUD
-        zoneName="Life Town"
+        zoneName={showTutorial ? 'Genesis Garden' : (engineRef.current?.getCurrentZone?.()?.name || 'Life Town')}
         playerLevel={charData?.level || 1}
         playerName={charData?.name || 'Adventurer'}
         questCount={0}
@@ -615,13 +669,21 @@ export function RealmEntry({ onExit, fullscreen = false }: RealmEntryProps) {
         biomePickerOpen={showBiomePicker}
       />
 
+      {/* Tutorial overlay — Genesis Garden step tracker */}
+      {showTutorial && !tutorialComplete && (
+        <TutorialQuest
+          onComplete={handleTutorialComplete}
+          onSkip={handleTutorialComplete}
+        />
+      )}
+
       {/* Minimap */}
       <Minimap
-        zone={LIFE_TOWN}
+        zone={showTutorial ? GENESIS_GARDEN : (engineRef.current?.getCurrentZone?.() || LIFE_TOWN)}
         playerX={engineRef.current?.getPlayerWorldPos?.()?.x ?? 0}
         playerY={engineRef.current?.getPlayerWorldPos?.()?.y ?? 0}
-        npcs={LIFE_TOWN.npcs.map(n => ({ tileX: n.tileX, tileY: n.tileY }))}
-        portals={LIFE_TOWN.portals.map(p => ({ tileX: p.tileX, tileY: p.tileY, locked: true }))}
+        npcs={(showTutorial ? GENESIS_GARDEN : LIFE_TOWN).npcs.map(n => ({ tileX: n.tileX, tileY: n.tileY }))}
+        portals={(showTutorial ? GENESIS_GARDEN : LIFE_TOWN).portals.map(p => ({ tileX: p.tileX, tileY: p.tileY, locked: showTutorial ? false : true }))}
         visible={showMinimap}
         onToggle={handleToggleMinimap}
       />

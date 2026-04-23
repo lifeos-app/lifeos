@@ -72,8 +72,8 @@
 - [x] [P5-005] Dynamic XP→World — v1.19.60 — XP→vibrancy, mood→weather, streak→music layers (3+ days: rhythm, 7+: melody boost, 14+: full vibrancy). All wired through RealmEngine.
 - [x] [P5-006] All Realm zones — v1.19.61 — 5 new zone maps added (Ironworks District, Wisdom Summit, Healer's Sanctuary, Market Quarter, Social Square) with 30x24 themed tilemaps, buildings, NPCs, portals back to Life Town, and unique palettes. ZONES registry now has all 6 zones.
 - [x] [P5-007] NPC friendship system — ✅ DONE — Commit: a73b60d — Date: 2026-04-23 — npc-friendship.ts: 10 friendship tiers (Stranger→Eternal Bond), exponential XP, daily interaction +1 XP, unlocks at 3/6/10, 6 NPC definitions, gift system, quest system, friendship greeting modifier, serialization to npc_bonds in user preferences.
-- [ ] [P5-008] MapleStory chibi sprites — ❌ MISSING — WORLD-CLASS-ROADMAP: "Characters are colored rectangles (embarrassment). Need chibi sprites." — Impact: 2/5
-- [ ] [P5-009] RPG Genesis Quest onboarding — ❌ MISSING — MASTER_BUILD_PLAN Phase 4 + WORLD-CLASS-ROADMAP: "Character creation → Genesis Garden tutorial → First Quest → Portal to Life Town." — Impact: 2/5
+- [x] [P5-008] MapleStory chibi sprites — ✅ DONE (pre-existing) — v1.19.61 — drawCharacter.ts + sprites.ts already implement MapleStory-style chibi rendering with 8 hair styles, 6 face types, outfit/cape/hat/weapon customization, walking animation, streak aura, equipment rendering. Impact: 2/5
+- [x] [P5-009] RPG Genesis Quest onboarding — ✅ DONE — v1.19.62 — Genesis Garden tutorial zone (20×16 tiles, Sage NPC, garden patch, pond, flower meadow, portal to Life Town). TutorialQuest component with 5-step tracker (move/interact/water/quest_board/portal). setZone() method in RealmEngine for zone switching. Unlocked portal interaction flows player from tutorial to Life Town. Step markers wired into NPC/plant/building/portal/canvas interactions. Impact: 2/5
 
 ## Priority 6: SCALE (Multi-user, social, revenue)
 

@@ -751,10 +751,99 @@ export const SOCIAL_SQUARE: ZoneDef = {
 };
 
 // ═══════════════════════════════════════════════════
+// GENESIS GARDEN — Tutorial Starting Zone (20×16)
+// ═══════════════════════════════════════════════════
+
+function generateGenesisGardenTiles(): TileType[][] {
+  const W = 20, H = 16;
+  const map: TileType[][] = [];
+  for (let y = 0; y < H; y++) {
+    const r: TileType[] = [];
+    for (let x = 0; x < W; x++) {
+      // Borders — lush dark grass
+      if (x === 0 || x === W - 1 || y === 0 || y === H - 1) { r.push('grass_dark'); continue; }
+      // Central path from spawn (south) to portal (north)
+      if (x >= 8 && x <= 10 && y >= 4 && y <= 14) { r.push('path_stone'); continue; }
+      // Path to garden area (west)
+      if (y >= 7 && y <= 8 && x >= 3 && x <= 10) { r.push('path_stone'); continue; }
+      // Garden patch (bottom-left)
+      if (x >= 3 && x <= 6 && y >= 9 && y <= 12) {
+        r.push((x + y) % 3 === 0 ? 'grass_flowers' : 'grass');
+        continue;
+      }
+      // Small pond (top-right)
+      if (x >= 14 && x <= 16 && y >= 3 && y <= 5) {
+        if (x === 14 || x === 16 || y === 3 || y === 5) r.push('water_edge_s');
+        else r.push('water');
+        continue;
+      }
+      // Flower meadow (east side)
+      if (x >= 13 && x <= 17 && y >= 8 && y <= 13) {
+        r.push((x * 3 + y * 7) % 5 === 0 ? 'grass_flowers' : 'grass');
+        continue;
+      }
+      r.push('grass');
+    }
+    map.push(r);
+  }
+  return map;
+}
+
+export const GENESIS_GARDEN: ZoneDef = {
+  id: 'genesis_garden',
+  name: 'Genesis Garden',
+  description: 'Where every journey begins. A peaceful garden where the Sage teaches you the ways of the Realm.',
+  theme: 'tutorial',
+  width: 20,
+  height: 16,
+  tiles: generateGenesisGardenTiles(),
+  spawnX: 9,
+  spawnY: 13,
+  buildings: [
+    { id: 'tutorial_garden', type: 'garden', tileX: 4, tileY: 9, widthTiles: 3, heightTiles: 3 },
+    { id: 'tutorial_bulletin', type: 'bulletin_board', tileX: 9, tileY: 5, widthTiles: 1, heightTiles: 1 },
+    { id: 'tutorial_well', type: 'well', tileX: 15, tileY: 6, widthTiles: 1, heightTiles: 1 },
+  ],
+  npcs: [
+    {
+      id: 'tutorial_sage',
+      name: 'The Sage',
+      tileX: 9,
+      tileY: 9,
+      spriteType: 'sage',
+      dialogue: [
+        'Welcome, adventurer. This garden is where your journey begins.',
+        'Walk around with arrow keys or tap to move.',
+        'Tap the garden patch to water your first plant.',
+        'When you are ready, step through the northern portal to enter Life Town.',
+      ],
+      appearance: { skinTone: 0, hairColor: 4, bodyColor: '#9B59B6', hairStyleIdx: 7, capeIdx: 1, hatIdx: 1 },
+    },
+  ],
+  portals: [
+    {
+      tileX: 9,
+      tileY: 1,
+      targetZone: 'life_town',
+      targetX: 20,
+      targetY: 5,
+      label: 'Life Town',
+      icon: '🌅',
+    },
+  ],
+  palette: {
+    skyTop: '#FFF8DC',
+    skyBottom: '#FFE4B5',
+    ambient: '#FFD700',
+  },
+};
+
+// ═══════════════════════════════════════════════════
 // ZONE REGISTRY
 // ═══════════════════════════════════════════════════
 
 export const ZONES: Record<string, ZoneDef> = {
+  genesis_garden: GENESIS_GARDEN,
   life_town: LIFE_TOWN,
   ironworks: IRONWORKS,
   wisdom_summit: WISDOM_SUMMIT,
