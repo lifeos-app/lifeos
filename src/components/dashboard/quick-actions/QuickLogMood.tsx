@@ -59,6 +59,34 @@ export function QuickLogMood({ open, onClose }: Props) {
     return result;
   }, [currentMood]);
 
+  // Build a polarity-based PrincipleInsight from the current mood
+  const moodInsight = useMemo<PrincipleInsight | null>(() => {
+    const polarity = SEVEN_PRINCIPLES[3]; // POLARITY
+    if (currentMood === null) return null;
+    const isLow = currentMood <= 2;
+    const isHigh = currentMood >= 4;
+    const wisdomText = isLow
+      ? `The Law of Polarity reveals: your current state is one pole of a spectrum. "Awful" and "Great" are the same force at different degrees. The pendulum that swings to "Low" must swing back — this is not hope, it is Law.`
+      : isHigh
+        ? `You are at the positive pole — this too is Polarity. The wise one does not cling to the peak but uses its energy to build momentum for the inevitable swing.`
+        : `Balance is the midpoint of the pendulum — brief, but full of potential. Polarity teaches that from center, you can choose which pole to approach.`;
+    return {
+      principle: polarity,
+      source: 'polarity',
+      title: isLow ? 'The Pendulum Will Rise' : isHigh ? 'Riding the Positive Pole' : 'The Space Between Poles',
+      wisdom: wisdomText,
+      practice: isLow
+        ? `Accept where you are. Then take one small action toward the opposite pole — a walk, a breath, a kind word.`
+        : isHigh
+          ? `Channel this positive energy into one task that matters. Invest the peak.`
+          : `From center, choose your next direction with intention. One conscious action pushes the pendulum.`,
+      miracle: `The miracle of Polarity: when you understand that your worst and best days are the same energy at different degrees, fear of the low pole dissolves. The pendulum swings — but the wise one learns to choose the swing.`,
+      color: polarity.color,
+      confidence: isLow || isHigh ? 0.85 : 0.6,
+      data: { moodScore: currentMood },
+    };
+  }, [currentMood]);
+
   const handleMoodTap = async (value: number) => {
     try {
       await HealthService.logMood(value);
@@ -176,7 +204,7 @@ export function QuickLogMood({ open, onClose }: Props) {
       )}
 
       {/* Hermetic principle — Polarity governs mood */}
-      <HermeticPrincipleBar domain="health" />
+      <HermeticPrincipleOverlay insight={moodInsight} />
     </BottomSheet>
   );
 }
