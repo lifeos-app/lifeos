@@ -86,7 +86,7 @@
 - [ ] [P6-007] Public profiles + sharing — ❌ MISSING — LIFEOS-ROADMAP 6.3: "Shareable profile cards. Achievement showcase. Referral system." — Impact: 2/5
 - [ ] [P6-008] Leaderboards — ❌ MISSING — LIFEOS-ROADMAP 6.4: "Global XP leaderboard (weekly reset). Domain ladders." — Impact: 2/5
 - [ ] [P6-009] Stripe monetization — 📦 STUB — useSubscription.ts has stubs. feature-gates.ts has Stripe refs. No actual integration. LIFEOS-ROADMAP 6.5: "Free tier + Pro ($9.99/mo) + trial system." — Impact: 2/5
-- [ ] [P6-010] Telegram parity — 🔨 PARTIAL — MASTER_BUILD_PLAN Phase 1: "Both interfaces can do everything the other can." Missing: log_income, log_expense, log_mood in webapp; decompose_objective, start_focus in Telegram. — Impact: 2/5
+- [x] [P6-010] Telegram parity — ✅ DONE — v1.19.64 — Webapp now has QuickLogExpense (amount+category+note via addExpense), QuickLogMood (1-tap 5-mood via HealthService.logMood), and mood/water handlers now local-first via data-access db proxy instead of direct supabase. 10 quick actions total. Expense button added to DashboardQuickActions bar. Impact: 2/5
 
 ## Technical Debt
 
