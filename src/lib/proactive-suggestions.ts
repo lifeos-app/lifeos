@@ -19,7 +19,7 @@
  * No React, no side effects beyond localStorage reads for cooldown.
  */
 
-import { detectStreakRisk, type DetectedPattern } from './pattern-engine';
+import { detectStreakRisk, predictScheduleSuggestions, type DetectedPattern } from './pattern-engine';
 import type { Task, Habit, HabitLog, Goal, ScheduleEvent, HealthMetric, Bill } from '../types/database';
 
 // ── Types ─────────────────────────────────────────────────────────────
@@ -29,7 +29,8 @@ export type SuggestionType =
   | 'habit_nudge'
   | 'health_warning'
   | 'goal_progress'
-  | 'streak_at_risk';
+  | 'streak_at_risk'
+  | 'predictive_schedule';
 
 export interface ProactiveSuggestion {
   id: string;
@@ -441,6 +442,59 @@ function generateStreakAtRisk(input: SuggestionInput): ProactiveSuggestion[] {
   }];
 }
 
+/**
+ * Predictive schedule: use pattern engine to suggest optimal time blocks.
+ */
+function generatePredictiveSchedule(input: SuggestionInput): ProactiveSuggestion[] {
+  const key = cooldownKey('predictive_schedule', 'global');
+  if (isInCooldown(key)) return [];
+
+  const slotSuggestions = predictScheduleSuggestions(
+    input.tasks, input.habits, input.habitLogs, input.goals, input.bills,
+  );
+
+  if (slotSuggestions.length === 0) return [];
+
+  const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const suggestions: ProactiveSuggestion[] = [];
+
+  for (const slot of slotSuggestions.slice(0, 2)) {  // max 2 schedule suggestions
+    const slotKey = cooldownKey('predictive_schedule', slot.id);
+    if (isInCooldown(slotKey)) continue;
+
+    const dayLabel = slot.dayOfWeek >= 0 ? DAY_NAMES[slot.dayOfWeek] + 's' : 'any day';
+    const timeLabel = `${slot.startTime}–${slot.endTime}`;
+
+    suggestions.push({
+      id: genId(),
+      type: 'predictive_schedule',
+      priority: slot.confidence > 0.7 ? 2 : 3,
+      title: slot.title,
+      message: `${slot.description} Best window: ${dayLabel} ${timeLabel}.`,
+      action: {
+        label: slot.actionLabel,
+        intent: {
+          type: 'schedule_prediction',
+          data: {
+            slot_type: slot.type,
+            day_of_week: slot.dayOfWeek,
+            start_time: slot.startTime,
+            end_time: slot.endTime,
+            confidence: Math.round(slot.confidence * 100),
+            source: slot.sourcePattern,
+          },
+          summary: `${slot.actionLabel}: ${dayLabel} ${timeLabel}`,
+          confidence: slot.confidence,
+        },
+      },
+      dismissed: false,
+      timestamp: now().toISOString(),
+    });
+  }
+
+  return suggestions;
+}
+
 // ── Main Entry ────────────────────────────────────────────────────────
 
 /**
@@ -456,6 +510,7 @@ export function generateProactiveSuggestions(input: SuggestionInput): ProactiveS
     ...generateHealthWarnings(input),
     ...generateGoalProgress(input),
     ...generateStreakAtRisk(input),
+    ...generatePredictiveSchedule(input),
   ];
 
   // Sort by priority (1 = highest) and limit
@@ -483,6 +538,10 @@ function extractIdentifier(suggestion: ProactiveSuggestion): string {
     return suggestion.message.includes('Sleep') ? 'sleep_low' : 'energy_low';
   }
   if (suggestion.type === 'streak_at_risk') return 'global';
+  if (suggestion.type === 'predictive_schedule') {
+    const slotType = data.slot_type as string;
+    return slotType || 'global';
+  }
   // Fallback to id
   return suggestion.id;
 }

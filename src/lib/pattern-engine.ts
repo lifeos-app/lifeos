@@ -271,6 +271,160 @@ export function detectOptimalSchedule(tasks: Task[], habitLogs: HabitLog[]): Det
   }];
 }
 
+// ── Predictive Schedule ──────────────────────────────────────────
+
+export interface ScheduleSlotSuggestion {
+  id: string;
+  type: 'peak_focus' | 'energy_light' | 'habit_anchoring' | 'goal_neglect_recovery';
+  title: string;
+  description: string;
+  dayOfWeek: number;          // 0=Sun..6=Sat — -1 means any day
+  startTime: string;          // HH:mm (24h)
+  endTime: string;            // HH:mm (24h)
+  confidence: number;         // 0-1
+  sourcePattern: PatternType; // which pattern detected this
+  actionLabel: string;        // "Schedule Focus Block", etc.
+}
+
+/**
+ * Generate actionable schedule slot suggestions from detected patterns.
+ * Uses productivity peaks, energy cycles, habit anchors, and goal neglect
+ * to recommend specific time blocks for the upcoming week.
+ */
+export function predictScheduleSuggestions(
+  tasks: Task[],
+  habits: Habit[],
+  habitLogs: HabitLog[],
+  goals: Goal[],
+  bills: Bill[],
+  transactions?: Transaction[],
+): ScheduleSlotSuggestion[] {
+  const input: PatternInput = { tasks, habits, habitLogs, goals, bills, transactions };
+  const patterns = detectPatterns(input);
+  const suggestions: ScheduleSlotSuggestion[] = [];
+  const genId = () => `ss_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+
+  // ── 1. Peak focus blocks from productivity peaks ──
+  const peakPatterns = patterns.filter(p => p.type === 'productivity_peak');
+  for (const pp of peakPatterns) {
+    const peakHours: number[] = pp.data?.peakHours ?? [];
+    const peakDays: number[] = pp.data?.peakDays ?? [];
+    if (peakHours.length === 0) continue;
+
+    const bestHour = peakHours[0];
+    const bestDay = peakDays.length > 0 ? peakDays[0] : -1;
+    const startHr = bestHour;
+    const endHr = Math.min(bestHour + 2, 22); // 2-hour focus block, cap at 10pm
+
+    suggestions.push({
+      id: genId(),
+      type: 'peak_focus',
+      title: 'Peak Focus Window',
+      description: pp.description,
+      dayOfWeek: bestDay,
+      startTime: `${String(startHr).padStart(2, '0')}:00`,
+      endTime: `${String(endHr).padStart(2, '0')}:00`,
+      confidence: pp.confidence,
+      sourcePattern: 'productivity_peak',
+      actionLabel: 'Schedule Focus Block',
+    });
+  }
+
+  // ── 2. Energy-light task suggestions ──
+  const energyPatterns = patterns.filter(p => p.type === 'energy_cycle');
+  for (const ep of energyPatterns) {
+    const bestBlock: string = ep.data?.bestBlock ?? 'morning';
+    const worstBlock: string = ep.data?.worstBlock ?? 'evening';
+    const blockHours: Record<string, [number, number]> = {
+      morning: [6, 12],
+      afternoon: [12, 17],
+      evening: [17, 22],
+    };
+    // Suggest light tasks during low-energy blocks
+    const [ws, we] = blockHours[worstBlock] ?? [12, 17];
+    suggestions.push({
+      id: genId(),
+      type: 'energy_light',
+      title: 'Low Energy Window',
+      description: `Your energy dips in the ${worstBlock}. Schedule light admin tasks ${ws}:00-${we}:00 and save deep work for ${bestBlock}.`,
+      dayOfWeek: -1,
+      startTime: `${String(ws).padStart(2, '0')}:00`,
+      endTime: `${String(we).padStart(2, '0')}:00`,
+      confidence: ep.confidence * 0.8,
+      sourcePattern: 'energy_cycle',
+      actionLabel: 'Schedule Light Tasks',
+    });
+  }
+
+  // ── 3. Habit anchoring — schedule new habits near existing anchors ──
+  const anchorPatterns = patterns.filter(p => p.type === 'habit_anchor');
+  for (const ap of anchorPatterns.slice(0, 1)) {  // max 1 anchor suggestion
+    const anchors: Array<{ id: string; title: string; completionRate: number; uniqueDays: number; streak: number }>
+      = ap.data?.anchors ?? [];
+    if (anchors.length === 0) continue;
+
+    // Find unscheduled or incomplete habits to chain
+    const unchainedHabits = habits.filter(h =>
+      h.is_active && !h.is_deleted && (h.streak_current ?? 0) < 3 &&
+      !anchors.some(a => a.id === h.id)
+    );
+    if (unchainedHabits.length === 0) continue;
+
+    const topAnchor = anchors[0];
+    // Suggest chaining near the anchor's typical time (use habit logs to infer time)
+    const anchorLogs = habitLogs.filter(l => l.habit_id === topAnchor.id && l.created_at);
+    if (anchorLogs.length === 0) continue;
+    const typicalHour = anchorLogs.reduce((sum, l) => sum + (new Date(l.created_at).getHours() || 12), 0) / anchorLogs.length;
+    const chainHour = Math.round(typicalHour);
+    const startHr = Math.max(chainHour - 1, 5);
+    const endHr = Math.min(chainHour + 1, 22);
+
+    suggestions.push({
+      id: genId(),
+      type: 'habit_anchoring',
+      title: 'Habit Stacking Opportunity',
+      description: `Stack "${unchainedHabits[0].title}" right after "${topAnchor.title}" (${Math.round(topAnchor.completionRate)}% consistent) for maximum follow-through.`,
+      dayOfWeek: -1,
+      startTime: `${String(startHr).padStart(2, '0')}:00`,
+      endTime: `${String(endHr).padStart(2, '0')}:00`,
+      confidence: ap.confidence * 0.7,
+      sourcePattern: 'habit_anchor',
+      actionLabel: 'Schedule Habit Stack',
+    });
+  }
+
+  // ── 4. Goal neglect recovery — schedule dedicated goal time ──
+  const neglectPatterns = patterns.filter(p => p.type === 'goal_neglect');
+  for (const np of neglectPatterns.slice(0, 2)) {  // max 2 neglected goals
+    const goalTitle: string = np.data?.goalTitle ?? 'Neglected goal';
+    const optimalPatterns = patterns.filter(p => p.type === 'optimal_schedule');
+    const bestBlock = optimalPatterns[0]?.data?.suggestions?.[0]?.block
+      ?? (peakPatterns[0]?.data?.peakDayNames?.length ? 'morning' : 'afternoon');
+
+    const blockHours: Record<string, [number, number]> = {
+      morning: [9, 10],
+      afternoon: [14, 15],
+      evening: [19, 20],
+    };
+    const [bs, be] = blockHours[bestBlock] ?? [14, 15];
+
+    suggestions.push({
+      id: genId(),
+      type: 'goal_neglect_recovery',
+      title: `Revisit: ${goalTitle}`,
+      description: np.description,
+      dayOfWeek: -1,
+      startTime: `${String(bs).padStart(2, '0')}:00`,
+      endTime: `${String(be).padStart(2, '0')}:00`,
+      confidence: np.confidence * 0.6,
+      sourcePattern: 'goal_neglect',
+      actionLabel: `Schedule ${goalTitle} Time`,
+    });
+  }
+
+  return suggestions.sort((a, b) => b.confidence - a.confidence);
+}
+
 // ── Main Entry ──────────────────────────────────────────────────
 
 /** Run all pattern detectors, return combined results sorted by confidence. */
