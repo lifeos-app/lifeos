@@ -7,8 +7,8 @@
 - **Baseline Version:** 1.19.27
 - **Current Version:** 1.19.70
 - **Baseline Date:** 2026-04-20
-- **Last Audit:** 2026-04-24
-- **Completion:** 54/68 = 79.4%
+- **Last Audit:** 2026-04-25
+- **Completion:** 54/89 = 60.7%
 
 ## Vision Documents (Source of Truth)
 1. `/home/tewedros/Desktop/webapp/docs/vision/VISION.md` — "LifeOS IS an AI that has an app as its interface"
@@ -99,7 +99,43 @@
 - [x] [TD-007] Offline-first completion — ✅ v1.19.59 — All write-heavy stores now route through local-db. No direct supabase.from() in stores. useLiveActivityStore, useAgentStore, useFinanceStore, useGoalsStore, useHabitsStore, useHealthStore, useScheduleStore, useJournalStore, useInventoryStore all use local-first pattern. Engines import supabase from data-access (correct architecture).
 - [x] [TD-008] TypeScript strict mode — ✅ DONE — v1.19.70 — strict: true, noUnusedLocals, noUnusedParameters, noFallthroughCasesInSwitch, noUncheckedSideEffectImports all enabled in tsconfig.app.json. Already was enabled.
 - [x] [TD-009] Test coverage — ✅ DONE — Commit: 0ec5195 — Date: 2026-04-24 — 8→11 test files, 150→316 tests. Added proactive-suggestions.test.ts (71 tests: 6 suggestion generators, dismiss/accept cooldown, rate limiting, edge cases), hermetic-principle-insight.test.ts (56 tests: patternToInsight/correlationToInsight/getCurrentPrincipleInsight/insightSummary for all 8 pattern types), hermetic-integration.test.ts (39 tests: SEVEN_PRINCIPLES validation, getDailyPrinciple rotation, DOMAIN_PRINCIPLE mapping, HERMETIC_BLESSING structure).
-- [ ] [TD-010] RLS migration SQL ready but not applied — supabase/migrations/20260418_rls_critical_tables.sql needs manual paste
+- [ ] [TD-010] RLS migration SQL ready but not applied — supabase/migrations/20260418_rls_critical_tables.sql needs manual paste — [DEPLOYMENT ACTION — not code-implementable. Paste SQL into Supabase SQL Editor]
+
+## Priority 2: FOUNDATION — New Items from 2026-04-25 Audit
+
+- [ ] [P2-007] Virtualized long lists — ❌ MISSING — 500+ items cause scroll jank (tasks/events/expenses), no react-window or react-virtualized — [Vision ref: LIFEOS-ROADMAP §2.5 "Virtualized lists for tasks/events/expenses — 500+ items cause scroll jank"] — [Impact: 3/5, Blocks: performance for power users] — [Files needed: virtualized list components for Schedule, Expenses, Tasks]
+
+## Priority 3: VISION-CRITICAL — New Items from 2026-04-25 Audit
+
+- [ ] [P3-009] Evening Review AI action — 📦 STUB — Navigator has 'evening review' route but no dedicated evening review AI coaching. Morning brief exists. — [Vision ref: MASTER_BUILD_PLAN §1A "evening_review — Add evening review action"] — [Impact: 3/5, Blocks: AI completeness]
+
+## Priority 4: ENGAGEMENT — New Items from 2026-04-25 Audit
+
+- [ ] [P4-007] Streak Shield (1 free skip/week) — ❌ MISSING — Duolingo's #1 retention mechanic. Earn 1 free skip per week via streaks. — [Vision ref: LIFEOS-ROADMAP "Streak Shield (1 free skip per week, earned via streak)"] — [Impact: 4/5, Blocks: frustration reduction]
+- [ ] [P4-008] Character permeation (all pages) — ❌ MISSING — Character should appear on Dashboard, Goals, Habits pages as mini-avatar. — [Vision ref: WORLD-CLASS-ROADMAP §II "Character Everywhere — Character permeates all pages"] — [Impact: 3/5, Blocks: gamification immersion]
+
+## Priority 5: DEPTH — New Items from 2026-04-25 Audit
+
+- [ ] [P5-010] Habit difficulty scaling — ❌ MISSING — AI-suggested progressive difficulty ("You've mastered 10 min meditation. Ready for 15?") — [Vision ref: LIFEOS-ROADMAP §5.2 "Difficulty scaling"] — [Impact: 2/5]
+- [ ] [P5-011] Keystone habit detection — ❌ MISSING — Algorithm to identify habits whose improvement cascades to other domains. — [Vision ref: VISION-v2 "Keystone habit detection algorithm", LIFEOS-ROADMAP §5.2] — [Impact: 3/5]
+- [ ] [P5-012] Covey time quadrants / goal pruning — ❌ MISSING — Goal system enhanced with Covey's urgent/important matrix + Essentialism pruning — [Vision ref: VISION-v2 "Goal system enhanced with Covey's time quadrants + Essentialism pruning"] — [Impact: 2/5]
+- [ ] [P5-013] GTD-enhanced weekly review — 🔨 PARTIAL — Review page exists (Review.tsx, GuidedReview.tsx) but lacks GTD Capture-Clarify-organize-reflect-engage structure — [Vision ref: VISION-v2 "Weekly review enhanced with GTD reflect methodology"] — [Impact: 2/5]
+- [ ] [P5-014] Decision journal / bias detection — ❌ MISSING — No decision journal, no bias detection, no cognitive bias reflection prompts — [Vision ref: VISION-v2 "Thinking Fast and Slow — Decision journal, bias detection in goal-setting"] — [Impact: 2/5]
+- [ ] [P5-015] Seasonal world events — 📦 STUB — seasonal_events key in RealmPersistence but no quests/NPCs/XP bonuses — [Vision ref: LIFEOS-ROADMAP §4.2 "Seasonal events (spring planting, summer challenge, fall harvest, winter reflection)"] — [Impact: 2/5]
+- [ ] [P5-016] Data confidence scoring — ❌ MISSING — All habit logs treated equally regardless of when logged. Need confidence: High/Medium/Low/Inferred → affects XP multiplier — [Vision ref: MASTER_BUILD_PLAN §Phase 5 "Confidence Scoring"] — [Impact: 2/5]
+- [ ] [P5-017] Year in Review page — ❌ MISSING — Annual summary with visualizations — [Vision ref: LIFEOS-ROADMAP §3.5 "Year in Review page"] — [Impact: 2/5]
+- [ ] [P5-018] Garden decorations from achievements — ❌ MISSING — Achievement-unlocked garden items, player house/trophy room — [Vision ref: LIFEOS-ROADMAP §4.4 "Garden decorations (earned from achievements)"] — [Impact: 2/5]
+- [ ] [P5-019] Grit score / persistence tracking — ❌ MISSING — Angela Duckworth's Grit: long-term goal persistence tracking, grit score, effort logging — [Vision ref: VISION-v2 "passion + sustained effort > talent"] — [Impact: 2/5]
+- [ ] [P5-020] Motivation scoring (autonomy/mastery/purpose) — ❌ MISSING — Daniel Pink's Drive: intrinsic motivation = Autonomy + Mastery + Purpose — [Vision ref: VISION-v2 "Motivation scoring, autonomy tracking, purpose alignment"] — [Impact: 2/5]
+- [ ] [P5-021] Obstacle reframing / stoic reflections — 🔨 PARTIAL — Hermetic principle insights exist but no explicit obstacle reframing in goal coaching or stoic daily reflections — [Vision ref: VISION-v2 "The Obstacle Is the Way — Obstacle reframing in goal coaching"] — [Impact: 2/5]
+
+## Priority 6: SCALE — New Items from 2026-04-25 Audit
+
+- [ ] [P6-011] Community Junction marketplace — ❌ MISSING — No marketplace, no user-created Junction infrastructure. Junctions hardcoded. — [Vision ref: VISION-v2 "Community: User-created Junctions with custom quests, shared via marketplace"] — [Impact: 2/5]
+- [ ] [P6-012] Multiplayer Realm presence — 📦 STUB — RealmMultiplayer.ts, RemotePlayerRenderer.ts, ChatOverlay.tsx, EmoteRadial.tsx exist but disabled ("Coming soon"). No Supabase Realtime subscription. — [Vision ref: WORLD-CLASS-ROADMAP §III "Real-time multiplayer via Supabase Realtime"] — [Impact: 2/5]
+- [ ] [P6-013] Family Plan tier — ❌ MISSING — Stripe setup exists but only Pro. No family plan, shared dashboard, or family guild. — [Vision ref: LIFEOS-ROADMAP §6.5 "Family Plan ($14.99/month, 5 users)"] — [Impact: 2/5]
+- [ ] [P6-014] Data Export (Pro feature) — 📦 STUB — feature-gates.ts has data_export gate (Pro feature) but no export UI or functionality — [Vision ref: LIFEOS-ROADMAP §6.5 "data export"] — [Impact: 2/5]
+- [ ] [P6-015] Custom Themes (Pro feature) — ❌ MISSING — No theme selector, no custom visual themes. Fixed dark theme with biome palettes. — [Vision ref: LIFEOS-ROADMAP §6.5 "custom themes"] — [Impact: 2/5]
 
 ## Completed ✅
 
@@ -142,3 +178,4 @@
 - 2026-04-22: Hermes local-first fix cycle. T1-A + T1-B DONE: useLiveActivityStore + useAgentStore now route all writes through local-db (offline-first). Added unified_events, event_completions, ai_insights to IDB STORES (v8), sync-engine SYNC_TABLES, and STATIC_COLUMNS. Score: 39/68 = 57.4%. Version: 1.19.48.
 - 2026-04-22: Full branch audit + feature accessibility fix. ROOT CAUSE: LOCAL_USER in electron-api.ts used `new Date().toISOString()` as created_at → accountDays=0 → all progressive-disclosure features (Academy/Character/Replicator/Lessons) were hidden every session. Fixed: hardcoded '2020-01-01' so local users always see all features. Also lowered revealAfterDays thresholds (5→2, 7→3). TCS plugin gate confirmed working — auto-enables for tewedross12@gmail.com/teddyscleaning emails. All 14 routes confirmed present in App.tsx. Clean build + relaunch. Score: 46/68 = 67.6%. Version: 1.19.52.
 - 2026-04-24: Stale item audit + test coverage. TD-006 (SW) and TD-008 (strict) were already DONE — stale checklist items. TD-009 tests added: 8→11 files, 150→316 tests. Also committed Hermetic alignment work from prior session (pattern/correlation/XP engine principle tags, rhythm_swing detector, principle insight bridge, system prompt wisdom). Score: 54/68 = 79.4%. Version: 1.19.70.
+- 2026-04-25: Phase 3 self-healing audit. Read all 5 vision docs + 2 recent plans. Discovered 21 NEW features not tracked in checklist. Added P2-007 (virtualized lists), P3-009 (evening review), P4-007/P4-008 (streak shield, character permeation), P5-010–P5-021 (12 depth features), P6-011–P6-015 (5 scale features). Annotated TD-010 as deployment action. Score: 54/89 = 60.7%.
