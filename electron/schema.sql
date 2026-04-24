@@ -5,6 +5,8 @@ CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     email TEXT,
     display_name TEXT,
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -18,6 +20,8 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     subscription_tier TEXT DEFAULT 'free',
     preferences TEXT DEFAULT '{}',
     onboarding_complete INTEGER DEFAULT 0,
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
@@ -134,6 +138,7 @@ CREATE TABLE IF NOT EXISTS habit_logs (
     value REAL,
     completed INTEGER DEFAULT 1,
     notes TEXT,
+    is_deleted INTEGER DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now')),
     sync_status TEXT DEFAULT 'synced',
@@ -190,6 +195,8 @@ CREATE TABLE IF NOT EXISTS health_metrics (
     weight_kg REAL,
     exercise_minutes INTEGER,
     notes TEXT,
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
 );
@@ -204,6 +211,8 @@ CREATE TABLE IF NOT EXISTS workouts (
     duration_minutes INTEGER,
     exercises TEXT DEFAULT '[]',
     is_active INTEGER DEFAULT 1,
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -218,6 +227,8 @@ CREATE TABLE IF NOT EXISTS workout_exercises (
     duration_seconds INTEGER,
     notes TEXT,
     sort_order INTEGER DEFAULT 0,
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (workout_id) REFERENCES workouts(id)
 );
@@ -231,6 +242,8 @@ CREATE TABLE IF NOT EXISTS expense_categories (
     scope TEXT DEFAULT 'personal',
     budget_monthly REAL DEFAULT 0,
     sort_order INTEGER DEFAULT 0,
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -270,6 +283,8 @@ CREATE TABLE IF NOT EXISTS transactions (
     event_id TEXT,
     notes TEXT,
     recurring INTEGER DEFAULT 0,
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now')),
     FOREIGN KEY (category_id) REFERENCES expense_categories(id),
@@ -283,6 +298,8 @@ CREATE TABLE IF NOT EXISTS budgets (
     month TEXT NOT NULL,
     amount REAL NOT NULL,
     notes TEXT,
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (category_id) REFERENCES expense_categories(id)
 );
@@ -390,6 +407,8 @@ CREATE TABLE IF NOT EXISTS rpg_characters (
     stats TEXT DEFAULT '{}',
     equipment TEXT DEFAULT '[]',
     position TEXT DEFAULT '{"map":"life_town","x":600,"y":400}',
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
 );
@@ -405,6 +424,8 @@ CREATE TABLE IF NOT EXISTS rpg_quest_log (
     status TEXT DEFAULT 'active',
     progress REAL DEFAULT 0,
     xp_reward INTEGER DEFAULT 0,
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     started_at TEXT DEFAULT (datetime('now')),
     completed_at TEXT,
     FOREIGN KEY (character_id) REFERENCES rpg_characters(id)
@@ -416,6 +437,8 @@ CREATE TABLE IF NOT EXISTS user_xp (
     level INTEGER DEFAULT 1,
     current_level_xp INTEGER DEFAULT 0,
     next_level_xp INTEGER DEFAULT 100,
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     updated_at TEXT DEFAULT (datetime('now'))
 );
 
@@ -425,6 +448,8 @@ CREATE TABLE IF NOT EXISTS xp_events (
     amount INTEGER NOT NULL,
     source TEXT,
     description TEXT,
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -438,6 +463,8 @@ CREATE TABLE IF NOT EXISTS achievements (
     xp_reward INTEGER DEFAULT 0,
     tier TEXT DEFAULT 'bronze',
     category TEXT,
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     unlocked_at TEXT DEFAULT (datetime('now'))
 );
 
@@ -454,9 +481,10 @@ CREATE TABLE IF NOT EXISTS inventory_items (
     slot TEXT,
     quantity INTEGER DEFAULT 1,
     source TEXT,
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT DEFAULT (datetime('now')),
-    is_deleted INTEGER DEFAULT 0
+    updated_at TEXT DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS pet_profiles (
@@ -469,9 +497,10 @@ CREATE TABLE IF NOT EXISTS pet_profiles (
     xp INTEGER DEFAULT 0,
     hunger INTEGER DEFAULT 100,
     happiness INTEGER DEFAULT 100,
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT DEFAULT (datetime('now')),
-    is_deleted INTEGER DEFAULT 0
+    updated_at TEXT DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS categories (
@@ -530,9 +559,10 @@ CREATE TABLE IF NOT EXISTS assets (
     description TEXT,
     image_url TEXT,
     is_equipped INTEGER DEFAULT 0,
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at TEXT DEFAULT (datetime('now')),
-    is_deleted INTEGER DEFAULT 0
+    updated_at TEXT DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS asset_maintenance (
@@ -544,9 +574,10 @@ CREATE TABLE IF NOT EXISTS asset_maintenance (
     due_date TEXT,
     cost REAL,
     status TEXT DEFAULT 'pending',
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now')),
-    is_deleted INTEGER DEFAULT 0,
     FOREIGN KEY (asset_id) REFERENCES assets(id)
 );
 
@@ -559,9 +590,10 @@ CREATE TABLE IF NOT EXISTS asset_bills (
     due_date TEXT,
     is_recurring INTEGER DEFAULT 0,
     status TEXT DEFAULT 'pending',
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now')),
-    is_deleted INTEGER DEFAULT 0,
     FOREIGN KEY (asset_id) REFERENCES assets(id)
 );
 
@@ -573,9 +605,10 @@ CREATE TABLE IF NOT EXISTS asset_documents (
     file_url TEXT,
     file_type TEXT,
     notes TEXT,
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now')),
-    is_deleted INTEGER DEFAULT 0,
     FOREIGN KEY (asset_id) REFERENCES assets(id)
 );
 
@@ -585,6 +618,8 @@ CREATE TABLE IF NOT EXISTS ai_insights (
     type TEXT,
     content TEXT,
     context TEXT DEFAULT '{}',
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -594,6 +629,8 @@ CREATE TABLE IF NOT EXISTS chat_messages (
     role TEXT NOT NULL,
     content TEXT NOT NULL,
     attachments TEXT DEFAULT '[]',
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -606,12 +643,16 @@ CREATE TABLE IF NOT EXISTS unified_events (
     amount REAL,
     date TEXT,
     metadata TEXT DEFAULT '{}',
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS sync_meta (
     table_name TEXT PRIMARY KEY,
     last_sync_at TEXT,
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     record_count INTEGER DEFAULT 0
 );
 
@@ -643,6 +684,8 @@ CREATE TABLE IF NOT EXISTS ai_conversations (
     user_id TEXT NOT NULL,
     title TEXT NOT NULL DEFAULT 'New Conversation',
     messages_json TEXT NOT NULL DEFAULT '[]',
+    is_deleted INTEGER DEFAULT 0,
+    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );

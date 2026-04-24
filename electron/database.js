@@ -179,6 +179,63 @@ export function initDatabase(dbPath) {
   const schemaSql = readFileSync(schemaPath, 'utf-8');
   db.exec(schemaSql);
 
+  // ── Migration: Add is_deleted + sync_status to tables that lack them ──
+  // These columns are expected by hooks (useHealthMetrics, useExercise, etc.)
+  // but were missing from early schema versions. Safe ALTER on existing DBs.
+  const migrations = [
+    ['users', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['users', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['user_profiles', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['user_profiles', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['habit_logs', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['health_metrics', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['health_metrics', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['workouts', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['workouts', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['workout_exercises', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['workout_exercises', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['expense_categories', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['expense_categories', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['transactions', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['transactions', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['budgets', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['budgets', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['rpg_characters', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['rpg_characters', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['rpg_quest_log', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['rpg_quest_log', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['user_xp', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['user_xp', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['xp_events', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['xp_events', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['achievements', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['achievements', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['inventory_items', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['pet_profiles', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['assets', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['asset_maintenance', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['asset_bills', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['asset_documents', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['ai_insights', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['ai_insights', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['chat_messages', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['chat_messages', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['unified_events', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['unified_events', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['sync_meta', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['sync_meta', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+    ['ai_conversations', 'is_deleted', 'INTEGER', 'DEFAULT 0'],
+    ['ai_conversations', 'sync_status', 'TEXT', "DEFAULT 'pending'"],
+  ];
+  for (const [table, col, type, def] of migrations) {
+    try {
+      db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${type} ${def}`);
+    } catch {
+      // Column already exists — expected for most runs
+    }
+  }
+  console.log('[database] Schema migrations applied');
+
   // Seed default user
   db.exec(`
     INSERT OR IGNORE INTO users (id, email, display_name)

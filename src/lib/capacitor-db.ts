@@ -388,6 +388,8 @@ async function _applySchema(): Promise<void> {
       weight_kg REAL,
       exercise_minutes INTEGER,
       notes TEXT,
+      is_deleted INTEGER DEFAULT 0,
+      sync_status TEXT DEFAULT 'pending',
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     );
