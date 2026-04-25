@@ -59,3 +59,43 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Virtualized List Styles — react-virtuoso container theming
+   These styles ensure virtualized lists match the dark theme with
+   proper scrollbar styling and transparent backgrounds.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Virtuoso container — transparent background, dark-themed scrollbars */
+[data-virtuoso-scroller],
+.sd-events-vlist > div {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+[data-virtuoso-scroller]::-webkit-scrollbar,
+.sd-events-vlist > div::-webkit-scrollbar {
+  width: 6px;
+}
+
+[data-virtuoso-scroller]::-webkit-scrollbar-track,
+.sd-events-vlist > div::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+[data-virtuoso-scroller]::-webkit-scrollbar-thumb,
+.sd-events-vlist > div::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+}
+
+[data-virtuoso-scroller]::-webkit-scrollbar-thumb:hover,
+.sd-events-vlist > div::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Virtualized list containers inherit parent card styles */
+.task-list[data-virtuoso-style],
+.fin-tx-list-enhanced[data-virtuoso-style] {
+  background: transparent;
+}

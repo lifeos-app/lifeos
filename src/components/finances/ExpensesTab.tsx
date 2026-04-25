@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useFinances } from './FinancesContext';
 import { LongPressRow } from './LongPressRow';
 import { fmtCurrency, fmtShort, fmtDate, colorForIndex } from './types';
 import { DonutChart, SparkLine } from '../charts';
 import { EmojiIcon } from '../../lib/emoji-icon';
+import { GroupedVirtualizedList, VirtualizedList } from '../ui/VirtualizedList';
 import {
   ArrowDownCircle, Calendar, Plus, Edit2, Save, X, Trash2, Check,
   ChevronDown, ChevronRight, ChevronLeft, ScrollText,
@@ -46,6 +47,90 @@ export const ExpensesTab = React.memo(function ExpensesTab() {
     if (!grouped[item.date]) grouped[item.date] = [];
     grouped[item.date].push(item);
   });
+
+  // Prepare grouped virtual list data (memoized based on allExpenses)
+  const expenseGroups = useMemo(() => {
+    const grp: Record<string, MergedExpense[]> = {};
+    allExpenses.forEach(item => {
+      if (!grp[item.date]) grp[item.date] = [];
+      grp[item.date].push(item);
+    });
+    return Object.entries(grp).map(([date, items]) => ({
+      key: date,
+      header: (
+        <div className="fin-tx-date-header">
+          <Calendar size={12} />
+          {new Date(date + 'T00:00:00').toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+          <span className="fin-tx-date-total expense">-{fmtCurrency(items.reduce((s, i) => s + i.amount, 0))}</span>
+        </div>
+      ),
+      items,
+    }));
+  }, [allExpenses]);
+
+  // Render a single expense item row
+  const renderExpenseItem = React.useCallback((e: MergedExpense) => {
+    const cat = categories.find(c => c.id === e.category_id);
+    return (
+      <LongPressRow
+        key={e.id}
+        onLongPress={() => e.source_table === 'expenses' ? confirmDelete('Delete Expense?', `Remove "${e.title}" (${fmtCurrency(e.amount)})?`, () => deleteRow('expenses', e.id)) : undefined as never}
+        onClick={() => setExpandedTx(expandedTx === e.id ? null : e.id)}
+        className={`fin-tx-row-enhanced expense ${editingId === e.id ? 'editing' : ''} ${expandedTx === e.id ? 'expanded' : ''}`}
+      >
+        {editingId === e.id ? (
+          <>
+            <input type="date" className="fin-inline-date" value={editDate} onChange={ev => setEditDate(ev.target.value)} />
+            <div className="fin-tx-info"><input type="text" className="fin-inline-input" value={editDesc} onChange={ev => setEditDesc(ev.target.value)} placeholder="Description" /></div>
+            <input type="number" className="fin-inline-amount" step="0.01" min="0" value={editAmount} onChange={ev => setEditAmount(ev.target.value)} />
+            <button className="fin-inline-btn save" aria-label="Save" onClick={(ev) => { ev.stopPropagation(); saveInlineEdit('expenses', e.id); }} disabled={editSaving}><Save size={14} /></button>
+            <button className="fin-inline-btn cancel" aria-label="Cancel" onClick={(ev) => { ev.stopPropagation(); cancelEditing(); }}><X size={14} /></button>
+          </>
+        ) : (
+          <>
+            <div className="fin-tx-icon expense" style={{ background: cat ? `${cat.color || '#F43F5E'}20` : 'rgba(244,63,94,0.1)', color: cat?.color || '#F43F5E' }}>
+              {cat ? <EmojiIcon emoji={cat.icon || '📦'} size={14} fallbackAsText /> : <ArrowDownCircle size={18} />}
+            </div>
+            <div className="fin-tx-main">
+              <span className="fin-tx-title-enhanced">{e.title || 'Expense'}</span>
+              <div className="fin-tx-meta-enhanced">
+                {cat && <span style={{ color: cat.color || '#F43F5E' }}>{cat.name}</span>}
+                {e.is_deductible && <span><ScrollText size={10} /> Deductible</span>}
+                {e.business_id && <span>{businesses.find(b => b.id === e.business_id)?.name}</span>}
+              </div>
+              {expandedTx === e.id && (
+                <div className="fin-tx-details">
+                  <div className="fin-tx-detail-row">
+                    <span className="fin-tx-detail-label">Amount:</span>
+                    <span className="fin-tx-detail-value">{fmtCurrency(e.amount)}</span>
+                  </div>
+                  {cat && (
+                    <div className="fin-tx-detail-row">
+                      <span className="fin-tx-detail-label">Category:</span>
+                      <span className="fin-tx-detail-value" style={{ color: cat.color || '#F43F5E' }}>{cat.icon} {cat.name}</span>
+                    </div>
+                  )}
+                  {e.is_deductible && (
+                    <div className="fin-tx-detail-row">
+                      <span className="fin-tx-detail-label">Tax:</span>
+                      <span className="fin-tx-detail-value fin-deductible-badge">Deductible</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <strong className="fin-tx-amount-enhanced expense">-{fmtCurrency(e.amount)}</strong>
+            {e.source_table === 'expenses' && (
+              <>
+                <button className="fin-row-action edit" aria-label="Edit" onClick={(ev) => { ev.stopPropagation(); startEditing({ id: e.id, amount: e.amount, description: String(e.description || ''), title: e.title, date: e.date }); }} title="Edit"><Edit2 size={14} /></button>
+                <button className="fin-row-action delete" onClick={(ev) => { ev.stopPropagation(); confirmDelete('Delete Expense?', `Remove "${e.title}" (${fmtCurrency(e.amount)})?`, () => deleteRow('expenses', e.id)); }} title="Delete" aria-label="Delete"><Trash2 size={14} /></button>
+              </>
+            )}
+          </>
+        )}
+      </LongPressRow>
+    );
+  }, [categories, confirmDelete, deleteRow, editingId, editDate, editDesc, editAmount, editSaving, expandedTx, saveInlineEdit, startEditing, businesses]);
 
   return (
     <div className="fin-tab-content">
@@ -146,8 +231,9 @@ export const ExpensesTab = React.memo(function ExpensesTab() {
                 {catTxFull.length === 0 ? (
                   <div className="fin-empty-small"><p>No transactions in this category this month</p></div>
                 ) : (
-                  <div className="fin-tx-list">
-                    {catTxFull.sort((a, b) => b.date.localeCompare(a.date)).map(t => (
+                  <VirtualizedList
+                    items={catTxFull.sort((a, b) => b.date.localeCompare(a.date))}
+                    renderItem={(t) => (
                       <div key={t.id} className="fin-tx-row expense">
                         <span className="fin-tx-date">{fmtDate(t.date)}</span>
                         <div className="fin-tx-info">
@@ -159,8 +245,12 @@ export const ExpensesTab = React.memo(function ExpensesTab() {
                           <button className="fin-row-action edit" aria-label="Edit" onClick={() => startEditing({ id: t.id, amount: t.amount, description: (t as { description?: string }).description, title: (t as { title?: string }).title, date: t.date })}><Edit2 size={14} /></button>
                         )}
                       </div>
-                    ))}
-                  </div>
+                    )}
+                    itemHeight={48}
+                    className="fin-tx-list"
+                    emptyMessage="No transactions in this category this month"
+                    style={{ maxHeight: '40vh' }}
+                  />
                 )}
                 <button className="fin-add-btn fin-drill-add-btn" onClick={() => { setFormMode('expense'); }}>
                   <Plus size={14} /> Add to {cat?.name || 'Category'}
@@ -208,79 +298,14 @@ export const ExpensesTab = React.memo(function ExpensesTab() {
         {thisMonthExp.length === 0 && thisMonthExpTx.length === 0 ? (
           <div className="fin-empty-small"><p>No expenses this month</p></div>
         ) : (
-          <div className="fin-tx-list-enhanced">
-            {Object.entries(grouped).map(([date, items]) => (
-              <div key={date} className="fin-tx-date-group">
-                <div className="fin-tx-date-header">
-                  <Calendar size={12} />
-                  {new Date(date + 'T00:00:00').toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
-                  <span className="fin-tx-date-total expense">-{fmtCurrency(items.reduce((s, i) => s + i.amount, 0))}</span>
-                </div>
-                {items.map(e => {
-                  const cat = categories.find(c => c.id === e.category_id);
-                  return (
-                    <LongPressRow
-                      key={e.id}
-                      onLongPress={() => e.source_table === 'expenses' ? confirmDelete('Delete Expense?', `Remove "${e.title}" (${fmtCurrency(e.amount)})?`, () => deleteRow('expenses', e.id)) : undefined as never}
-                      onClick={() => setExpandedTx(expandedTx === e.id ? null : e.id)}
-                      className={`fin-tx-row-enhanced expense ${editingId === e.id ? 'editing' : ''} ${expandedTx === e.id ? 'expanded' : ''}`}
-                    >
-                      {editingId === e.id ? (
-                        <>
-                          <input type="date" className="fin-inline-date" value={editDate} onChange={ev => setEditDate(ev.target.value)} />
-                          <div className="fin-tx-info"><input type="text" className="fin-inline-input" value={editDesc} onChange={ev => setEditDesc(ev.target.value)} placeholder="Description" /></div>
-                          <input type="number" className="fin-inline-amount" step="0.01" min="0" value={editAmount} onChange={ev => setEditAmount(ev.target.value)} />
-                          <button className="fin-inline-btn save" aria-label="Save" onClick={(ev) => { ev.stopPropagation(); saveInlineEdit('expenses', e.id); }} disabled={editSaving}><Save size={14} /></button>
-                          <button className="fin-inline-btn cancel" aria-label="Cancel" onClick={(ev) => { ev.stopPropagation(); cancelEditing(); }}><X size={14} /></button>
-                        </>
-                      ) : (
-                        <>
-                          <div className="fin-tx-icon expense" style={{ background: cat ? `${cat.color || '#F43F5E'}20` : 'rgba(244,63,94,0.1)', color: cat?.color || '#F43F5E' }}>
-                            {cat ? <EmojiIcon emoji={cat.icon || '📦'} size={14} fallbackAsText /> : <ArrowDownCircle size={18} />}
-                          </div>
-                          <div className="fin-tx-main">
-                            <span className="fin-tx-title-enhanced">{e.title || 'Expense'}</span>
-                            <div className="fin-tx-meta-enhanced">
-                              {cat && <span style={{ color: cat.color || '#F43F5E' }}>{cat.name}</span>}
-                              {e.is_deductible && <span><ScrollText size={10} /> Deductible</span>}
-                              {e.business_id && <span>{businesses.find(b => b.id === e.business_id)?.name}</span>}
-                            </div>
-                            {expandedTx === e.id && (
-                              <div className="fin-tx-details">
-                                <div className="fin-tx-detail-row">
-                                  <span className="fin-tx-detail-label">Amount:</span>
-                                  <span className="fin-tx-detail-value">{fmtCurrency(e.amount)}</span>
-                                </div>
-                                {cat && (
-                                  <div className="fin-tx-detail-row">
-                                    <span className="fin-tx-detail-label">Category:</span>
-                                    <span className="fin-tx-detail-value" style={{ color: cat.color || '#F43F5E' }}>{cat.icon} {cat.name}</span>
-                                  </div>
-                                )}
-                                {e.is_deductible && (
-                                  <div className="fin-tx-detail-row">
-                                    <span className="fin-tx-detail-label">Tax:</span>
-                                    <span className="fin-tx-detail-value fin-deductible-badge">Deductible</span>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          <strong className="fin-tx-amount-enhanced expense">-{fmtCurrency(e.amount)}</strong>
-                          {e.source_table === 'expenses' && (
-                            <>
-                              <button className="fin-row-action edit" aria-label="Edit" onClick={(ev) => { ev.stopPropagation(); startEditing({ id: e.id, amount: e.amount, description: String(e.description || ''), title: e.title, date: e.date }); }} title="Edit"><Edit2 size={14} /></button>
-                              <button className="fin-row-action delete" onClick={(ev) => { ev.stopPropagation(); confirmDelete('Delete Expense?', `Remove "${e.title}" (${fmtCurrency(e.amount)})?`, () => deleteRow('expenses', e.id)); }} title="Delete" aria-label="Delete"><Trash2 size={14} /></button>
-                            </>
-                          )}
-                        </>
-                      )}
-                    </LongPressRow>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+          <GroupedVirtualizedList
+            groups={expenseGroups}
+            renderItem={(e) => renderExpenseItem(e as MergedExpense)}
+            itemHeight="auto"
+            className="fin-tx-list-enhanced"
+            emptyMessage="No expenses this month"
+            style={{ maxHeight: '60vh' }}
+          />
         )}
       </div>
     </div>

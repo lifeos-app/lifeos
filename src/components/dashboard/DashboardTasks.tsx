@@ -2,7 +2,7 @@
  * DashboardTasks — Task list/kanban widget for the Dashboard.
  */
 
-import { useState, forwardRef } from 'react';
+import { useState, forwardRef, useMemo } from 'react';
 import { supabase } from '../../lib/data-access';
 import { useUserStore } from '../../stores/useUserStore';
 import { useScheduleStore } from '../../stores/useScheduleStore';
@@ -18,6 +18,7 @@ import { localUpdate } from '../../lib/local-db';
 import { formatDateShort } from '../../utils/date';
 import type { Task } from '../../types/database';
 import type { GoalNode } from '../../stores/useGoalsStore';
+import { VirtualizedList, VIRTUALIZATION_THRESHOLD } from '../ui/VirtualizedList';
 import {
   CheckCircle2, Circle, Plus, LayoutList, Columns3, AlertTriangle, Calendar,
 } from 'lucide-react';
@@ -183,109 +184,107 @@ export const DashboardTasks = forwardRef<HTMLElement, DashboardTasksProps>(funct
             enableManualSort={true}
           />
         ) : (
-          <div className="task-list">
-            {activeTasks
-              .filter(t => !t.parent_task_id)  // Only top-level tasks
-              .map((t: Task) => {
-                const isOD = t.due_date && t.due_date < todayS;
-                const chain = getChain(t.goal_id ?? null);
+          <VirtualizedList
+            items={useMemo(() => activeTasks.filter(t => !t.parent_task_id), [activeTasks])}
+            renderItem={(t: Task) => {
+              const isOD = t.due_date && t.due_date < todayS;
+              const chain = getChain(t.goal_id ?? null);
+              const subtasks = tasks.filter(st => st.parent_task_id === t.id);
+              const subtaskCount = subtasks.length;
+              const subtasksCompleted = subtasks.filter(
+                st => st.status === 'done' || st.status === 'completed'
+              ).length;
+              const priorityLevel = PRIORITY_TO_LEVEL[t.priority || 'medium'] || 3;
+              return (
+                <div key={t.id} className="task-group">
+                  {/* Main task row */}
+                  <div className={`task-row ${isOD ? 'overdue' : ''}`}>
+                    <button
+                      className="task-chk"
+                      onClick={() => toggleTask(t.id, t.status)}
+                      aria-label="Mark complete"
+                    >
+                      <Circle size={18} strokeWidth={1.5} />
+                    </button>
 
-                // Calculate subtask progress
-                const subtasks = tasks.filter(st => st.parent_task_id === t.id);
-                const subtaskCount = subtasks.length;
-                const subtasksCompleted = subtasks.filter(
-                  st => st.status === 'done' || st.status === 'completed'
-                ).length;
-
-                const priorityLevel = PRIORITY_TO_LEVEL[t.priority || 'medium'] || 3;
-
-                return (
-                  <div key={t.id} className="task-group">
-                    {/* Main task row */}
-                    <div className={`task-row ${isOD ? 'overdue' : ''}`}>
-                      <button
-                        className="task-chk"
-                        onClick={() => toggleTask(t.id, t.status)}
-                        aria-label="Mark complete"
+                    <div className="task-info">
+                      <span
+                        className="task-txt"
+                        onClick={() => onOpenDetail(t.id)}
+                        style={{ cursor: 'pointer' }}
                       >
-                        <Circle size={18} strokeWidth={1.5} />
-                      </button>
+                        {t.title}
+                      </span>
 
-                      <div className="task-info">
-                        <span
-                          className="task-txt"
-                          onClick={() => onOpenDetail(t.id)}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          {t.title}
-                        </span>
+                      <div className="task-meta-row">
+                        {chain ? (
+                          <span className="task-chain">{chain}</span>
+                        ) : (
+                          <span className="task-chain standalone">⊘ No objective</span>
+                        )}
 
-                        <div className="task-meta-row">
-                          {chain ? (
-                            <span className="task-chain">{chain}</span>
-                          ) : (
-                            <span className="task-chain standalone">⊘ No objective</span>
-                          )}
+                        {subtaskCount > 0 && (
+                          <span className="task-subtask-count">
+                            {subtasksCompleted}/{subtaskCount} subtasks
+                          </span>
+                        )}
 
-                          {subtaskCount > 0 && (
-                            <span className="task-subtask-count">
-                              {subtasksCompleted}/{subtaskCount} subtasks
-                            </span>
-                          )}
-
-                          {t.due_date && (
-                            <span className={`task-due ${isOD ? 'overdue' : ''}`}>
-                              {isOD ? <AlertTriangle size={11} color="#F97316" /> : <Calendar size={11} />}
-                              {formatDateShort(t.due_date)}
-                            </span>
-                          )}
-                        </div>
+                        {t.due_date && (
+                          <span className={`task-due ${isOD ? 'overdue' : ''}`}>
+                            {isOD ? <AlertTriangle size={11} color="#F97316" /> : <Calendar size={11} />}
+                            {formatDateShort(t.due_date)}
+                          </span>
+                        )}
                       </div>
-
-                      <StatusColumn
-                        value={t.status || 'pending'}
-                        onChange={(newStatus) => changeTaskStatus(t.id, newStatus as Task['status'])}
-                      />
-
-                      <PriorityPicker
-                        value={priorityLevel}
-                        onChange={(level) => {
-                          const dbValue = getPriorityDbValue(level);
-                          localUpdate('tasks', t.id, { priority: dbValue });
-                          onRefresh();
-                        }}
-                        variant="badge"
-                      />
                     </div>
 
-                    {/* Subtask tree */}
-                    {subtaskCount > 0 && (
-                      <SubtaskTree
-                        tasks={tasks}
-                        parentId={t.id}
-                        depth={0}
-                        onToggle={toggleTask}
-                        onAdd={(parentId) => {
-                          onOpenDetail(parentId);
-                        }}
-                        onClick={onOpenDetail}
-                      />
-                    )}
+                    <StatusColumn
+                      value={t.status || 'pending'}
+                      onChange={(newStatus) => changeTaskStatus(t.id, newStatus as Task['status'])}
+                    />
+
+                    <PriorityPicker
+                      value={priorityLevel}
+                      onChange={(level) => {
+                        const dbValue = getPriorityDbValue(level);
+                        localUpdate('tasks', t.id, { priority: dbValue });
+                        onRefresh();
+                      }}
+                      variant="badge"
+                    />
                   </div>
-                );
-              })}
-            {doneTasks.length > 0 && (
-              <details className="done-group">
-                <summary className="done-toggle">✓ {doneTasks.length} completed</summary>
-                {doneTasks.slice(0, 5).map((t: Task) => (
-                  <div key={t.id} className="task-row done">
-                    <button className="task-chk checked" onClick={() => toggleTask(t.id, t.status)} aria-label="Mark task incomplete"><CheckCircle2 size={18} /></button>
-                    <span className="task-txt" onClick={() => onOpenDetail(t.id)} style={{ cursor: 'pointer' }}>{t.title}</span>
-                  </div>
-                ))}
-              </details>
-            )}
-          </div>
+
+                  {/* Subtask tree */}
+                  {subtaskCount > 0 && (
+                    <SubtaskTree
+                      tasks={tasks}
+                      parentId={t.id}
+                      depth={0}
+                      onToggle={toggleTask}
+                      onAdd={(parentId) => {
+                        onOpenDetail(parentId);
+                      }}
+                      onClick={onOpenDetail}
+                    />
+                  )}
+                </div>
+              );
+            }}
+            itemHeight="auto"
+            className="task-list"
+            emptyMessage="No tasks yet"
+          />
+        )}
+        {doneTasks.length > 0 && taskView === 'list' && (
+          <details className="done-group" style={{ marginTop: 8 }}>
+            <summary className="done-toggle">✓ {doneTasks.length} completed</summary>
+            {doneTasks.slice(0, 5).map((t: Task) => (
+              <div key={t.id} className="task-row done">
+                <button className="task-chk checked" onClick={() => toggleTask(t.id, t.status)} aria-label="Mark task incomplete"><CheckCircle2 size={18} /></button>
+                <span className="task-txt" onClick={() => onOpenDetail(t.id)} style={{ cursor: 'pointer' }}>{t.title}</span>
+              </div>
+            ))}
+          </details>
         )}
     </section>
   );

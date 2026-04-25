@@ -1,5 +1,6 @@
 import { CheckCircle2, Circle, Clock, ChevronDown, ChevronUp, DollarSign, Flame, Receipt, Target, Trash2 } from 'lucide-react';
 import { EmojiIcon } from '../../lib/emoji-icon';
+import { VirtualizedList, VIRTUALIZATION_THRESHOLD } from '../ui/VirtualizedList';
 import type { HabitLog } from '../../stores/useHabitsStore';
 import type { ScheduleEvent, ScheduleTask, ScheduleHabit, ScheduleBill } from './types';
 
@@ -145,20 +146,26 @@ export function ScheduleDayContext({
                 </button>
               </div>
             </div>
-            {filteredEvents.slice(0, 10).map((ev) => (
-              <div key={ev.id} className="sd-item sd-event" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span className="sd-title" onClick={() => setDetailEvent(ev)} style={{ flex: 1, cursor: 'pointer', fontSize: 12 }}>{ev.title}</span>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                  {ev.start_time ? new Date(ev.start_time).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }) : ''}
-                </span>
-                {ev.source !== 'google' && (
-                  <button onClick={() => deleteEvent(ev.id)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 2, opacity: 0.5 }} title="Delete">
-                    <Trash2 size={12} />
-                  </button>
-                )}
-              </div>
-            ))}
-            {filteredEvents.length > 10 && <div style={{ fontSize: 10, color: 'var(--text-muted)', padding: '4px 0' }}>+{filteredEvents.length - 10} more</div>}
+            <VirtualizedList
+              items={filteredEvents}
+              renderItem={(ev) => (
+                <div key={ev.id} className="sd-item sd-event" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span className="sd-title" onClick={() => setDetailEvent(ev)} style={{ flex: 1, cursor: 'pointer', fontSize: 12 }}>{ev.title}</span>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                    {ev.start_time ? new Date(ev.start_time).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' }) : ''}
+                  </span>
+                  {ev.source !== 'google' && (
+                    <button onClick={() => deleteEvent(ev.id)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 2, opacity: 0.5 }} title="Delete">
+                      <Trash2 size={12} />
+                    </button>
+                  )}
+                </div>
+              )}
+              itemHeight={40}
+              className="sd-events-vlist"
+              emptyMessage=""
+              style={{ maxHeight: 240 }}
+            />
           </div>
         )}
       </div>
