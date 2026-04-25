@@ -19,6 +19,7 @@ import { Minimap } from './ui/Minimap';
 import { WorldMap } from './ui/WorldMap';
 import { ChatOverlay } from './ui/ChatOverlay';
 import { EmoteRadial } from './ui/EmoteRadial';
+import { OnlinePlayersHUD } from './ui/OnlinePlayersHUD';
 import { BiomePicker } from './ui/BiomePicker';
 import { PlayerProfileCard } from './ui/PlayerProfileCard';
 import type { ChatMessage, RemotePlayer, EmoteType } from './multiplayer/types';
@@ -50,6 +51,7 @@ import { prefetchFauna, fetchCompanion, getCompanionCache, nameCompanion } from 
 import { CompanionPanel } from './ui/CompanionPanel';
 import { getTodayEvent } from './data/celestial';
 import { SlideTutorial } from '../components/SlideTutorial';
+import { GardenDecorations } from './ui/GardenDecorations';
 import { SLIDE_TUTORIALS } from '../components/tutorials';
 import { getFaunaSpecies, FALLBACK_FAUNA, assignCompanion, getDominantPattern, checkCompanionEligibility } from './data/companions';
 import { getFaunaCache, createCompanion } from './hooks/useFauna';
@@ -751,8 +753,21 @@ export function RealmEntry({ onExit, fullscreen = false }: RealmEntryProps) {
         </FeatureErrorBoundary>
       )}
 
+      {/* Garden decorations — achievement-unlocked items */}
+      <FeatureErrorBoundary feature="Garden Decorations" compact>
+        <div style={{ position: 'absolute', bottom: 80, left: 12, maxWidth: 220, zIndex: 20 }}>
+          <GardenDecorations />
+        </div>
+      </FeatureErrorBoundary>
+
       {/* Emote radial */}
       <EmoteRadial onEmote={handleEmote} />
+
+      {/* Online players HUD */}
+      <OnlinePlayersHUD
+        onlineCount={onlineCount}
+        remotePlayers={engineRef.current?.getRemotePlayers?.() ?? []}
+      />
 
       {/* Biome picker */}
       {showBiomePicker && (
@@ -845,7 +860,7 @@ function getUnlockHint(condition?: string): string {
     case 'guild_join':
       return 'Join or create a guild to unlock the square.';
     case 'multiplayer_enabled':
-      return 'Coming soon — the multiplayer realm where all Life Towns converge.';
+      return 'The multiplayer realm awaits. Enter the Social Square to meet other travelers.';
     default:
       return 'Continue your journey to discover the way.';
   }

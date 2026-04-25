@@ -17,6 +17,8 @@ import { logger } from '../utils/logger';
 import { HabitsSkeleton } from '../components/skeletons';
 import { HabitCard } from './habits/HabitCard';
 import { TodaySummaryBar } from './habits/TodaySummaryBar';
+import { HabitInsightsPanel } from './habits/HabitInsightsPanel';
+import { CharacterCorner } from '../components/CharacterCorner';
 
 const FREQUENCIES = ['daily', 'weekdays', 'weekends', 'weekly'];
 
@@ -137,7 +139,10 @@ export function Habits() {
     <div className="habits">
       <div className="habits-header animate-fadeUp">
         <div>
-          <h1 className="habits-title"><Flame size={22} /> Habits</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <h1 className="habits-title"><Flame size={22} /> Habits</h1>
+            <CharacterCorner />
+          </div>
           <p className="habits-sub">{totalToday}/{habits.length} done today · Best streak: {bestStreak} days</p>
         </div>
         <button className="habits-add-btn" onClick={() => setShowForm(!showForm)}><Plus size={16} /> New Habit</button>
@@ -208,6 +213,7 @@ export function Habits() {
         </div>
       )}
 
+      <HabitInsightsPanel />
       <RitualManager />
       <SpotlightTour tourId="habits" />
     </div>

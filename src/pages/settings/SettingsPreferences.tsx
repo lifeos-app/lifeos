@@ -8,6 +8,7 @@ import {
   Palette, Sun, Moon, Bell, BellOff, CalendarDays, RotateCcw,
   Loader2, Check, AlertTriangle, Zap,
 } from 'lucide-react';
+import { ThemeSelector } from '../../components/settings/ThemeSelector';
 
 type ThemeMode = 'dark' | 'light';
 type WeekStart = 'monday' | 'sunday';
@@ -93,10 +94,13 @@ export function SettingsPreferences(): JSX.Element {
         {saved && <span className="set-badge" style={{ background: 'rgba(34,197,94,0.15)', color: '#22C55E' }}>Saved</span>}
       </div>
 
-      {/* Theme Selector */}
+      {/* Visual Theme — 6 color themes */}
+      <ThemeSelector />
+
+      {/* Dark/Light Mode Toggle */}
       <div style={{ marginBottom: 20 }}>
         <label style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 8 }}>
-          Theme
+          Mode
         </label>
         <div style={{ display: 'flex', gap: 10 }}>
           <button

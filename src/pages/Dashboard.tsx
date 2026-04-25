@@ -90,6 +90,8 @@ import { FeatureErrorBoundary } from '../components/FeatureErrorBoundary';
 import { TCSTodayCard, DailyCheckin, TCSDrivingWidget } from '../components/tcs';
 import { useTCSEnabled } from '../hooks/useTCSEnabled';
 import { DashboardHeatmap } from '../components/dashboard/DashboardHeatmap';
+import { CharacterCorner } from '../components/CharacterCorner';
+import { DashboardSeasonalEvent } from '../components/dashboard/DashboardSeasonalEvent';
 
 type DashTab = 'today' | 'schedule' | 'goals' | 'habits' | 'insights';
 
@@ -397,6 +399,9 @@ export function Dashboard() {
               <FeatureErrorBoundary feature="Greeting" compact>
                 <DashboardGreeting selectedDate={selectedDate} bestHabitStreak={bestHabitStreak} todayMood={todayMood} onEditLayout={() => layout.setEditing(true)} />
               </FeatureErrorBoundary>
+              <FeatureErrorBoundary feature="Character" compact>
+                <CharacterCorner />
+              </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Quick Actions" compact>
                 <DashboardQuickActions />
               </FeatureErrorBoundary>
@@ -554,6 +559,11 @@ export function Dashboard() {
               {isWidgetVisible('celestial') && (
                 <FeatureErrorBoundary feature="Celestial" compact>
                   <DashboardCelestial />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('seasonal-event') && (
+                <FeatureErrorBoundary feature="Seasonal Event" compact>
+                  <DashboardSeasonalEvent />
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('holy-hermes') && (

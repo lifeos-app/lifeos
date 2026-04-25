@@ -20,10 +20,15 @@ import { supabase } from './data-access';
 
 const STRIPE_ENABLED = import.meta.env.VITE_STRIPE_ENABLED === 'true';
 const PRO_PRICE_ID = import.meta.env.VITE_STRIPE_PRO_PRICE_ID || '';
+const FAMILY_PLAN_PRICE_ID = import.meta.env.VITE_STRIPE_FAMILY_PRICE_ID || '';
+
+// ── Family Plan Constants ────────────────────────────────────────────
+export const FAMILY_PLAN_PRICE = '$14.99/month';
+export const FAMILY_PLAN_MAX_MEMBERS = 5;
 
 // ── Types ─────────────────────────────────────────────────────────────
 
-export type SubscriptionTier = 'free' | 'pro';
+export type SubscriptionTier = 'free' | 'pro' | 'family';
 
 export interface CheckoutResult {
   url: string | null;
@@ -193,7 +198,7 @@ export async function canAccessProFeature(
   if (!STRIPE_ENABLED) return true;
 
   const status = await getSubscriptionStatus(userId);
-  if (status.tier === 'pro' && status.status === 'active') return true;
+  if ((status.tier === 'pro' || status.tier === 'family') && status.status === 'active') return true;
   if (status.status === 'trialing' && status.trialEnd && status.trialEnd > new Date()) return true;
 
   // Free tier check
@@ -207,6 +212,144 @@ export async function canAccessProFeature(
   };
 
   return (FREE_LIMITS[feature] ?? 0) > 0;
+}
+
+// ── Family Plan ──────────────────────────────────────────────────────
+
+export interface FamilyPlanStatus {
+  active: boolean;
+  memberCount: number;
+  maxMembers: 5;
+  ownerId: string;
+  memberEmails: string[];
+}
+
+const FAMILY_INVITES_KEY = 'lifeos_family_invites';
+const FAMILY_STATUS_KEY = 'lifeos_family_status';
+
+/**
+ * Create a Stripe Checkout session for the Family Plan.
+ * Returns the Checkout URL to redirect the user to.
+ */
+export async function createFamilyCheckoutSession(
+  userId: string,
+  email: string,
+): Promise<CheckoutResult> {
+  if (!STRIPE_ENABLED) {
+    return {
+      url: null,
+      error: 'Monetisation not yet active. LifeOS Pro is free during early access.',
+    };
+  }
+
+  const targetPriceId = FAMILY_PLAN_PRICE_ID;
+  if (!targetPriceId) {
+    return { url: null, error: 'No family plan price ID configured.' };
+  }
+
+  try {
+    const { data, error } = await supabase.functions.invoke('stripe-checkout', {
+      body: {
+        price_id: targetPriceId,
+        user_id: userId,
+        email,
+        plan_type: 'family',
+        success_url: `${window.location.origin}/settings?checkout=family_success`,
+        cancel_url: `${window.location.origin}/settings?checkout=canceled`,
+      },
+    });
+
+    if (error) {
+      return { url: null, error: error.message || 'Checkout creation failed.' };
+    }
+
+    return { url: data?.url || null, error: null };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Checkout failed';
+    return { url: null, error: msg };
+  }
+}
+
+/**
+ * Get the family plan status for a user.
+ */
+export async function getFamilyPlanStatus(userId: string): Promise<FamilyPlanStatus> {
+  // Check localStorage cache
+  try {
+    const cached = localStorage.getItem(FAMILY_STATUS_KEY);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed.ownerId === userId) return parsed;
+    }
+  } catch { /* ignore */ }
+
+  // Default: not on family plan
+  const invites = getFamilyInvites();
+  return {
+    active: false,
+    memberCount: 1,
+    maxMembers: 5,
+    ownerId: userId,
+    memberEmails: invites.filter(i => i.status === 'accepted').map(i => i.email),
+  };
+}
+
+/**
+ * Invite a family member by email (mock — saves to localStorage).
+ */
+export async function inviteFamilyMember(email: string): Promise<void> {
+  const invites = getFamilyInvites();
+  if (invites.some(i => i.email === email)) return; // already invited
+  if (invites.length >= FAMILY_PLAN_MAX_MEMBERS - 1) return; // max reached
+
+  invites.push({
+    email,
+    status: 'pending',
+    invitedAt: new Date().toISOString(),
+  });
+
+  try {
+    localStorage.setItem(FAMILY_INVITES_KEY, JSON.stringify(invites));
+  } catch { /* Safari private */ }
+}
+
+/**
+ * Cancel a pending family invite.
+ */
+export function cancelFamilyInvite(email: string): void {
+  const invites = getFamilyInvites().filter(i => i.email !== email);
+  try {
+    localStorage.setItem(FAMILY_INVITES_KEY, JSON.stringify(invites));
+  } catch { /* Safari private */ }
+}
+
+/**
+ * Resend a family invite (mock — just updates timestamp).
+ */
+export function resendFamilyInvite(email: string): void {
+  const invites = getFamilyInvites();
+  const invite = invites.find(i => i.email === email);
+  if (invite) {
+    invite.invitedAt = new Date().toISOString();
+    try {
+      localStorage.setItem(FAMILY_INVITES_KEY, JSON.stringify(invites));
+    } catch { /* Safari private */ }
+  }
+}
+
+export interface FamilyInvite {
+  email: string;
+  status: 'pending' | 'accepted' | 'expired';
+  invitedAt: string;
+}
+
+export function getFamilyInvites(): FamilyInvite[] {
+  try {
+    const raw = localStorage.getItem(FAMILY_INVITES_KEY);
+    return raw ? JSON.parse(raw) as FamilyInvite[] : [];
+  } catch {
+    return [];
+  }
 }
 
 // ── Webhook Handler (server-side, documented here) ────────────────────

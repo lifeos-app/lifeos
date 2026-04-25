@@ -23,6 +23,7 @@ import { SettingsProfile } from './settings/SettingsProfile';
 import { SettingsPreferences } from './settings/SettingsPreferences';
 import { SettingsDataPrivacy } from './settings/SettingsDataPrivacy';
 import { SettingsAbout } from './settings/SettingsAbout';
+import { FamilyPlanSection } from '../components/settings/FamilyPlanSection';
 import './Settings.css';
 
 type TabId = 'profile' | 'preferences' | 'ai' | 'telegram' | 'integrations' | 'subscription' | 'data' | 'onboarding' | 'tours' | 'about';
@@ -224,25 +225,30 @@ function IntegrationsTab({ googleIntegration, gcalEventCount, gcalLastSynced, gc
 
 function SubscriptionTab({ subLoading, tier }: { subLoading: boolean; tier: string }): JSX.Element {
   return (
-    <section className="set-section">
-      <div className="set-section-header"><Crown size={18} /><h2>Subscription</h2>
-        {tier === 'pro' && <span className="set-badge" style={{ background: 'rgba(0,212,255,0.15)', color: '#00D4FF' }}>Pro</span>}
-      </div>
-      {subLoading ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0' }}>
-          <Loader2 size={16} className="spin" /><span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>Loading...</span>
+    <>
+      <section className="set-section">
+        <div className="set-section-header"><Crown size={18} /><h2>Subscription</h2>
+          {tier === 'pro' && <span className="set-badge" style={{ background: 'rgba(0,212,255,0.15)', color: '#00D4FF' }}>Pro</span>}
         </div>
-      ) : (
-        <div style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.08), rgba(139,92,246,0.08))', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 12, padding: '20px 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <Crown size={16} /><h4 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: '#00D4FF' }}>Early Adopter — Pro Unlocked</h4>
+        {subLoading ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0' }}>
+            <Loader2 size={16} className="spin" /><span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>Loading...</span>
           </div>
-          <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}>
-            Thank you for being one of the first! Full access to all Pro features — no subscription required.
-          </p>
-        </div>
-      )}
-    </section>
+        ) : (
+          <div style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.08), rgba(139,92,246,0.08))', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 12, padding: '20px 24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <Crown size={16} /><h4 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: '#00D4FF' }}>Early Adopter — Pro Unlocked</h4>
+            </div>
+            <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}>
+              Thank you for being one of the first! Full access to all Pro features — no subscription required.
+            </p>
+          </div>
+        )}
+      </section>
+
+      {/* Family Plan */}
+      <FamilyPlanSection />
+    </>
   );
 }
 

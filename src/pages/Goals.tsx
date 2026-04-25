@@ -5,7 +5,7 @@ import { useScheduleStore } from '../stores/useScheduleStore';
 import { useUserStore } from '../stores/useUserStore';
 import { showToast } from '../components/Toast';
 import { recalcProgression } from '../lib/progression';
-import { Plus, Target, Calendar, ChevronDown, Pencil, TreePine, List, Layers, Zap, CheckSquare, Circle, CheckCircle2, Trash2, Info, Copy, Archive, Users, Ban, Sparkles } from 'lucide-react';
+import { Plus, Target, Calendar, ChevronDown, Pencil, TreePine, List, Layers, Zap, CheckSquare, Circle, CheckCircle2, Trash2, Info, Copy, Archive, Users, Ban, Sparkles, Grid3X3 } from 'lucide-react';
 import { Confetti } from '../components/Confetti';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { VisionTree } from '../components/VisionTree';
@@ -23,6 +23,8 @@ import { useGoalsEffects } from '../hooks/useGoalsEffects';
 import { useGoalsActions } from '../hooks/useGoalsActions';
 import type { GoalNode, GoalTask } from '../components/goals/types';
 import { GoalsSkeleton } from '../components/skeletons';
+import { CharacterCorner } from '../components/CharacterCorner';
+import { CoveyMatrixView } from '../components/goals/CoveyMatrixView';
 import './Goals.css';
 
 const POPULAR_GOALS = [
@@ -40,7 +42,7 @@ const DEFAULT_FORM = {
 
 export function Goals() {
   const user = useUserStore(s => s.user);
-  const [viewMode, setViewMode] = useState<'list' | 'tree' | 'planning'>('tree');
+  const [viewMode, setViewMode] = useState<'list' | 'tree' | 'planning' | 'matrix'>('tree');
   const [catFilter, setCatFilter] = useState<string>('all');
   const [timeFilter, setTimeFilter] = useState<string>('all');
   const [formData, setFormData] = useState(DEFAULT_FORM);
@@ -112,7 +114,10 @@ export function Goals() {
     <div className="goals">
       <div className="goals-header animate-fadeUp">
         <div>
-          <h1 className="goals-title"><Target size={22} /> Goals</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <h1 className="goals-title"><Target size={22} /> Goals</h1>
+            <CharacterCorner />
+          </div>
           <p className="goals-sub">{eff.activeGoals.length} active · {eff.completedGoals.length} completed · {Math.round(eff.overallProgress * 100)}% overall</p>
           {eff.partners.length > 0 && (
             <div className="goals-partner-tabs">
@@ -127,6 +132,7 @@ export function Goals() {
             <button className={`goals-view-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')} title="Goals list" aria-label="Goals list view"><List size={15} /></button>
             <button className={`goals-view-btn ${viewMode === 'tree' ? 'active' : ''}`} onClick={() => setViewMode('tree')} title="Vision pyramid" aria-label="Vision tree view"><TreePine size={15} /></button>
             <button className={`goals-view-btn ${viewMode === 'planning' ? 'active' : ''}`} onClick={() => setViewMode('planning')} title="Future planning" aria-label="Future planning view"><Calendar size={15} /></button>
+            <button className={`goals-view-btn ${viewMode === 'matrix' ? 'active' : ''}`} onClick={() => setViewMode('matrix')} title="Covey matrix" aria-label="Covey priority matrix"><Grid3X3 size={15} /></button>
           </div>
           <button className="goals-ai-plan-btn" onClick={() => act.setShowNLPDecomposer(true)}><Zap size={14} /> AI Plan</button>
           <div className="goals-add-dropdown">
@@ -169,6 +175,8 @@ export function Goals() {
       )}
 
       {viewMode === 'planning' && !eff.loading && <FuturePlanningPanel />}
+
+      {viewMode === 'matrix' && !eff.loading && <CoveyMatrixView />}
 
       {viewMode === 'list' && !eff.loading && (
         <GoalsFilterBar goals={eff.goals} allTasks={eff.allTasks} filteredGoals={filteredGoals} filteredTasks={filteredTasks}

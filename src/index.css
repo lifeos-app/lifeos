@@ -18,6 +18,15 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Theme custom properties — Deep Space defaults, overridden by themes.ts applyTheme() */
+  --theme-bg: #0A1628;
+  --theme-card-bg: rgba(255,255,255,0.04);
+  --theme-accent: #00D4FF;
+  --theme-accent-2: #39FF14;
+  --theme-text: #F9FAFB;
+  --theme-text-muted: #8BA4BE;
+  --theme-border: rgba(255,255,255,0.08);
 }
 
 /* ── Cross-browser: touch/input hardening ── */

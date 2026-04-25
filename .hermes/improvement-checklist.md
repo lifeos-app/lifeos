@@ -5,10 +5,10 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.19.73
+- **Current Version:** 1.19.78
 - **Baseline Date:** 2026-04-20
 - **Last Audit:** 2026-04-25
-- **Completion:** 57/89 = 64.0%
+- **Completion:** 72/89 = 80.9%
 
 ## Vision Documents (Source of Truth)
 1. `/home/tewedros/Desktop/webapp/docs/vision/VISION.md` — "LifeOS IS an AI that has an app as its interface"
@@ -112,30 +112,30 @@
 ## Priority 4: ENGAGEMENT — New Items from 2026-04-25 Audit
 
 - [x] [P4-007] Streak Shield (1 free skip/week) — ✅ DONE — Commit: b4725c1 — Date: 2026-04-25 — streak-shield.ts (212 lines) with earn/use/check logic, localStorage persistence, MAX_SHIELDS=3, earn 1/week after 7-day streak. StreakShieldWidget.tsx (226 lines) with Shield icon, at-risk habit list, use buttons. Integrated into useHabitsStore.ts calculateStreak (bridges 1-day gaps with shields). XP engine: streak_shield_used = 5 XP. Proactive suggestion: streak_shield_available type.
-- [ ] [P4-008] Character permeation (all pages) — ❌ MISSING — Character should appear on Dashboard, Goals, Habits pages as mini-avatar. — [Vision ref: WORLD-CLASS-ROADMAP §II "Character Everywhere — Character permeates all pages"] — [Impact: 3/5, Blocks: gamification immersion]
+- [x] [P4-008] Character permeation (all pages) — ✅ DONE — Date: 2026-04-25 — CharacterCorner.tsx: MiniCharacter + level + XP bar + streak as glass chip widget. Added to Dashboard (after greeting), Goals (header), Habits (header). Uses useCharacterAppearanceStore + useGamificationContext.
 
 ## Priority 5: DEPTH — New Items from 2026-04-25 Audit
 
-- [ ] [P5-010] Habit difficulty scaling — ❌ MISSING — AI-suggested progressive difficulty ("You've mastered 10 min meditation. Ready for 15?") — [Vision ref: LIFEOS-ROADMAP §5.2 "Difficulty scaling"] — [Impact: 2/5]
-- [ ] [P5-011] Keystone habit detection — ❌ MISSING — Algorithm to identify habits whose improvement cascades to other domains. — [Vision ref: VISION-v2 "Keystone habit detection algorithm", LIFEOS-ROADMAP §5.2] — [Impact: 3/5]
-- [ ] [P5-012] Covey time quadrants / goal pruning — ❌ MISSING — Goal system enhanced with Covey's urgent/important matrix + Essentialism pruning — [Vision ref: VISION-v2 "Goal system enhanced with Covey's time quadrants + Essentialism pruning"] — [Impact: 2/5]
-- [ ] [P5-013] GTD-enhanced weekly review — 🔨 PARTIAL — Review page exists (Review.tsx, GuidedReview.tsx) but lacks GTD Capture-Clarify-organize-reflect-engage structure — [Vision ref: VISION-v2 "Weekly review enhanced with GTD reflect methodology"] — [Impact: 2/5]
-- [ ] [P5-014] Decision journal / bias detection — ❌ MISSING — No decision journal, no bias detection, no cognitive bias reflection prompts — [Vision ref: VISION-v2 "Thinking Fast and Slow — Decision journal, bias detection in goal-setting"] — [Impact: 2/5]
-- [ ] [P5-015] Seasonal world events — 📦 STUB — seasonal_events key in RealmPersistence but no quests/NPCs/XP bonuses — [Vision ref: LIFEOS-ROADMAP §4.2 "Seasonal events (spring planting, summer challenge, fall harvest, winter reflection)"] — [Impact: 2/5]
-- [ ] [P5-016] Data confidence scoring — ❌ MISSING — All habit logs treated equally regardless of when logged. Need confidence: High/Medium/Low/Inferred → affects XP multiplier — [Vision ref: MASTER_BUILD_PLAN §Phase 5 "Confidence Scoring"] — [Impact: 2/5]
-- [ ] [P5-017] Year in Review page — ❌ MISSING — Annual summary with visualizations — [Vision ref: LIFEOS-ROADMAP §3.5 "Year in Review page"] — [Impact: 2/5]
-- [ ] [P5-018] Garden decorations from achievements — ❌ MISSING — Achievement-unlocked garden items, player house/trophy room — [Vision ref: LIFEOS-ROADMAP §4.4 "Garden decorations (earned from achievements)"] — [Impact: 2/5]
-- [ ] [P5-019] Grit score / persistence tracking — ❌ MISSING — Angela Duckworth's Grit: long-term goal persistence tracking, grit score, effort logging — [Vision ref: VISION-v2 "passion + sustained effort > talent"] — [Impact: 2/5]
-- [ ] [P5-020] Motivation scoring (autonomy/mastery/purpose) — ❌ MISSING — Daniel Pink's Drive: intrinsic motivation = Autonomy + Mastery + Purpose — [Vision ref: VISION-v2 "Motivation scoring, autonomy tracking, purpose alignment"] — [Impact: 2/5]
-- [ ] [P5-021] Obstacle reframing / stoic reflections — 🔨 PARTIAL — Hermetic principle insights exist but no explicit obstacle reframing in goal coaching or stoic daily reflections — [Vision ref: VISION-v2 "The Obstacle Is the Way — Obstacle reframing in goal coaching"] — [Impact: 2/5]
+- [x] [P5-010] Habit difficulty scaling — ✅ DONE — Date: 2026-04-25 — habit-difficulty.ts: 4 tiers (beginner/intermediate/advanced/mastery), streak-based progression, ready-to-progress detection at 21+ days, XP multipliers (1.0x-1.5x), DIFFICULTY_COLORS. HabitInsightsPanel Difficulty tab.
+- [x] [P5-011] Keystone habit detection — ✅ DONE — Date: 2026-04-25 — keystone-habits.ts: Pearson correlation of each habit vs tasks/health/other habits over 30 days. Top 3 keystones with cascade effect descriptions. HabitInsightsPanel Keystone tab.
+- [x] [P5-012] Covey time quadrants / goal pruning — ✅ DONE — Date: 2026-04-25 — covey-matrix.ts: Q1-Q4 task/goal classification (urgent/important), Essentialism insight, prune candidates. CoveyMatrixView.tsx: 2x2 grid with color coding, cancel Q4 items. Wired as Matrix view mode in Goals.tsx.
+- [x] [P5-013] GTD-enhanced weekly review — ✅ DONE — Date: 2026-04-25 — gtd-review.ts: 5-phase GTD review (Capture/Clarify/Organize/Reflect/Engage) with data-driven actions, week scoring, localStorage persistence. GTDReviewPanel.tsx: 5-step wizard UI with progress bar, action checklists, phase navigation. Wired into OverviewTab.tsx.
+- [x] [P5-014] Decision journal / bias detection — ✅ DONE — Date: 2026-04-25 — decision-journal.ts: 6 cognitive biases (confirmation/sunk_cost/availability/anchoring/overconfidence/present), pattern-matching detection, outcome tracking, localStorage persistence. DecisionJournal.tsx: real-time bias warnings, monthly grouping, overdue highlighting, bias frequency chart. Wired into OverviewTab.tsx.
+- [x] [P5-015] Seasonal world events — ✅ DONE — Date: 2026-04-25 — seasonal-events.ts: 4 seasons (southern hemisphere), 12 quests (3 per season), XP multipliers (1.05-1.25), birth-season bonus, localStorage persistence. DashboardSeasonalEvent.tsx: quest progress widget with Claim button, wired to awardXP.
+- [x] [P5-016] Data confidence scoring — ✅ DONE — Date: 2026-04-25 — data-confidence.ts: High/Medium/Low/Inferred confidence based on created_at vs date gap. XP multipliers (1.0x/0.8x/0.6x/0.4x). CONFIDENCE_COLORS. Distribution + daily stats. HabitInsightsPanel Confidence tab.
+- [x] [P5-017] Year in Review page — ✅ DONE — Date: 2026-04-25 — year-in-review.ts annual stats aggregation (productivity/habits/health/finances/growth/word cloud), YearInReview.tsx full scrollable recap page with SVG bar charts, habit heatmap, mood trend, word cloud, year selector, share-to-clipboard. Route /year-in-review registered in App.tsx. Link in Settings > About.
+- [x] [P5-018] Garden decorations from achievements — ✅ DONE — Date: 2026-04-25 — garden-decorations.ts: 12 decoration types (fountain, statue, lantern, bench, archway, windmill, greenhouse, treehouse, bridge, sundial, well, torii_gate), achievement-linked unlocks, localStorage placement. GardenDecorations.tsx: icon grid + progress bars + Place/Remove buttons, integrated into RealmEntry.tsx HUD area.
+- [x] [P5-019] Grit score / persistence tracking — ✅ DONE — Date: 2026-04-25 — grit-score.ts: Duckworth Grit Scale 0-5, passion (domain consistency over 90 days) + perseverance (recovery rate after breaks), 4 levels (nascent/developing/strong/exemplary), 12-week history, 24h localStorage cache. HabitInsightsPanel Grit tab with gauge + bars.
+- [x] [P5-020] Motivation scoring (autonomy/mastery/purpose) — ✅ DONE — Date: 2026-04-25 — motivation-score.ts: Daniel Pink's Drive framework. Autonomy (manual vs AI goals, domain variety), Mastery (streaks, XP/level, log frequency), Purpose (goal descriptions, sentiment, commitment). calculateMotivationScore(), getMotivationInsight(), getMotivationRecommendations(). Pure lib, no UI dependency.
+- [x] [P5-021] Obstacle reframing / stoic reflections — ✅ DONE — Date: 2026-04-25 — stoic-reframe.ts: 12 Marcus Aurelius principles, 10 blocker patterns with reframes + action steps, 30 daily Stoic quotes with applications. reframeObstacle(), getDailyStoicReflection(), getGoalStoicCoach() for stalled goals (7+ days no progress).
 
 ## Priority 6: SCALE — New Items from 2026-04-25 Audit
 
 - [ ] [P6-011] Community Junction marketplace — ❌ MISSING — No marketplace, no user-created Junction infrastructure. Junctions hardcoded. — [Vision ref: VISION-v2 "Community: User-created Junctions with custom quests, shared via marketplace"] — [Impact: 2/5]
 - [ ] [P6-012] Multiplayer Realm presence — 📦 STUB — RealmMultiplayer.ts, RemotePlayerRenderer.ts, ChatOverlay.tsx, EmoteRadial.tsx exist but disabled ("Coming soon"). No Supabase Realtime subscription. — [Vision ref: WORLD-CLASS-ROADMAP §III "Real-time multiplayer via Supabase Realtime"] — [Impact: 2/5]
 - [ ] [P6-013] Family Plan tier — ❌ MISSING — Stripe setup exists but only Pro. No family plan, shared dashboard, or family guild. — [Vision ref: LIFEOS-ROADMAP §6.5 "Family Plan ($14.99/month, 5 users)"] — [Impact: 2/5]
-- [ ] [P6-014] Data Export (Pro feature) — 📦 STUB — feature-gates.ts has data_export gate (Pro feature) but no export UI or functionality — [Vision ref: LIFEOS-ROADMAP §6.5 "data export"] — [Impact: 2/5]
-- [ ] [P6-015] Custom Themes (Pro feature) — ❌ MISSING — No theme selector, no custom visual themes. Fixed dark theme with biome palettes. — [Vision ref: LIFEOS-ROADMAP §6.5 "custom themes"] — [Impact: 2/5]
+- [x] [P6-014] Data Export (Pro feature) — ✅ DONE — Date: 2026-04-25 — data-export.ts with JSON/CSV export, scope selector (all/habits/goals/finances/health/journal), user_id redaction, downloadExport with Blob URL, export history in localStorage (last 3). DataExportSection replaces old export in SettingsDataPrivacy.tsx with scope selector, record count preview, format toggle, early adopter banner, export history display.
+- [x] [P6-015] Custom Themes (Pro feature) — ✅ DONE — Date: 2026-04-25 — themes.ts with 6 themes (Deep Space/Obsidian/Aurora/Solar/Crimson/Violet), CSS custom properties (--theme-bg/card-bg/accent/accent-2/text/text-muted/border), localStorage persistence, initTheme() on startup, lifeos-theme-changed event. ThemeSelector.tsx 2x3 grid in Settings > Preferences with color preview, gold selection ring, level-unlock badges. CSS vars defined in index.css with Deep Space defaults.
 
 ## Completed ✅
 
