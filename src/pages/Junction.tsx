@@ -5,7 +5,7 @@
 
 import { useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Sparkles, ArrowLeft } from 'lucide-react';
+import { Sparkles, ArrowLeft, Store } from 'lucide-react';
 import { useJunction } from '../hooks/useJunction';
 import { SpotlightTour, isTourComplete, markTourComplete } from '../components/SpotlightTour';
 import { SlideTutorial } from '../components/SlideTutorial';
@@ -15,6 +15,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { JunctionSkeleton } from '../components/skeletons';
 import JunctionTutorial from './JunctionTutorial';
 import { TraditionSelector, JunctionDashboard, FaithPathsNetwork, AlphaIntro } from '../components/junction';
+import { JunctionMarketplace } from '../components/junction/JunctionMarketplace';
 import './Junction.css';
 
 export function Junction() {
@@ -25,6 +26,7 @@ export function Junction() {
     xpProgress, loading, equipJunction, unjunction, isEquipped, refresh, switchJunction,
   } = useJunction();
 
+  const [showMarketplace, setShowMarketplace] = useState(false);
   const [showAlphaIntro, setShowAlphaIntro] = useState(false);
   const [alphaSlug, setAlphaSlug] = useState<string | null>(null);
 
@@ -91,7 +93,66 @@ export function Junction() {
 
       <JunctionAI />
 
-      {!isEquipped ? (
+      {/* Junction / Marketplace tab toggle */}
+      <div style={{
+        display: 'flex',
+        gap: 4,
+        marginBottom: 20,
+        background: 'rgba(255,255,255,0.03)',
+        borderRadius: 10,
+        padding: 4,
+        maxWidth: 320,
+        margin: '0 auto 20px',
+      }}>
+        <button
+          onClick={() => setShowMarketplace(false)}
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+            padding: '8px 12px',
+            background: !showMarketplace ? 'rgba(0,212,255,0.12)' : 'transparent',
+            border: !showMarketplace ? '1px solid rgba(0,212,255,0.3)' : '1px solid transparent',
+            borderRadius: 8,
+            color: !showMarketplace ? '#00D4FF' : 'rgba(255,255,255,0.5)',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            fontFamily: "'Poppins', sans-serif",
+          }}
+        >
+          <Sparkles size={14} /> My Junction
+        </button>
+        <button
+          onClick={() => setShowMarketplace(true)}
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+            padding: '8px 12px',
+            background: showMarketplace ? 'rgba(0,212,255,0.12)' : 'transparent',
+            border: showMarketplace ? '1px solid rgba(0,212,255,0.3)' : '1px solid transparent',
+            borderRadius: 8,
+            color: showMarketplace ? '#00D4FF' : 'rgba(255,255,255,0.5)',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            fontFamily: "'Poppins', sans-serif",
+          }}
+        >
+          <Store size={14} /> Marketplace
+        </button>
+      </div>
+
+      {showMarketplace ? (
+        <JunctionMarketplace />
+      ) : !isEquipped ? (
         <>
           <div className="jnc-tut-selector-intro">
             <p>You've taken your first step. Now choose the path you'll walk.</p>

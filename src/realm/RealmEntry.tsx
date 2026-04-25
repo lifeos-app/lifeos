@@ -19,6 +19,7 @@ import { Minimap } from './ui/Minimap';
 import { WorldMap } from './ui/WorldMap';
 import { ChatOverlay } from './ui/ChatOverlay';
 import { EmoteRadial } from './ui/EmoteRadial';
+import { OnlinePlayersHUD } from './ui/OnlinePlayersHUD';
 import { BiomePicker } from './ui/BiomePicker';
 import { PlayerProfileCard } from './ui/PlayerProfileCard';
 import type { ChatMessage, RemotePlayer, EmoteType } from './multiplayer/types';
@@ -692,6 +693,12 @@ export function RealmEntry({ onExit, fullscreen = false }: RealmEntryProps) {
       {/* Emote radial */}
       <EmoteRadial onEmote={handleEmote} />
 
+      {/* Online players HUD */}
+      <OnlinePlayersHUD
+        onlineCount={onlineCount}
+        remotePlayers={engineRef.current?.getRemotePlayers?.() ?? []}
+      />
+
       {/* Biome picker */}
       {showBiomePicker && (
         <BiomePicker
@@ -783,7 +790,7 @@ function getUnlockHint(condition?: string): string {
     case 'guild_join':
       return 'Join or create a guild to unlock the square.';
     case 'multiplayer_enabled':
-      return 'Coming soon — the multiplayer realm where all Life Towns converge.';
+      return 'The multiplayer realm awaits. Enter the Social Square to meet other travelers.';
     default:
       return 'Continue your journey to discover the way.';
   }

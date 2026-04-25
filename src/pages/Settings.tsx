@@ -22,6 +22,7 @@ import { useSubscription } from '../hooks/useSubscription';
 import { ClassRoleSelector } from '../components/ClassRoleSelector';
 import { CLASS_ICONS, CLASS_NAMES, CLASS_DESCRIPTIONS, ROLE_ARCHETYPES, type ClassKey, type RoleKey } from '../lib/gamification/class-quests';
 import { PageHeader } from '../components/ui/PageHeader';
+import { FamilyPlanSection } from '../components/settings/FamilyPlanSection';
 import './Settings.css';
 
 interface UserProfile {
@@ -703,6 +704,9 @@ export function Settings() {
                     </>
                   )}
                 </section>
+
+                {/* Family Plan */}
+                <FamilyPlanSection />
               )}
 
               {/* Data */}

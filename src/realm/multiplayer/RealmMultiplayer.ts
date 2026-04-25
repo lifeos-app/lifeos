@@ -5,7 +5,7 @@
  * and broadcast for zone chat. No database writes.
  */
 
-import { supabase } from '../../lib/data-access';
+import { supabase as cloudSupabase } from '../../lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import {
   EMOTE_COMMANDS,
@@ -35,6 +35,7 @@ export class RealmMultiplayer {
   private remotePlayers = new Map<string, RemotePlayer>();
   private chatMessages: ChatMessage[] = [];
   private chatListeners: Set<(msg: ChatMessage) => void> = new Set();
+  private presenceListeners: Set<(players: RemotePlayer[]) => void> = new Set();
 
   private lastTrackTime = 0;
   private lastChatTime = 0;
@@ -58,7 +59,7 @@ export class RealmMultiplayer {
     this.zoneId = zoneId;
     this.currentPayload = payload;
 
-    const channel = supabase.channel(`realm:zone:${zoneId}`, {
+    const channel = cloudSupabase.channel(`realm:zone:${zoneId}`, {
       config: { presence: { key: this.userId } },
     });
 
@@ -120,6 +121,10 @@ export class RealmMultiplayer {
       for (const id of this.remotePlayers.keys()) {
         if (!seen.has(id)) this.remotePlayers.delete(id);
       }
+
+      // Notify presence listeners
+      const players = this.getRemotePlayers();
+      for (const cb of this.presenceListeners) cb(players);
     });
 
     // Chat broadcast
@@ -163,7 +168,7 @@ export class RealmMultiplayer {
     }
     if (this.channel) {
       this.channel.unsubscribe();
-      supabase.removeChannel(this.channel);
+      cloudSupabase.removeChannel(this.channel);
       this.channel = null;
     }
     this.zoneId = null;
@@ -363,8 +368,54 @@ export class RealmMultiplayer {
     }
   }
 
+  /**
+   * Subscribe to presence updates. Returns unsubscribe function.
+   */
+  onPresenceUpdate(callback: (players: RemotePlayer[]) => void): () => void {
+    this.presenceListeners.add(callback);
+    return () => this.presenceListeners.delete(callback);
+  }
+
+  /**
+   * Convenience: connect to a zone with user info.
+   */
+  async connect(
+    displayName: string,
+    character: { level: number; classIcon: string; skinTone: string; hairColor: string; bodyColor: string },
+    zoneId: string = 'life_town',
+  ): Promise<void> {
+    try {
+      const payload: PresencePayload = {
+        userId: this.userId,
+        name: displayName,
+        level: character.level,
+        classIcon: character.classIcon,
+        skinTone: character.skinTone,
+        hairColor: character.hairColor,
+        bodyColor: character.bodyColor,
+        worldX: 0,
+        worldY: 0,
+        direction: 'down',
+        isMoving: false,
+        status: 'active',
+        lastActive: Date.now(),
+      };
+      await this.joinZone(zoneId, payload);
+    } catch {
+      // Graceful offline: if Supabase Realtime is not available, just skip
+    }
+  }
+
+  /**
+   * Convenience: disconnect from multiplayer.
+   */
+  disconnect(): void {
+    this.leaveZone();
+  }
+
   destroy(): void {
     this.leaveZone();
     this.chatListeners.clear();
+    this.presenceListeners.clear();
   }
 }
