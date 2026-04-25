@@ -5,6 +5,8 @@ import {
 import { useJournalStore } from '../../stores/useJournalStore';
 import { supabase } from '../../lib/data-access';
 import { useUserStore } from '../../stores/useUserStore';
+import { GTDReviewPanel } from '../../components/reflect/GTDReviewPanel';
+import { DecisionJournal } from '../../components/reflect/DecisionJournal';
 import type { ReflectTab } from './types';
 
 interface OverviewTabProps {
@@ -193,6 +195,12 @@ export function OverviewTab({ onTabChange }: OverviewTabProps) {
           </div>
         </button>
       </div>
+
+      {/* GTD Weekly Review */}
+      <GTDReviewPanel />
+
+      {/* Decision Journal */}
+      <DecisionJournal />
     </>
   );
 }

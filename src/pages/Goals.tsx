@@ -8,7 +8,7 @@ import { recalcProgression } from '../lib/progression';
 import { showToast } from '../components/Toast';
 import { useGamificationContext } from '../lib/gamification/context';
 import { ConfirmDialog } from '../components/ConfirmDialog';
-import { Plus, Target, Calendar, ChevronDown, ChevronRight, X, Loader2, RefreshCw, Check, Pencil, TreePine, List, Layers, Zap, CheckSquare, Circle, CheckCircle2, Trash2, Info, Flag, AlertTriangle, Wallet, TrendingUp, TrendingDown, GripVertical, MoreHorizontal, Copy, Archive, ArrowRight, Users, Ban, Clock } from 'lucide-react';
+import { Plus, Target, Calendar, ChevronDown, ChevronRight, X, Loader2, RefreshCw, Check, Pencil, TreePine, List, Layers, Zap, CheckSquare, Circle, CheckCircle2, Trash2, Info, Flag, AlertTriangle, Wallet, TrendingUp, TrendingDown, GripVertical, MoreHorizontal, Copy, Archive, ArrowRight, Users, Ban, Clock, Grid3X3 } from 'lucide-react';
 import { Confetti } from '../components/Confetti';
 import { EmojiIcon } from '../lib/emoji-icon';
 import { MiniChart } from '../components/MiniChart';
@@ -22,6 +22,7 @@ import { GoalCoachCard } from '../components/goals/GoalCoachCard';
 import { GoalTaskGenerator } from '../components/goals/GoalTaskGenerator';
 import { FuturePlanningPanel } from '../components/goals/FuturePlanningPanel';
 import { NLPDecomposer } from '../components/goals/NLPDecomposer';
+import { CoveyMatrixView } from '../components/goals/CoveyMatrixView';
 
 import { getPartners } from '../lib/social/partnerships';
 import type { PartnerWithProfile } from '../lib/social/types';
@@ -73,7 +74,7 @@ export function Goals() {
   const [creatingLinkedTask, setCreatingLinkedTask] = useState(false);
   const [recalculating, setRecalculating] = useState<string | null>(null);
   const [taskChartData, setTaskChartData] = useState<Record<string, { data: number[]; labels: string[] }>>({});
-  const [viewMode, setViewMode] = useState<'list' | 'tree' | 'planning'>('tree');
+  const [viewMode, setViewMode] = useState<'list' | 'tree' | 'planning' | 'matrix'>('tree');
   const [createCategory, setCreateCategory] = useState<string>('goal');
   const [createParent, setCreateParent] = useState<string | null>(null);
   const [newTaskPriority, setNewTaskPriority] = useState<string>('medium');
@@ -1111,6 +1112,7 @@ export function Goals() {
             <button className={`goals-view-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')} title="Goals list" aria-label="Goals list view"><List size={15} /></button>
             <button className={`goals-view-btn ${viewMode === 'tree' ? 'active' : ''}`} onClick={() => setViewMode('tree')} title="Vision pyramid" aria-label="Vision tree view"><TreePine size={15} /></button>
             <button className={`goals-view-btn ${viewMode === 'planning' ? 'active' : ''}`} onClick={() => setViewMode('planning')} title="Future planning" aria-label="Future planning view"><Calendar size={15} /></button>
+            <button className={`goals-view-btn ${viewMode === 'matrix' ? 'active' : ''}`} onClick={() => setViewMode('matrix')} title="Covey matrix" aria-label="Covey priority matrix"><Grid3X3 size={15} /></button>
           </div>
           <button className="goals-ai-plan-btn" onClick={() => setShowNLPDecomposer(true)}>
             <Zap size={14} /> AI Plan
@@ -1363,6 +1365,9 @@ export function Goals() {
       {viewMode === 'planning' && !loading && (
         <FuturePlanningPanel />
       )}
+
+      {/* Covey Matrix View */}
+      {viewMode === 'matrix' && !loading && <CoveyMatrixView />}
 
       {/* Category filter bar */}
       {viewMode === 'list' && !loading && (
