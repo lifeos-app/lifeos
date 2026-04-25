@@ -95,7 +95,7 @@ const NAVIGATION_MAP: Record<string, NavigationCommand> = {
   // Review
   'show review':          { action: 'navigate', target: '/reflect/review' },
   'weekly review':        { action: 'navigate', target: '/reflect/review' },
-  'evening review':       { action: 'navigate', target: '/reflect/review' },
+  'evening review':       { action: 'navigate', target: '/sage', params: { prompt: 'evening review' } },
 };
 
 // ── PARSER ─────────────────────────────────────────────────────────────────────

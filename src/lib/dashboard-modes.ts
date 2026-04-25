@@ -67,6 +67,7 @@ const W = {
   achievements:     'achievements',
   agentNudge:       'agent-nudge',
   dailyReward:      'daily-reward',
+  eveningReview:    'evening-review',
 } as const;
 
 type WidgetId = typeof W[keyof typeof W];
@@ -88,6 +89,7 @@ const MORNING_WIDGETS: ModeWidgetConfig[] = [
   { id: W.holyHermes,      priority: 3,  collapsed: true },
   { id: W.quickActions,    priority: 2,  collapsed: true },
   { id: W.stats,           priority: 1,  collapsed: true },
+  { id: W.eveningReview,   priority: 0,  collapsed: true },  // Hidden in morning
 ];
 
 const ACTIVE_WIDGETS: ModeWidgetConfig[] = [
@@ -105,10 +107,12 @@ const ACTIVE_WIDGETS: ModeWidgetConfig[] = [
   { id: W.morningBrief,    priority: 3,  collapsed: true },
   { id: W.streakMomentum,  priority: 2,  collapsed: true },
   { id: W.sageOracle,      priority: 1,  collapsed: true },  // Lower priority during active hours
+  { id: W.eveningReview,   priority: 0,  collapsed: true },  // Hidden during active
 ];
 
 const EVENING_WIDGETS: ModeWidgetConfig[] = [
   // Evening (9pm-midnight): Focus on reflection
+  { id: W.eveningReview,    priority: 8,  collapsed: false },  // Evening review — prime time
   { id: W.dailyProgress,   priority: 10, collapsed: false },  // Daily review
   { id: W.dailyReward,    priority: 8,  collapsed: false },  // Daily login reward (evening catch-up)
   { id: W.sleepQuickLog,   priority: 9,  collapsed: false },  // Bedtime tracking
@@ -127,6 +131,7 @@ const EVENING_WIDGETS: ModeWidgetConfig[] = [
 const NIGHT_WIDGETS: ModeWidgetConfig[] = [
   // Night (midnight-6am): Minimal — spiritual/soulful time
   { id: W.sageOracle,      priority: 10, collapsed: false },  // Sage Oracle — prime spiritual time
+  { id: W.eveningReview,   priority: 9,  collapsed: false },  // Evening review — night reflection
   { id: W.sleepQuickLog,   priority: 9,  collapsed: false },  // Bedtime tracking
   { id: W.journal,         priority: 8,  collapsed: false },  // Quick log
   { id: W.dailyReward,    priority: 8,  collapsed: false },  // Daily login reward (night owl catch)
