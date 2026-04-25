@@ -378,7 +378,6 @@ export class RealmMultiplayer {
 
   /**
    * Convenience: connect to a zone with user info.
-   * Wraps joinZone with a simpler API.
    */
   async connect(
     displayName: string,

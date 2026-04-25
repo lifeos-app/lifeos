@@ -5,7 +5,7 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.19.78
+- **Current Version:** 1.19.79
 - **Baseline Date:** 2026-04-20
 - **Last Audit:** 2026-04-25
 - **Completion:** 72/89 = 80.9%
@@ -131,9 +131,9 @@
 
 ## Priority 6: SCALE — New Items from 2026-04-25 Audit
 
-- [ ] [P6-011] Community Junction marketplace — ❌ MISSING — No marketplace, no user-created Junction infrastructure. Junctions hardcoded. — [Vision ref: VISION-v2 "Community: User-created Junctions with custom quests, shared via marketplace"] — [Impact: 2/5]
-- [ ] [P6-012] Multiplayer Realm presence — 📦 STUB — RealmMultiplayer.ts, RemotePlayerRenderer.ts, ChatOverlay.tsx, EmoteRadial.tsx exist but disabled ("Coming soon"). No Supabase Realtime subscription. — [Vision ref: WORLD-CLASS-ROADMAP §III "Real-time multiplayer via Supabase Realtime"] — [Impact: 2/5]
-- [ ] [P6-013] Family Plan tier — ❌ MISSING — Stripe setup exists but only Pro. No family plan, shared dashboard, or family guild. — [Vision ref: LIFEOS-ROADMAP §6.5 "Family Plan ($14.99/month, 5 users)"] — [Impact: 2/5]
+- [x] [P6-011] Community Junction marketplace — ✅ DONE — Date: 2026-04-25 — junction-marketplace.ts: 8 community junctions (Monk's Path, Iron Discipline, Creator's Flow, Parent Mode, Stoic Forge, Night Owl Protocol, Healing Circle, The Polymath), install/like/create/publish with localStorage persistence. JunctionMarketplace.tsx: Browse/Installed/Create tabs, search + category filter, featured badges. Wired into Junction.tsx as "Marketplace" tab.
+- [x] [P6-012] Multiplayer Realm presence — ✅ DONE — Date: 2026-04-25 — RealmMultiplayer.ts: switched from data-access proxy to cloudSupabase for real Supabase Realtime subscriptions, added onPresenceUpdate() callback, connect()/disconnect() convenience methods, presence listener notifications. OnlinePlayersHUD.tsx: compact badge with pulse dot, expandable player list with status indicators. "Coming soon" gate removed from RealmEntry.tsx.
+- [x] [P6-013] Family Plan tier — ✅ DONE — Date: 2026-04-25 — stripe-client.ts: FAMILY_PLAN_PRICE_ID, createFamilyCheckoutSession(), getFamilyPlanStatus(), inviteFamilyMember(), cancelFamilyInvite(), resendFamilyInvite() with localStorage mock. FamilyPlanSection.tsx: upgrade CTA ($14.99/mo, 5 seats), feature list (6 items), member management with invite/resend/cancel, Family Guild info. Wired into Settings subscription tab.
 - [x] [P6-014] Data Export (Pro feature) — ✅ DONE — Date: 2026-04-25 — data-export.ts with JSON/CSV export, scope selector (all/habits/goals/finances/health/journal), user_id redaction, downloadExport with Blob URL, export history in localStorage (last 3). DataExportSection replaces old export in SettingsDataPrivacy.tsx with scope selector, record count preview, format toggle, early adopter banner, export history display.
 - [x] [P6-015] Custom Themes (Pro feature) — ✅ DONE — Date: 2026-04-25 — themes.ts with 6 themes (Deep Space/Obsidian/Aurora/Solar/Crimson/Violet), CSS custom properties (--theme-bg/card-bg/accent/accent-2/text/text-muted/border), localStorage persistence, initTheme() on startup, lifeos-theme-changed event. ThemeSelector.tsx 2x3 grid in Settings > Preferences with color preview, gold selection ring, level-unlock badges. CSS vars defined in index.css with Deep Space defaults.
 
