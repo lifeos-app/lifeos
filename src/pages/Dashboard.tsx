@@ -70,6 +70,8 @@ import {
   DailyRewardToast,
   ChallengeCard,
   DashboardScheduleInsights,
+  StreakShieldWidget,
+  DashboardEveningReview,
 } from '../components/dashboard';
 import { ProactiveSuggestions } from '../components/dashboard/ProactiveSuggestions';
 import { HolyHermesOracle } from '../components/HolyHermesOracle';
@@ -416,6 +418,9 @@ export function Dashboard() {
               <FeatureErrorBoundary feature="Streak Warnings" compact>
                 <DashboardStreakWarnings />
               </FeatureErrorBoundary>
+              <FeatureErrorBoundary feature="Streak Shield" compact>
+                <StreakShieldWidget />
+              </FeatureErrorBoundary>
 
               {activeInsightCount > 0 && (
                 <div className="dash-insight-summary" style={{
@@ -470,6 +475,11 @@ export function Dashboard() {
               {isWidgetVisible('morning-brief') && (
                 <FeatureErrorBoundary feature="Morning Brief" compact>
                   <DashboardMorningBrief />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('evening-review') && (
+                <FeatureErrorBoundary feature="Evening Review" compact>
+                  <DashboardEveningReview />
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('stats') && (

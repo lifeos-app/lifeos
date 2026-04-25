@@ -21,6 +21,7 @@
 
 import { detectStreakRisk, predictScheduleSuggestions, type DetectedPattern } from './pattern-engine';
 import type { Task, Habit, HabitLog, Goal, ScheduleEvent, HealthMetric, Bill } from '../types/database';
+import { getShieldInfo } from './streak-shield';
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -30,7 +31,9 @@ export type SuggestionType =
   | 'health_warning'
   | 'goal_progress'
   | 'streak_at_risk'
-  | 'predictive_schedule';
+  | 'predictive_schedule'
+  | 'streak_shield_available'
+  | 'evening_review';
 
 export interface ProactiveSuggestion {
   id: string;
@@ -495,6 +498,97 @@ function generatePredictiveSchedule(input: SuggestionInput): ProactiveSuggestion
   return suggestions;
 }
 
+/**
+ * Streak Shield available: check if user has shields and habits at risk
+ * of losing a streak. Suggests using a Streak Shield to preserve it.
+ */
+function generateStreakShieldAvailable(input: SuggestionInput): ProactiveSuggestion[] {
+  const shieldInfo = getShieldInfo();
+  if (!shieldInfo.canUse) return []; // No shields available
+
+  const today = todayStr();
+  const activeHabits = input.habits.filter(h => h.is_active && !h.is_deleted);
+  const atRisk = activeHabits.filter(h => {
+    const streak = h.streak_current || 0;
+    if (streak < 3) return false; // Only suggest for meaningful streaks
+    // Check if not done today
+    const dayLogs = input.habitLogs.filter(l => l.habit_id === h.id && l.date === today);
+    const total = dayLogs.reduce((s, l) => s + (l.count || 1), 0);
+    return total < (h.target_count || 1);
+  });
+
+  if (atRisk.length === 0) return [];
+
+  // Pick the habit with the highest streak at risk
+  const topRisk = atRisk.sort((a, b) => (b.streak_current || 0) - (a.streak_current || 0))[0];
+  const key = cooldownKey('streak_shield_available', topRisk.id);
+  if (isInCooldown(key)) return [];
+
+  return [{
+    id: genId(),
+    type: 'streak_shield_available' as SuggestionType,
+    priority: 1, // High priority — streak preservation
+    title: `Shield Available: ${topRisk.title}`,
+    message: `Your ${topRisk.streak_current}-day "${topRisk.title}" streak is at risk! Use a Streak Shield to preserve it.`,
+    action: {
+      label: 'Use Shield',
+      intent: {
+        type: 'streak_shield',
+        data: {
+          habit_id: topRisk.id,
+          date: today,
+          user_id: input.userId,
+        },
+        summary: `Use Streak Shield for "${topRisk.title}"`,
+        confidence: 0.95,
+      },
+    },
+    dismissed: false,
+    timestamp: now().toISOString(),
+  }];
+}
+
+/**
+ * Evening Review suggestion: During evening hours (18:00-22:00), suggest
+ * starting an evening review if the user hasn't done one today.
+ * Priority 2 (lower than streak shield).
+ */
+function generateEveningReview(input: SuggestionInput): ProactiveSuggestion[] {
+  const hour = new Date().getHours();
+  // Only suggest during evening hours (18:00-22:00)
+  if (hour < 18 || hour >= 22) return [];
+
+  const key = cooldownKey('evening_review', 'daily');
+  if (isInCooldown(key)) return [];
+
+  // Check if the user has already seen an evening review suggestion today
+  const TODAY_KEY = 'lifeos_evening_review_last_shown';
+  const todayStr = new Date().toISOString().split('T')[0];
+  try {
+    const lastShown = localStorage.getItem(TODAY_KEY);
+    if (lastShown === todayStr) return [];
+  } catch { /* ignore */ }
+
+  return [{
+    id: genId(),
+    type: 'evening_review' as SuggestionType,
+    priority: 2,
+    title: 'Time for your Evening Review',
+    message: 'Reflect on today\'s wins and set intentions for tomorrow. A quick review builds momentum.',
+    action: {
+      label: 'Start Review',
+      intent: {
+        type: 'navigate',
+        data: { route: '/sage?prompt=evening%20review' },
+        summary: 'Start evening review',
+        confidence: 0.9,
+      },
+    },
+    dismissed: false,
+    timestamp: new Date().toISOString(),
+  }];
+}
+
 // ── Main Entry ────────────────────────────────────────────────────────
 
 /**
@@ -511,6 +605,8 @@ export function generateProactiveSuggestions(input: SuggestionInput): ProactiveS
     ...generateGoalProgress(input),
     ...generateStreakAtRisk(input),
     ...generatePredictiveSchedule(input),
+    ...generateStreakShieldAvailable(input),
+    ...generateEveningReview(input),
   ];
 
   // Sort by priority (1 = highest) and limit
@@ -538,6 +634,8 @@ function extractIdentifier(suggestion: ProactiveSuggestion): string {
     return suggestion.message.includes('Sleep') ? 'sleep_low' : 'energy_low';
   }
   if (suggestion.type === 'streak_at_risk') return 'global';
+  if (suggestion.type === 'streak_shield_available') return 'global';
+  if (suggestion.type === 'evening_review') return 'daily';
   if (suggestion.type === 'predictive_schedule') {
     const slotType = data.slot_type as string;
     return slotType || 'global';

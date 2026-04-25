@@ -32,7 +32,8 @@ export type ActionType =
   | 'healer_consult'
   | 'scholar_study'
   | 'daily_reward'
-  | 'guild_contribute';
+  | 'guild_contribute'
+  | 'streak_shield_used';
 
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type GoalCategory = 'goal' | 'epic' | 'objective';
@@ -82,6 +83,7 @@ const BASE_XP: Record<ActionType, number> = {
   scholar_study: 10,
   daily_reward: 0, // Base is 0 — actual XP amount comes from daily-rewards utility via metadata
   guild_contribute: 15,
+  streak_shield_used: 5, // Small reward for using shield — encourages engagement even on recovery
 };
 
 // Task priority multipliers
@@ -463,6 +465,8 @@ function actionToCategory(action: string): string {
     case 'junction_practice':
       return 'knowledge';
     case 'daily_reward':
+      return 'consistency';
+    case 'streak_shield_used':
       return 'consistency';
     default:
       return 'productivity';

@@ -15,6 +15,7 @@ import { syncNow, waitForInitialSync } from '../lib/sync-engine';
 import { useUserStore } from './useUserStore';
 import type { Habit, HabitLog } from '../types/database';
 import { logger } from '../utils/logger';
+import { hasShieldAvailableForHabit, checkAndEarnShields } from '../lib/streak-shield';
 
 // Re-export for backwards compatibility
 export type { Habit, HabitLog };
@@ -43,7 +44,9 @@ interface HabitsState {
 
 const STALE_MS = 2 * 60 * 1000;
 
-/** Calculate current and best streak for a habit from its logs */
+/** Calculate current and best streak for a habit from its logs.
+ *  Streak shields bridge single-day gaps — if a shield was used for
+ *  a habit on a date, that date does not break the streak. */
 export function calculateStreak(habitId: string, logs: HabitLog[]): { current: number; best: number } {
   const habitLogs = logs.filter(l => l.habit_id === habitId);
   if (habitLogs.length === 0) return { current: 0, best: 0 };
@@ -61,7 +64,12 @@ export function calculateStreak(habitId: string, logs: HabitLog[]): { current: n
     if (dates.includes(checkStr)) {
       current++;
     } else if (i > 0) {
-      break;
+      // Check if a streak shield covers this gap
+      if (hasShieldAvailableForHabit(habitId, checkStr)) {
+        current++;
+      } else {
+        break;
+      }
     }
     // i === 0 and not found: today not logged yet, keep checking from yesterday
   }
@@ -76,6 +84,17 @@ export function calculateStreak(habitId: string, logs: HabitLog[]): { current: n
     const diffDays = Math.round((curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24));
     if (diffDays === 1) {
       run++;
+    } else if (diffDays === 2) {
+      // Single-day gap — check if a shield covers the missing day
+      const gapDate = new Date(prev);
+      gapDate.setDate(gapDate.getDate() + 1);
+      const gapStr = localDateStr(gapDate);
+      if (hasShieldAvailableForHabit(habitId, gapStr)) {
+        run++;
+      } else {
+        best = Math.max(best, run);
+        run = 1;
+      }
     } else {
       best = Math.max(best, run);
       run = 1;
@@ -246,6 +265,15 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
       await localUpdate('habits', habitId, streakUpdates).catch(e =>
         logger.warn('[habits] streak persist failed:', e)
       );
+
+      // Check if this toggle earned any streak shields
+      try {
+        if (current > 0) {
+          checkAndEarnShields(current);
+        }
+      } catch (e) {
+        logger.warn('[habits] shield earn check failed:', e);
+      }
 
       // Background sync
       if (isOnline()) {

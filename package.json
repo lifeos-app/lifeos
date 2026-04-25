@@ -1,7 +1,7 @@
 {
   "name": "lifeos-app",
   "private": true,
-  "version": "1.19.70",
+  "version": "1.19.71",
   "description": "LifeOS \u2014 Personal life operating system by Teddy's Cleaning Systems",
   "author": "Tewedros Gebrewubet <tewedros@teddyscleaning.com.au>",
   "type": "module",
@@ -43,6 +43,7 @@
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.13.0",
+    "react-virtuoso": "^4.18.6",
     "remark-gfm": "^4.0.1",
     "steamworks.js": "^0.4.0",
     "tone": "^15.1.22",

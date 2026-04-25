@@ -32,3 +32,5 @@ export { DailyRewardToast } from './DailyRewardToast';
 export { ChallengeCard } from './ChallengeCard';
 export { ProactiveSuggestions } from './ProactiveSuggestions';
 export { DashboardScheduleInsights } from './DashboardScheduleInsights';
+export { StreakShieldWidget } from './StreakShieldWidget';
+export { DashboardEveningReview } from './DashboardEveningReview';
