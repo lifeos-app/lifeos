@@ -57,6 +57,7 @@ import {
   DashboardStreakWarnings,
   DashboardRealmInvite,
   DashboardCelestial,
+  DashboardAcademy,
 } from '../components/dashboard';
 import { Brain } from 'lucide-react';
 import { AgentNudgeBar } from '../components/agent';
@@ -312,6 +313,9 @@ export function Dashboard() {
               </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Streak Warnings" compact>
                 <DashboardStreakWarnings />
+              </FeatureErrorBoundary>
+              <FeatureErrorBoundary feature="Academy" compact>
+                <DashboardAcademy />
               </FeatureErrorBoundary>
 
               {activeInsightCount > 0 && (

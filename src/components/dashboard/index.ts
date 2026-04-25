@@ -21,3 +21,4 @@ export { DashboardLifePulse } from './DashboardLifePulse';
 export { DashboardStreakWarnings } from './DashboardStreakWarnings';
 export { DashboardRealmInvite } from './DashboardRealmInvite';
 export { DashboardCelestial } from './DashboardCelestial';
+export { DashboardAcademy } from './DashboardAcademy';
