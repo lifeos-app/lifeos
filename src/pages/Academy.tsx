@@ -9,13 +9,14 @@ import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import {
   ChevronRight, ChevronDown, Check, Clock, BookOpen, Award,
   Flame, ArrowLeft, ArrowRight, CheckCircle2, Grid3X3, BarChart3,
-  ChevronLeft, Zap, Trophy, Music, Code, Lock, Target,
+  ChevronLeft, Zap, Trophy, Music, Code, Lock, Target, GraduationCap,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAcademyStore } from '../stores/useAcademyStore';
 import { useLessonsStore } from '../stores/useLessonsStore';
 import { MusicPlayer } from '../components/academy/MusicPlayer';
+import { LessonViewer2 } from '../components/academy/LessonViewer2';
 import { PageErrorBoundary } from '../components/PageErrorBoundary';
 import { PageSkeleton } from '../components/skeletons';
 import { readAcademyFile } from '../lib/academy-data';
@@ -30,11 +31,27 @@ import { useAcademyStore2 } from '../stores/useAcademyStore2';
 const PianoAcademy = lazy(() => import('../components/lessons/PianoAcademy'));
 const LearningToCode = lazy(() => import('../components/lessons/LearningToCode'));
 
-type AcademyView = 'curriculum' | 'lesson' | 'cheatsheets' | 'progress' | 'lessons' | 'goals';
+// ── Types for Academy 2.0 lesson viewer ──
+type CurriculumLesson = {
+  id: string; title: string; content: string; keyPoints: string[];
+  estimatedMinutes: number; phaseIndex: number; completedAt: string | null; xpReward: number;
+};
+type LearningGoal = {
+  id: string; topic: string; domain: string; currentLevel: string;
+  curriculum: { phases: { title: string; topics: { lessons: CurriculumLesson[] }[] }[] } | null;
+  [key: string]: unknown;
+};
+
+type AcademyView = 'curriculum' | 'lesson' | 'lesson2' | 'cheatsheets' | 'progress' | 'lessons' | 'goals';
 
 export function Academy() {
   const [view, setView] = useState<AcademyView>('curriculum');
   const store = useAcademyStore();
+
+  // Academy 2.0 lesson2 state
+  const [lesson2Goal, setLesson2Goal] = useState<LearningGoal | null>(null);
+  const [lesson2Lesson, setLesson2Lesson] = useState<CurriculumLesson | null>(null);
+  const [lesson2Phase, setLesson2Phase] = useState<{ title: string; topics: { lessons: CurriculumLesson[] }[] } | null>(null);
 
   // Hydrate from localStorage on mount
   useEffect(() => {
@@ -48,13 +65,36 @@ export function Academy() {
     return () => { store.endStudySession(); };
   }, []);
 
+  // URL param syncing: ?goal=X&lesson=Y navigates to lesson2 view
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const goalParam = params.get('goal');
+    const lessonParam = params.get('lesson');
+    if (goalParam && lessonParam) {
+      // Attempt to find the goal/lesson — this requires goal data to be available
+      // For now, store the params for when goal data arrives from Phase 2's store
+      // TODO: Wire up to useAcademyStore2 when available
+    }
+  }, []);
+
   const openLesson = (lessonId: string) => {
     store.setCurrentLesson(lessonId);
     setView('lesson');
   };
 
+  /** Open a lesson in the Academy 2.0 two-column viewer */
+  const openLesson2 = (goal: LearningGoal, lesson: CurriculumLesson, phase: { title: string; topics: { lessons: CurriculumLesson[] }[] }) => {
+    setLesson2Goal(goal);
+    setLesson2Lesson(lesson);
+    setLesson2Phase(phase);
+    setView('lesson2');
+  };
+
   const backToCurriculum = () => {
     store.setCurrentLesson(null);
+    setLesson2Goal(null);
+    setLesson2Lesson(null);
+    setLesson2Phase(null);
     setView('curriculum');
   };
 
@@ -111,6 +151,28 @@ export function Academy() {
         )}
         {view === 'lessons' && (
           <LessonsView />
+        )}
+        {view === 'lesson2' && lesson2Goal && lesson2Lesson && lesson2Phase && (
+          <LessonViewer2
+            goal={lesson2Goal}
+            lesson={lesson2Lesson}
+            phase={lesson2Phase}
+            onComplete={() => {
+              if (lesson2Lesson) {
+                setLesson2Lesson({ ...lesson2Lesson, completedAt: new Date().toISOString() });
+              }
+            }}
+            onBack={backToCurriculum}
+            onNavigate={(direction) => {
+              if (!lesson2Phase) return;
+              const allLessons = lesson2Phase.topics.flatMap((t) => t.lessons);
+              const idx = allLessons.findIndex((l) => l.id === lesson2Lesson?.id);
+              const nextIdx = direction === 'next' ? idx + 1 : idx - 1;
+              if (nextIdx >= 0 && nextIdx < allLessons.length) {
+                setLesson2Lesson(allLessons[nextIdx]);
+              }
+            }}
+          />
         )}
         {view === 'cheatsheets' && (
           <CheatsheetsView
