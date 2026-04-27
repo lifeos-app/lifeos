@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { captureError } from '../lib/error-monitor';
 import { logger } from '../utils/logger';
 
 interface Props {
@@ -28,6 +29,12 @@ export class PageErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     logger.error(`[PageError${this.props.pageName ? `:${this.props.pageName}` : ''}]`, error, errorInfo);
+
+    // Capture to local error monitor
+    captureError(error, {
+      componentStack: errorInfo.componentStack || undefined,
+      severity: 'error',
+    });
   }
 
   handleRetry = () => {

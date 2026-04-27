@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import { installGlobalErrorHandlers } from './lib/error-reporter'
+import { initErrorMonitor, addBreadcrumb, setErrorUserId } from './lib/error-monitor'
 import { openLocalDB } from './lib/local-db'
 import { initSyncEngine } from './lib/sync-engine'
 import { registerServiceWorker } from './lib/sw-register'
@@ -12,6 +13,30 @@ import { initTheme } from './lib/themes';
 
 // Install global error handlers (catches unhandled errors + promise rejections)
 installGlobalErrorHandlers()
+
+// Initialize local-first error monitor (captures unhandled errors to localStorage)
+initErrorMonitor()
+
+// Track route changes as breadcrumbs for error monitoring
+;(() => {
+  try {
+    const origPushState = history.pushState;
+    const origReplaceState = history.replaceState;
+    history.pushState = function(...args) {
+      addBreadcrumb(`Navigate: ${window.location.pathname}`, 'navigation');
+      return origPushState.apply(this, args);
+    };
+    history.replaceState = function(...args) {
+      addBreadcrumb(`Replace: ${window.location.pathname}`, 'navigation');
+      return origReplaceState.apply(this, args);
+    };
+    window.addEventListener('popstate', () => {
+      addBreadcrumb(`Popstate: ${window.location.pathname}`, 'navigation');
+    });
+  } catch {
+    // Must not throw
+  }
+})();
 
 // Apply saved theme on startup (before render to avoid flash)
 initTheme()

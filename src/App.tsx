@@ -24,6 +24,7 @@ import { useLiveActivityStore } from './stores/useLiveActivityStore';
 // Profile comes from useUserStore now
 import { supabase } from './lib/data-access';
 // sync-engine is dynamically imported after auth to reduce initial bundle
+import { setErrorUserId } from './lib/error-monitor';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { UpdateBanner } from './components/UpdateBanner';
 import { ConnectionBanner } from './components/ConnectionBanner';
@@ -34,6 +35,7 @@ import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { ChunkLoadErrorBoundary } from './components/ChunkLoadErrorBoundary';
 import { CrashRecoveryBanner } from './components/CrashRecoveryBanner';
 import { AsyncErrorToast } from './components/AsyncErrorToast';
+import { ErrorMonitor } from './components/ErrorMonitor';
 import {
   DashboardSkeleton, ScheduleSkeleton, HealthSkeleton, FinancesSkeleton,
   HabitsSkeleton, GoalsSkeleton, JournalSkeleton, JunctionSkeleton,
@@ -274,6 +276,15 @@ function AppRoutes() {
     return cleanup;
   }, [initAuth]);
 
+  // Associate errors with current user for error monitoring
+  useEffect(() => {
+    if (user?.id) {
+      setErrorUserId(user.id);
+    } else {
+      setErrorUserId('');
+    }
+  }, [user?.id]);
+
   // Sync completed tours from Supabase → localStorage on login
   // ONLY sync after profile exists — otherwise we race with the profile INSERT
   // which clears localStorage for new users
@@ -509,6 +520,7 @@ function App() {
             </Suspense>
           </ErrorBoundary>
           <AsyncErrorToast />
+          <ErrorMonitor />
         </Router>
       </ChunkLoadErrorBoundary>
     </AppErrorBoundary>

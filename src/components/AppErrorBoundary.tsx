@@ -1,6 +1,7 @@
 import { Component, type ReactNode } from 'react';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { reportError } from '../lib/error-reporter';
+import { captureError } from '../lib/error-monitor';
 import { logger } from '../utils/logger';
 
 interface Props {
@@ -71,6 +72,12 @@ export class AppErrorBoundary extends Component<Props, State> {
       error_stack: error.stack,
       component_stack: errorInfo.componentStack || undefined,
       metadata: { type: 'AppErrorBoundary', isChunkError: isChunkLoadError(error) },
+    });
+
+    // Also capture to local error monitor
+    captureError(error, {
+      componentStack: errorInfo.componentStack || undefined,
+      severity: 'critical',
     });
   }
 
