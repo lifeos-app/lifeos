@@ -33,7 +33,10 @@ export type ActionType =
   | 'scholar_study'
   | 'daily_reward'
   | 'guild_contribute'
-  | 'streak_shield_used';
+  | 'streak_shield_used'
+  | 'academy_lesson_complete'
+  | 'academy_assessment_pass'
+  | 'academy_phase_complete';
 
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type GoalCategory = 'goal' | 'epic' | 'objective';
@@ -84,6 +87,9 @@ const BASE_XP: Record<ActionType, number> = {
   daily_reward: 0, // Base is 0 — actual XP amount comes from daily-rewards utility via metadata
   guild_contribute: 15,
   streak_shield_used: 5, // Small reward for using shield — encourages engagement even on recovery
+  academy_lesson_complete: 50,
+  academy_assessment_pass: 200,
+  academy_phase_complete: 500,
 };
 
 // Task priority multipliers
@@ -468,6 +474,10 @@ function actionToCategory(action: string): string {
       return 'consistency';
     case 'streak_shield_used':
       return 'consistency';
+    case 'academy_lesson_complete':
+    case 'academy_assessment_pass':
+    case 'academy_phase_complete':
+      return 'knowledge';
     default:
       return 'productivity';
   }

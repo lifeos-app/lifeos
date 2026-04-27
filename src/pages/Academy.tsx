@@ -9,7 +9,7 @@ import { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import {
   ChevronRight, ChevronDown, Check, Clock, BookOpen, Award,
   Flame, ArrowLeft, ArrowRight, CheckCircle2, Grid3X3, BarChart3,
-  ChevronLeft, Zap, Trophy, Music, Code, Lock,
+  ChevronLeft, Zap, Trophy, Music, Code, Lock, Target,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -24,11 +24,13 @@ import {
   getTotalEstimatedMinutes, findLesson, getAdjacentLessons,
   type AcademyPhase, type AcademyTopic, type AcademyLesson,
 } from '../data/academy-manifest';
+import { LearningGoalsHub } from '../components/academy/LearningGoalsHub';
+import { useAcademyStore2 } from '../stores/useAcademyStore2';
 
 const PianoAcademy = lazy(() => import('../components/lessons/PianoAcademy'));
 const LearningToCode = lazy(() => import('../components/lessons/LearningToCode'));
 
-type AcademyView = 'curriculum' | 'lesson' | 'cheatsheets' | 'progress' | 'lessons';
+type AcademyView = 'curriculum' | 'lesson' | 'cheatsheets' | 'progress' | 'lessons' | 'goals';
 
 export function Academy() {
   const [view, setView] = useState<AcademyView>('curriculum');
@@ -37,6 +39,7 @@ export function Academy() {
   // Hydrate from localStorage on mount
   useEffect(() => {
     store.hydrate();
+    useAcademyStore2.getState().fetchAll();
   }, []);
 
   // Start study session tracking
@@ -75,6 +78,7 @@ export function Academy() {
             </h1>
           </div>
           <div role="tablist" aria-label="Academy sections" style={{ display: 'flex', gap: 4 }}>
+            <TabButton active={view === 'goals'} onClick={() => setView('goals')} icon={<Target size={14} />} label="Goals" />
             <TabButton active={view === 'curriculum'} onClick={() => setView('curriculum')} icon={<BookOpen size={14} />} label="Curriculum" />
             <TabButton active={view === 'lessons'} onClick={() => setView('lessons')} icon={<Music size={14} />} label="Lessons" />
             <TabButton active={view === 'cheatsheets'} onClick={() => setView('cheatsheets')} icon={<Grid3X3 size={14} />} label="Cheatsheets" />
@@ -87,6 +91,9 @@ export function Academy() {
 
       {/* Content */}
       <div role="tabpanel" aria-label={`${view} content`} style={{ flex: 1, overflowY: 'auto', padding: '16px 24px 0' }}>
+        {view === 'goals' && (
+          <LearningGoalsHub />
+        )}
         {view === 'curriculum' && (
           <CurriculumView
             completedLessons={store.completedLessons}
