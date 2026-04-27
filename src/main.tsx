@@ -11,6 +11,9 @@ import { loadDeferredFonts } from './utils/lazy-fonts';
 import { setupRoutePrefetching } from './utils/route-prefetch';
 import { initTheme } from './lib/themes';
 
+// Design tokens — must load before any other CSS so var(--token) is available everywhere
+import './styles/tokens.css';
+
 // Install global error handlers (catches unhandled errors + promise rejections)
 installGlobalErrorHandlers()
 

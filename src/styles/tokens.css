@@ -1,0 +1,155 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   LifeOS Design Tokens — Single Source of Truth
+
+   This file defines ALL design tokens (colors, spacing, typography, shadows,
+   borders, glass effects) as CSS custom properties on :root.
+
+   CONVENTION:
+   - ALWAYS use var(--token-name) instead of raw hex/px values in component CSS.
+   - When adding a new visual primitive, add it HERE first, then reference it.
+   - Theme colors (overridden by themes.ts applyTheme()) use the --theme-* prefix.
+  ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Colors — Backgrounds ───────────────────────────────────────────────── */
+  --color-bg-primary: #0A0E1A;           /* main background (Deep Space default) */
+  --color-bg-secondary: #111827;         /* secondary panels, sidebar */
+  --color-bg-tertiary: #1F2937;          /* elevated surfaces */
+  --color-bg-card: rgba(17, 24, 39, 0.8);/* glass card background */
+  --color-bg-glass: rgba(17, 24, 39, 0.8);
+  --color-bg-glass-light: rgba(17, 24, 39, 0.6);
+  --color-bg-glass-heavy: rgba(10, 14, 26, 0.92);
+  --color-bg-elevated: rgba(31, 41, 55, 0.5);
+
+  /* ── Colors — Accents ───────────────────────────────────────────────────── */
+  --color-accent: #00D4FF;               /* primary accent (cyan) */
+  --color-accent-dim: rgba(0, 212, 255, 0.15);
+  --color-accent-2: #39FF14;             /* secondary accent (neon green) */
+  --color-accent-2-dim: rgba(57, 255, 20, 0.15);
+  --color-accent-gold: #FFD700;
+  --color-accent-gold-dim: rgba(255, 215, 0, 0.15);
+  --color-xp-gold: #D4AF37;
+  --color-xp-gold-dim: rgba(212, 175, 55, 0.18);
+  --color-accent-orange: #F97316;
+  --color-accent-orange-dim: rgba(249, 115, 22, 0.15);
+  --color-accent-purple: #8B5CF6;
+  --color-accent-purple-dim: rgba(139, 92, 246, 0.15);
+  --color-accent-rose: #F43F5E;
+  --color-accent-rose-dim: rgba(244, 63, 94, 0.15);
+
+  /* ── Colors — Text ──────────────────────────────────────────────────────── */
+  --color-text-primary: #F9FAFB;          /* main body text */
+  --color-text-secondary: #9CA3AF;        /* secondary / supporting text */
+  --color-text-muted: #6B7280;            /* muted / captions */
+  --color-text-inverse: #0A0E1A;         /* light-on-dark inversion */
+  --color-text-link: #00D4FF;            /* link color */
+
+  /* ── Colors — Status ────────────────────────────────────────────────────── */
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-info: #3B82F6;
+
+  /* ── Colors — Semantic Borders & Overlays ────────────────────────────────── */
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+  --color-border-default: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.12);
+  --color-overlay: rgba(0, 0, 0, 0.5);
+  --color-overlay-light: rgba(255, 255, 255, 0.04);
+
+  /* ── Colors — Theme overrides (set by themes.ts applyTheme()) ───────────── */
+  --theme-bg: #0A1628;
+  --theme-card-bg: rgba(255,255,255,0.04);
+  --theme-accent: #00D4FF;
+  --theme-accent-2: #39FF14;
+  --theme-text: #F9FAFB;
+  --theme-text-muted: #8BA4BE;
+  --theme-border: rgba(255,255,255,0.08);
+
+  /* ── Gradients ───────────────────────────────────────────────────────────── */
+  --gradient-hero: linear-gradient(135deg, #00D4FF 0%, #39FF14 100%);
+  --gradient-gold: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%);
+  --gradient-sunset: linear-gradient(135deg, #F43F5E 0%, #F97316 100%);
+  --gradient-purple: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+  --gradient-ocean: linear-gradient(135deg, #0EA5E9 0%, #8B5CF6 100%);
+  --gradient-aurora: linear-gradient(135deg, #00D4FF 0%, #8B5CF6 50%, #F43F5E 100%);
+  --gradient-glass-border: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+  --gradient-sidebar: linear-gradient(180deg, rgba(0,212,255,0.03) 0%, rgba(139,92,246,0.03) 100%);
+
+  /* ── Spacing ─────────────────────────────────────────────────────────────── */
+  --space-1: 4px;       /* = 4px  — micro gaps, icon padding */
+  --space-2: 8px;       /* = 8px  — compact gap, inline spacing */
+  --space-3: 12px;      /* = 12px — default gap, small padding */
+  --space-4: 16px;      /* = 16px — standard padding, card padding */
+  --space-5: 20px;      /* = 20px — medium padding */
+  --space-6: 24px;      /* = 24px — large padding, section gap */
+  --space-8: 32px;      /* = 32px — section spacing */
+  --space-10: 40px;     /* = 40px — major section gap */
+  --space-12: 48px;     /* = 48px — page margins */
+  --space-16: 64px;     /* = 64px — hero spacing */
+
+  /* ── Typography ──────────────────────────────────────────────────────────── */
+  --font-display: 'Orbitron', monospace;       /* headings, numbers, display */
+  --font-body: 'Poppins', sans-serif;          /* body text, UI labels */
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;  /* code, data */
+
+  --text-2xs: 9px;
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-md: 16px;       /* iOS input minimum */
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-2xl: 28px;
+  --text-3xl: 32px;
+  --text-4xl: 48px;
+
+  /* ── Borders & Radius ───────────────────────────────────────────────────── */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-base: 8px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+  --radius-full: 9999px;
+
+  --border-subtle: 1px solid rgba(255, 255, 255, 0.06);
+  --border-default: 1px solid rgba(255, 255, 255, 0.08);
+  --border-strong: 1px solid rgba(255, 255, 255, 0.12);
+  --border-glow-cyan: 1px solid rgba(0, 212, 255, 0.2);
+  --border-glow-neon: 1px solid rgba(57, 255, 20, 0.2);
+
+  /* ── Shadows ─────────────────────────────────────────────────────────────── */
+  --shadow-elevation-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-elevation-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-elevation-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-elevation-xl: 0 16px 64px rgba(0, 0, 0, 0.5);
+
+  --shadow-glow-cyan: 0 0 20px rgba(0, 212, 255, 0.3);
+  --shadow-glow-cyan-lg: 0 0 40px rgba(0, 212, 255, 0.25), 0 0 80px rgba(0, 212, 255, 0.1);
+  --shadow-glow-neon: 0 0 20px rgba(57, 255, 20, 0.3);
+  --shadow-glow-gold: 0 0 20px rgba(255, 215, 0, 0.3);
+  --shadow-glow-purple: 0 0 20px rgba(139, 92, 246, 0.3);
+  --shadow-glow-rose: 0 0 20px rgba(244, 63, 94, 0.3);
+
+  /* ── Glass Effect ────────────────────────────────────────────────────────── */
+  --glass-bg: rgba(17, 24, 39, 0.8);
+  --glass-blur: blur(16px);
+  --glass-blur-heavy: blur(24px);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  /* ── Transitions ─────────────────────────────────────────────────────────── */
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-default: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ── Layout Constants ────────────────────────────────────────────────────── */
+  --sidebar-w: 240px;
+  --header-h: 56px;
+  --nav-h: 64px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
