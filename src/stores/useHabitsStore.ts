@@ -16,6 +16,7 @@ import { useUserStore } from './useUserStore';
 import type { Habit, HabitLog } from '../types/database';
 import { logger } from '../utils/logger';
 import { hasShieldAvailableForHabit, checkAndEarnShields } from '../lib/streak-shield';
+import { logAuditEntry } from '../lib/audit-logger';
 
 // Re-export for backwards compatibility
 export type { Habit, HabitLog };
@@ -196,6 +197,9 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
       // Optimistic update
       set({ habits: [...get().habits, newHabit as Habit] });
       
+      // Audit log
+      try { logAuditEntry({ userId: userId || getEffectiveUserId() || '', action: 'INSERT', tableName: 'habits', recordId: newHabit.id, newData: newHabit as any }); } catch {}
+      
       // Background sync
       if (isOnline()) {
         const { data: { session } } = await useUserStore.getState().getSessionCached();
@@ -293,10 +297,14 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
   deleteHabit: async (id) => {
     // Optimistic
     const prev = get().habits;
+    const oldHabit = prev.find(h => h.id === id);
     set({ habits: prev.filter(h => h.id !== id) });
     
     try {
       await localDelete('habits', id);
+      
+      // Audit log
+      try { logAuditEntry({ userId: getEffectiveUserId() || '', action: 'DELETE', tableName: 'habits', recordId: id, oldData: oldHabit as any }); } catch {}
       
       // Background sync
       if (isOnline()) {
@@ -315,12 +323,16 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
   updateHabit: async (id, updates) => {
     // Optimistic
     const prev = get().habits;
+    const oldHabit = prev.find(h => h.id === id);
     set({
       habits: prev.map(h => h.id === id ? { ...h, ...updates } : h),
     });
     
     try {
       await localUpdate('habits', id, updates);
+      
+      // Audit log
+      try { logAuditEntry({ userId: getEffectiveUserId() || '', action: 'UPDATE', tableName: 'habits', recordId: id, oldData: oldHabit as any, newData: updates as any }); } catch {}
       
       // Background sync
       if (isOnline()) {

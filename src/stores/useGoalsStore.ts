@@ -18,6 +18,7 @@ import type { Goal, Business } from '../types/database';
 import { logger } from '../utils/logger';
 import type { HermeticForce } from '../lib/hermetic-gender-balance';
 import { suggestForce } from '../lib/hermetic-gender-balance';
+import { logAuditEntry } from '../lib/audit-logger';
 
 /**
  * GoalNode extends database Goal type with UI-specific fields
@@ -130,6 +131,9 @@ export const useGoalsStore = create<GoalsState>((set, get) => ({
       // Optimistic
       set({ goals: [...get().goals, newGoal as GoalNode] });
       
+      // Audit log
+      try { logAuditEntry({ userId: getEffectiveUserId() || '', action: 'INSERT', tableName: 'goals', recordId: newGoal.id, newData: newGoal as any }); } catch {}
+      
       // Background sync
       if (isOnline()) {
         const { data: { session } } = await useUserStore.getState().getSessionCached();
@@ -187,12 +191,16 @@ export const useGoalsStore = create<GoalsState>((set, get) => ({
   updateGoal: async (id, updates) => {
     // Optimistic
     const prev = get().goals;
+    const oldGoal = prev.find(g => g.id === id);
     set({
       goals: prev.map(g => g.id === id ? { ...g, ...updates } : g),
     });
     
     try {
       await localUpdate('goals', id, updates);
+      
+      // Audit log
+      try { logAuditEntry({ userId: getEffectiveUserId() || '', action: 'UPDATE', tableName: 'goals', recordId: id, oldData: oldGoal as any, newData: updates as any }); } catch {}
       
       // Background sync
       if (isOnline()) {
@@ -211,10 +219,14 @@ export const useGoalsStore = create<GoalsState>((set, get) => ({
   deleteGoal: async (id) => {
     // Optimistic
     const prev = get().goals;
+    const oldGoal = prev.find(g => g.id === id);
     set({ goals: prev.filter(g => g.id !== id) });
     
     try {
       await localDelete('goals', id);
+      
+      // Audit log
+      try { logAuditEntry({ userId: getEffectiveUserId() || '', action: 'DELETE', tableName: 'goals', recordId: id, oldData: oldGoal as any }); } catch {}
       
       // Background sync
       if (isOnline()) {
