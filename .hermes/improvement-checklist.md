@@ -5,10 +5,11 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.19.82
+- **Current Version:** 1.19.89
 - **Baseline Date:** 2026-04-20
- **Last Audit:** 2026-04-27 (Phase 3 Self-Healing)
- **Completion:** 87/116 = 75.0% (27 NEW items discovered in Phase 3 audit)
+- **Last Audit:** 2026-04-27 (Phase 3 Self-Healing)
+- **Completion:** 93/116 = 80.2%
+ **Phase 3 Audit Results:** 93/116 = 80.2% (6 new items DONE: TD-011, TD-013, TD-015, TD-017, TD-018, TD-019)
  **Phase 3 Audit Report:** /mnt/data/tmp/lifeos/.hermes/phase3-self-healing-audit.md
 
 ## Vision Documents (Source of Truth)
@@ -101,6 +102,12 @@
 - [x] [TD-008] TypeScript strict mode — ✅ DONE — v1.19.70 — strict: true, noUnusedLocals, noUnusedParameters, noFallthroughCasesInSwitch, noUncheckedSideEffectImports all enabled in tsconfig.app.json. Already was enabled.
 - [x] [TD-009] Test coverage — ✅ DONE — Commit: 0ec5195 — Date: 2026-04-24 — 8→11 test files, 150→316 tests. Added proactive-suggestions.test.ts (71 tests: 6 suggestion generators, dismiss/accept cooldown, rate limiting, edge cases), hermetic-principle-insight.test.ts (56 tests: patternToInsight/correlationToInsight/getCurrentPrincipleInsight/insightSummary for all 8 pattern types), hermetic-integration.test.ts (39 tests: SEVEN_PRINCIPLES validation, getDailyPrinciple rotation, DOMAIN_PRINCIPLE mapping, HERMETIC_BLESSING structure).
 - [ ] [TD-010] RLS migration SQL ready but not applied — supabase/migrations/20260418_rls_critical_tables.sql needs manual paste — [DEPLOYMENT ACTION — not code-implementable. Paste SQL into Supabase SQL Editor]
+- [x] [TD-011] Electron main.js God Object split — ✅ DONE — v1.19.83 — 526→302 lines. 4 focused IPC handler modules: db-handlers, file-handlers, app-handlers, auth-handlers.
+- [x] [TD-013] Store hydration DAG — ✅ DONE — v1.19.82 — 4-phase ordered init for all 16 Zustand stores via src/lib/store-hydration.ts. Phase 1 (core), Phase 2 (depends on user), Phase 3 (depends on phase 2), Phase 4 (lazy). Replaces random Promise.allSettled.
+- [x] [TD-015] OnboardingQuest.tsx God Object split — ✅ DONE — v1.19.86 — 1149→31 lines. Extracted: useOnboardingQuest.ts (893 lines, all state+logic), OnboardingSteps.tsx (161 lines), OnboardingUI.tsx (235 lines).
+- [x] [TD-017] NodeDetail.tsx God Object split — ✅ DONE — v1.19.87 — 985→64 lines. 10 sub-components + useNodeDetailState hook + types.
+- [x] [TD-018] AIChat.tsx God Object split — ✅ DONE — v1.19.85 — 981→460 lines. Extracted: useAIChatSend hook, useMessageActions hook, AIChatMessages, AIChatInput components.
+- [x] [TD-019] Academy.tsx God Object split — ✅ DONE — v1.19.87 — 957→8 lines (re-export stub). 9 sub-components + useAcademyPageState hook + types in src/pages/academy/.
 
 ## Priority 2: FOUNDATION — New Items from 2026-04-25 Audit
 
@@ -190,4 +197,4 @@
 - 2026-04-22: Full branch audit + feature accessibility fix. ROOT CAUSE: LOCAL_USER in electron-api.ts used `new Date().toISOString()` as created_at → accountDays=0 → all progressive-disclosure features (Academy/Character/Replicator/Lessons) were hidden every session. Fixed: hardcoded '2020-01-01' so local users always see all features. Also lowered revealAfterDays thresholds (5→2, 7→3). TCS plugin gate confirmed working — auto-enables for tewedross12@gmail.com/teddyscleaning emails. All 14 routes confirmed present in App.tsx. Clean build + relaunch. Score: 46/68 = 67.6%. Version: 1.19.52.
 - 2026-04-24: Stale item audit + test coverage. TD-006 (SW) and TD-008 (strict) were already DONE — stale checklist items. TD-009 tests added: 8→11 files, 150→316 tests. Also committed Hermetic alignment work from prior session (pattern/correlation/XP engine principle tags, rhythm_swing detector, principle insight bridge, system prompt wisdom). Score: 54/68 = 79.4%. Version: 1.19.70.
 - 2026-04-25: Phase 3 self-healing audit. Read all 5 vision docs + 2 recent plans. Discovered 21 NEW features not tracked in checklist. Added P2-007 (virtualized lists), P3-009 (evening review), P4-007/P4-008 (streak shield, character permeation), P5-010–P5-021 (12 depth features), P6-011–P6-015 (5 scale features). Annotated TD-010 as deployment action. Score: 54/89 = 60.7%.
-- 2026-04-25: Executed 3 items. P2-007 Virtualized long lists DONE (commit c73a123): react-virtuoso with VirtualizedList + GroupedVirtualizedList wrappers, threshold=20, applied to Expenses/Schedule/Tasks. P3-009 Evening Review DONE (commit fc7f66e): evening-review.ts generates data-driven review, DashboardEveningReview.tsx time-adaptive widget. P4-007 Streak Shield DONE (commit b4725c1): 1 skip/week earned by 7-day streaks, shield bridges gaps in calculateStreak, widget + proactive suggestion. Score: 57/89 = 64.0%. Version: 1.19.73.
+- 2026-04-25: Executed 3 items. P2-007 Virtualized long lists DONE (commit c73a123): react-virtuoso with VirtualizedList + GroupedVirtualizedList wrappers, threshold=20, applied to Expenses/Schedule/Tasks. P3-009 Evening Review DONE (commit fc7f66e): evening-review.ts generates data-driven review, DashboardEveningReview.tsx time-adaptive widget. P4-007 Streak Shield DONE (commit b4725c1): 1 skip/week earned by 7-day streaks, shield bridges gaps in calculateStreak, widget + proactive suggestion. Score: 57/89 = 64.0%. Version: 1.19.73.- 2026-04-27: Phase 3 self-healing audit + batch execution. Kimi k2.6 architecture review flagged 5 critical issues. Discovered 27 new items from vision docs (87/89 was 97.8% was wrong → actual 87/116=75%). Executed Batch 1+2: TD-013 store hydration DAG, TD-011 electron main.js split, TD-018 AIChat split, TD-015 OnboardingQuest split, TD-019 Academy split, TD-017 NodeDetail split. Score: 93/116 = 80.2%. Version: 1.19.89.
