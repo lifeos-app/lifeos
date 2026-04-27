@@ -5,10 +5,10 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.19.79
+- **Current Version:** 1.19.82
 - **Baseline Date:** 2026-04-20
-- **Last Audit:** 2026-04-25
-- **Completion:** 72/89 = 80.9%
+- **Last Audit:** 2026-04-27
+- **Completion:** 87/89 = 97.8%
 
 ## Vision Documents (Source of Truth)
 1. `/home/tewedros/Desktop/webapp/docs/vision/VISION.md` — "LifeOS IS an AI that has an app as its interface"
@@ -136,6 +136,16 @@
 - [x] [P6-013] Family Plan tier — ✅ DONE — Date: 2026-04-25 — stripe-client.ts: FAMILY_PLAN_PRICE_ID, createFamilyCheckoutSession(), getFamilyPlanStatus(), inviteFamilyMember(), cancelFamilyInvite(), resendFamilyInvite() with localStorage mock. FamilyPlanSection.tsx: upgrade CTA ($14.99/mo, 5 seats), feature list (6 items), member management with invite/resend/cancel, Family Guild info. Wired into Settings subscription tab.
 - [x] [P6-014] Data Export (Pro feature) — ✅ DONE — Date: 2026-04-25 — data-export.ts with JSON/CSV export, scope selector (all/habits/goals/finances/health/journal), user_id redaction, downloadExport with Blob URL, export history in localStorage (last 3). DataExportSection replaces old export in SettingsDataPrivacy.tsx with scope selector, record count preview, format toggle, early adopter banner, export history display.
 - [x] [P6-015] Custom Themes (Pro feature) — ✅ DONE — Date: 2026-04-25 — themes.ts with 6 themes (Deep Space/Obsidian/Aurora/Solar/Crimson/Violet), CSS custom properties (--theme-bg/card-bg/accent/accent-2/text/text-muted/border), localStorage persistence, initTheme() on startup, lifeos-theme-changed event. ThemeSelector.tsx 2x3 grid in Settings > Preferences with color preview, gold selection ring, level-unlock badges. CSS vars defined in index.css with Deep Space defaults.
+
+## Academy 2.0 — Universal Adaptive Learning (2026-04-27)
+
+- [x] [A2-001] Universal Learning Goal system — ✅ DONE — v1.19.82 — src/types/academy.ts (18 types), src/lib/local-db.ts (4 new tables: learning_goals/assessments/study_sessions/learner_profile, DB_VERSION→9), src/stores/useAcademyStore2.ts (full CRUD Zustand store), Academy.tsx Goals tab. Works for any domain (fitness/music/language/business/tech/creative/academic).
+- [x] [A2-002] LLM Curriculum Engine — ✅ DONE — v1.19.82 — src/lib/curriculum-engine.ts: callLLMJson-powered generation with 8 domain fallback templates (3 phases × 3 lessons each, 200+ word lesson content). 5-step LearningGoalWizard (topic/level/time/style/preview + curriculum stats).
+- [x] [A2-003] Weekly Assessments (80% pass gate) — ✅ DONE — v1.19.82 — src/lib/assessment-engine.ts: LLM question generation (5Q: 3 MC + 1 T/F + 1 short answer), keyword matching for short answers, 80% pass threshold, retry logic. WeeklyAssessment.tsx: full-screen overlay with slide animation, confetti on pass.
+- [x] [A2-004] Adaptive Pacing Engine — ✅ DONE — v1.19.82 — src/lib/adaptive-pacing.ts: 7-day cooldown, ≥80% completion→increase frequency, ≤50%→decrease. AdaptivePaceWidget.tsx: dismissible banner with green/amber/blue theming. Learner profile (30-session avg, preferred study time).
+- [x] [A2-005] LifeOS Integration (schedule/habits/goals) — ✅ DONE — v1.19.82 — src/lib/study-scheduler.ts: scheduleNextLesson() creates Schedule tasks tagged academy:{goalId}/lesson:{lessonId}, createStudyHabit() creates dedicated habit, createLearningGoalInGoals() builds Goals hierarchy (objective + phase sub-goals). Full bidirectional integration.
+- [x] [A2-006] AI TutorBot with 6 modes — ✅ DONE — v1.19.82 — src/lib/llm/academy-tutor.ts: 6 mode-specific system prompts (Chat/DeepSolve/Quiz/Research/Visualize/Practice). TutorBot.tsx: AI chat sidebar (callLLMProxy + streamText animation), auto-triggers quiz/practice on mount. TutorModeButton pills. PhaseProgressBar dots.
+- [x] [A2-007] Full Lesson Experience — ✅ DONE — v1.19.82 — LessonViewer2.tsx: two-column layout (65% content + 35% TutorBot), breadcrumb, key points panel, ReactMarkdown rendering, phase progress dots, prev/next navigation, Mark Complete + XP toast. Mobile-responsive (TutorBot toggles as overlay). DashboardAcademy widget on Dashboard.
 
 ## Completed ✅
 
