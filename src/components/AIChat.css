@@ -1423,3 +1423,57 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* ─── TTS Button ──────────────────────────────────────────────────── */
+
+.tts-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.tts-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.8);
+  transform: scale(1.05);
+}
+
+.tts-btn--speaking {
+  background: rgba(0, 212, 255, 0.15);
+  color: #00D4FF;
+  animation: tts-pulse 1.2s ease-in-out infinite;
+}
+
+.tts-btn--speaking:hover {
+  background: rgba(0, 212, 255, 0.25);
+  color: #00D4FF;
+}
+
+.tts-btn--error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #EF4444;
+}
+
+@keyframes tts-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+/* TTS button inside chat bubble timestamp row */
+.ai-chat-tts-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}

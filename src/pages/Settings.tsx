@@ -10,7 +10,7 @@ import {
   User, Palette, Sparkles, Send, Link2, Crown, Database,
   RotateCcw, Navigation, Info, Settings as SettingsIcon,
   AlertTriangle, Loader2, Shield,
-  BarChart3,
+  BarChart3, Volume2,
 } from 'lucide-react';
 import { TelegramConnect } from '../components/TelegramConnect';
 import { IntegrationCard } from '../components/settings/IntegrationCard';
@@ -198,6 +198,16 @@ function AISettingsTab({ aiSettings, aiSaved, onChange }: {
   aiSettings: AISettings; aiSaved: boolean;
   onChange: (key: keyof AISettings, value: string | boolean) => void;
 }): JSX.Element {
+  const [ttsEnabled, setTtsEnabled] = useState(() => {
+    try { return localStorage.getItem('lifeos:tts-enabled') === 'true'; } catch { return false; }
+  });
+
+  const handleTTSToggle = () => {
+    const next = !ttsEnabled;
+    setTtsEnabled(next);
+    try { localStorage.setItem('lifeos:tts-enabled', next ? 'true' : 'false'); } catch { /* Safari private */ }
+  };
+
   return (
     <section className="set-section">
       <div className="set-section-header">
@@ -214,11 +224,25 @@ function AISettingsTab({ aiSettings, aiSaved, onChange }: {
             <span className="set-toggle-label">{aiSettings.enabled ? 'On' : 'Off'}</span>
           </button>
         </div>
+        <div className="set-form-group">
+          <label>Read AI responses aloud<span className="set-form-hint">Use text-to-speech to read AI responses out loud after streaming completes</span></label>
+          <button className={`set-toggle ${ttsEnabled ? 'on' : 'off'}`}
+            onClick={handleTTSToggle}>
+            <span className="set-toggle-dot" />
+            <span className="set-toggle-label">{ttsEnabled ? 'On' : 'Off'}</span>
+          </button>
+        </div>
       </div>
       <div className="set-ai-info">
         <Info size={14} />
         <span>API keys are stored on the server. Use <kbd>⌘J</kbd> to open the AI assistant.</span>
       </div>
+      {ttsEnabled && (
+        <div className="set-ai-info" style={{ background: 'rgba(0,212,255,0.08)', borderColor: 'rgba(0,212,255,0.2)' }}>
+          <Volume2 size={14} style={{ color: '#00D4FF' }} />
+          <span style={{ color: 'rgba(255,255,255,0.7)' }}>TTS is active — AI responses will be spoken aloud after they finish generating. Click the <Volume2 size={12} style={{ verticalAlign: 'middle' }} /> button on any message to replay it.</span>
+        </div>
+      )}
     </section>
   );
 }

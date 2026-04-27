@@ -6,8 +6,10 @@ import {
 import type { RateLimitInfo } from '../../lib/intent-engine';
 import { ChatActionCards } from './ChatActions';
 import { OrchestratorCard } from './OrchestratorCards';
+import { NLQueryResult } from '../NLQueryResult';
 import type { ChatMessage } from './helpers';
 import { formatTimestamp } from './helpers';
+import { TTSButton } from '../TTSButton';
 
 // Lazy load markdown renderer (47 KB savings from initial bundle)
 const ReactMarkdown = lazy(() => import('react-markdown'));
@@ -180,8 +182,13 @@ export function ChatMessageList({
 
             {/* Timestamp (hide during streaming) */}
             {!msg.isStreaming && !msg.agentLoading && (
-              <div className="ai-chat-timestamp">
-                {formatTimestamp(msg.timestamp)}
+              <div className="ai-chat-tts-row">
+                <div className="ai-chat-timestamp">
+                  {formatTimestamp(msg.timestamp)}
+                </div>
+                {msg.role === 'assistant' && (
+                  <TTSButton text={msg.content} size={12} />
+                )}
               </div>
             )}
 
@@ -205,6 +212,11 @@ export function ChatMessageList({
               <div className="ai-orch-result ai-actions-enter">
                 <OrchestratorCard result={msg.orchestratorData} />
               </div>
+            )}
+
+            {/* NL Query result (local data query, no LLM needed) */}
+            {!msg.isStreaming && msg.nlQueryResult && (
+              <NLQueryResult result={msg.nlQueryResult} />
             )}
 
             {/* Follow-up question (show after streaming completes) */}

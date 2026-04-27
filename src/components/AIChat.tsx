@@ -13,6 +13,7 @@ import {
 import { loadIntentContext } from '../lib/intent-engine';
 import type { IntentContext, RateLimitInfo } from '../lib/intent-engine';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
+import { speak as ttsSpeak, stop as ttsStop, isTTSEnabled } from '../lib/text-to-speech';
 import { logger } from '../utils/logger';
 import './AIChat.css';
 
@@ -180,6 +181,29 @@ export function AIChat() {
       scrollToBottom();
     }
   });
+
+  // ─── Auto-TTS: Speak AI response when streaming completes ──────
+  const prevStreamingRef = useRef(false);
+  useEffect(() => {
+    // Detect transition from streaming → not streaming
+    const wasStreaming = prevStreamingRef.current;
+    prevStreamingRef.current = streaming;
+
+    if (wasStreaming && !streaming && isTTSEnabled()) {
+      // Find the last assistant message
+      const lastAssistantMsg = [...messages].reverse().find(m => m.role === 'assistant');
+      if (lastAssistantMsg && !lastAssistantMsg.isStreaming) {
+        ttsSpeak(lastAssistantMsg.content);
+      }
+    }
+  }, [streaming, messages]);
+
+  // Stop TTS when chat is closed
+  useEffect(() => {
+    if (!open) {
+      ttsStop();
+    }
+  }, [open]);
 
   // Mobile: size panel to visual viewport so it sits flush on keyboard
   const panelRef = useRef<HTMLDivElement>(null);
