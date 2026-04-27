@@ -285,30 +285,18 @@ function AppRoutes() {
   }, [user?.id, profile?.onboarding_complete]);
 
   // Hydrate all stores once user is authenticated — makes page navigation instant
-  // skipSync: true prevents 6 individual syncs; we fire a single sync after all hydrate
+  // Ordered phases in store-hydration prevent races; single sync fires after all phases
   // Uses requestIdleCallback to defer hydration and keep initial render fast
   useEffect(() => {
     if (!user) return;
-    const hydrateStores = () => {
-      const skipSync = { skipSync: true };
-      Promise.allSettled([
-        useScheduleStore.getState().fetchAll(skipSync),
-        useHealthStore.getState().fetchToday(skipSync),
-        useHabitsStore.getState().fetchAll(skipSync),
-        useFinanceStore.getState().fetchAll(skipSync),
-        useGoalsStore.getState().fetchAll(skipSync),
-        useJournalStore.getState().fetchRecent(50, skipSync),
-        useLiveActivityStore.getState().hydrate(),
-        useAssetsStore.getState().fetchAll(skipSync),
-      ]).then(() => {
-        import('./lib/sync-engine').then(m => m.syncNowImmediate(user.id)).catch(e => logger.warn('[app] initial sync failed:', e));
-      });
+    const runHydration = () => {
+      import('./lib/store-hydration').then(m => m.hydrateStores(user.id));
     };
     // Defer store hydration to idle time — renders UI faster
     if (typeof requestIdleCallback !== 'undefined') {
-      requestIdleCallback(hydrateStores, { timeout: 2000 });
+      requestIdleCallback(runHydration, { timeout: 2000 });
     } else {
-      setTimeout(hydrateStores, 200);
+      setTimeout(runHydration, 200);
     }
   }, [user?.id]);
 
