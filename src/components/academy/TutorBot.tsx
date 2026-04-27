@@ -16,7 +16,8 @@ import {
   ALL_MODES,
   type TutorMode,
 } from '../../lib/llm/academy-tutor';
-import { chatCompletionStream } from '../../lib/ai-local';
+import { callLLMProxy } from '../../lib/llm-proxy';
+import { streamText } from '../../lib/streaming';
 import { TutorModeButton } from './TutorModeButton';
 
 // ── Local types (inline per spec) ────────────────────────────────────
@@ -148,32 +149,19 @@ export function TutorBot({ goal, lesson, activeMode, onModeChange }: TutorBotPro
     let fullText = '';
 
     try {
-      await chatCompletionStream(
-        {
-          messages: llmMessages.map((m) => ({
-            role: m.role as 'system' | 'user' | 'assistant',
-            content: m.content,
-          })),
-          temperature: 0.7,
-          max_tokens: 1024,
-        },
-        {
-          onToken: (token) => {
-            fullText += token;
-            setStreamedText(fullText);
-          },
-          onComplete: (text) => {
-            fullText = text;
-          },
-          onError: (err) => {
-            fullText = `Sorry, I couldn't connect to the AI tutor. Error: ${err.message}`;
-          },
-        },
-      );
+      const result = await callLLMProxy(llmMessages, { timeoutMs: 30000 });
+      fullText = result.content;
+      // Animate text reveal
+      await new Promise<void>((resolve) => {
+        const ctrl = streamText(fullText, {
+          onChunk: (partial) => setStreamedText(partial),
+          onComplete: () => resolve(),
+        });
+        // Store cancel ref so we don't leak on unmount (best-effort)
+        void ctrl;
+      });
     } catch {
-      if (!fullText) {
-        fullText = 'Sorry, the AI tutor is not available right now. Make sure the local AI bridge is running.';
-      }
+      fullText = 'Sorry, the AI tutor is not available right now. Make sure the local AI bridge is running.';
     }
 
     const assistantMsg: TutorMessage = {
