@@ -73,6 +73,8 @@ import {
   StreakShieldWidget,
   DashboardEveningReview,
   DashboardAcademy,
+  FlowStateIndicator,
+  FlowInsightsCard,
 } from '../components/dashboard';
 import { ProactiveSuggestions } from '../components/dashboard/ProactiveSuggestions';
 import { HolyHermesOracle } from '../components/HolyHermesOracle';
@@ -427,6 +429,9 @@ export function Dashboard() {
               <FeatureErrorBoundary feature="Streak Shield" compact>
                 <StreakShieldWidget />
               </FeatureErrorBoundary>
+              <FeatureErrorBoundary feature="Flow State" compact>
+                <FlowStateIndicator />
+              </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Academy" compact>
                 <DashboardAcademy />
               </FeatureErrorBoundary>
@@ -537,6 +542,9 @@ export function Dashboard() {
                   <DashboardScheduleInsights />
                 </FeatureErrorBoundary>
               )}
+              <FeatureErrorBoundary feature="Flow Insights" compact>
+                <FlowInsightsCard />
+              </FeatureErrorBoundary>
               {isWidgetVisible('weekly-insight') && (
                 <FeatureErrorBoundary feature="Weekly Insight" compact>
                   <DashboardWeeklyInsight />
@@ -688,6 +696,9 @@ export function Dashboard() {
               </FeatureErrorBoundary>
             </div>
             <div className="dash-secondary-col">
+              <FeatureErrorBoundary feature="Flow Insights" compact>
+                <FlowInsightsCard />
+              </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Finances" compact>
                 <DashboardFinances ref={finRef} income={income} expenses={expenses} bills={bills}
                   businesses={businesses} transactions={transactions} goals={goals} finSnapshot={finSnapshot} />
