@@ -19,6 +19,7 @@ import { useUserStore } from '../stores/useUserStore';
 import { logger } from '../utils/logger';
 import { getTabCoordinator, initTabCoordinator } from './tab-coordinator';
 import type { TableName } from './local-db';
+import { detectConflict, logConflict } from './sync-conflict';
 
 // ── Cloud Sync for Electron ──
 // In Electron, `db` routes to local SQLite. When a cloud session exists
@@ -556,6 +557,70 @@ function notifyListeners(status: SyncStatus) {
 // ══════════════════════════════════════════════════════════════
 
 /**
+ * Fetch current remote versions of records and detect sync conflicts.
+ * For each local record being pushed, checks if the remote already has a newer
+ * version. If so, logs the conflict. Then proceeds with the LWW upsert as before
+ * (no behavior change — conflicts are detection-only at this stage).
+ *
+ * Batch-fetches remote records in a single query per table for efficiency.
+ *
+ * @returns Number of conflicts detected during this push batch.
+ */
+async function detectConflictsForUpsert(
+  table: TableName,
+  localRecords: Record<string, unknown>[],
+  pkField: string,
+  syncClient: any
+): Promise<number> {
+  if (localRecords.length === 0) return 0;
+
+  const supabaseTable = getSupabaseTable(table);
+
+  // Collect the primary key values for all records being pushed
+  const pkValues = localRecords.map(r => r[pkField]).filter(Boolean);
+  if (pkValues.length === 0) return 0;
+
+  let conflictsDetected = 0;
+
+  try {
+    // Batch-fetch current remote versions — single query, not one per record
+    const { data: remoteRows, error } = await syncClient
+      .from(supabaseTable)
+      .select('*')
+      .in(pkField, pkValues);
+
+    if (error || !remoteRows || remoteRows.length === 0) {
+      // No remote versions exist yet — no conflicts possible
+      return 0;
+    }
+
+    // Index remote rows by pk for O(1) lookup
+    const remoteByPk = new Map<string, Record<string, unknown>>();
+    for (const row of remoteRows) {
+      remoteByPk.set(String(row[pkField]), row);
+    }
+
+    // Compare each local record against its remote version
+    for (const localRecord of localRecords) {
+      const pk = String(localRecord[pkField]);
+      const remoteRecord = remoteByPk.get(pk);
+      if (!remoteRecord) continue; // No remote version → no conflict
+
+      const conflict = detectConflict(localRecord, remoteRecord, table);
+      if (conflict) {
+        logConflict(conflict);
+        conflictsDetected++;
+      }
+    }
+  } catch (e: unknown) {
+    // Conflict detection is best-effort — never block the sync
+    logger.warn(`[sync] Conflict detection failed for ${table}:`, e);
+  }
+
+  return conflictsDetected;
+}
+
+/**
  * Push all unsynced local records to Supabase with retry logic.
  */
 async function pushToSupabase(userId: string): Promise<number> {
@@ -601,6 +666,9 @@ async function pushToSupabase(userId: string): Promise<number> {
           addToRetryQueue(retry.table, retry.recordId, 'push', error.message);
         }
       } else {
+        // Conflict detection for retry upsert (best-effort)
+        detectConflictsForUpsert(retry.table, [record], pkField, syncClient).catch(() => {});
+
         const { error } = await syncClient
           .from(supabaseTable)
           .upsert(await sanitizeForSupabase(retry.table, data), { onConflict: pkField });
@@ -642,6 +710,10 @@ async function pushToSupabase(userId: string): Promise<number> {
 
       // Batch upsert
       if (toUpsert.length > 0) {
+        // Conflict detection (best-effort, non-blocking): check if remote has newer versions
+        const localRecordsForConflict = toUpsert.map(r => r.record);
+        detectConflictsForUpsert(table, localRecordsForConflict, pkField, syncClient).catch(() => {});
+
         const batchData = await Promise.all(toUpsert.map(r => sanitizeForSupabase(table, r.data)));
         const { error } = await syncClient.from(supabaseTable).upsert(batchData, { onConflict: pkField });
         if (!error) {
