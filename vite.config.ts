@@ -86,12 +86,43 @@ function academyServePlugin() {
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const isDesktop = mode === 'desktop' || !!process.env.TAURI_ENV_PLATFORM || !!process.env.ELECTRON_ENV;
+
+  // ─── Build-time adapter selection (TD-016) ──────────────────────────
+  // Determine which DB adapter barrel to resolve '@lifeos/db-adapter' to.
+  // This ensures only ONE adapter's code is included per build.
+  const _useLocalApi = process.env.VITE_USE_LOCAL_API === 'true' || !!process.env.VITE_API_BASE_URL;
+  const _adapterPath = mode === 'desktop' && !!process.env.ELECTRON_ENV
+    ? resolve(__dirname, 'src/lib/data-access/adapters/electron.ts')
+    : mode === 'capacitor'
+      ? resolve(__dirname, 'src/lib/data-access/adapters/capacitor.ts')
+      : !!process.env.TAURI_ENV_PLATFORM
+        ? resolve(__dirname, 'src/lib/data-access/adapters/tauri.ts')
+        : _useLocalApi
+          ? resolve(__dirname, 'src/lib/data-access/adapters/local-api.ts')
+          : resolve(__dirname, 'src/lib/data-access/adapters/supabase.ts');
+
+  const _dataEnv = mode === 'desktop' && !!process.env.ELECTRON_ENV
+    ? 'electron'
+    : mode === 'capacitor'
+      ? 'capacitor'
+      : !!process.env.TAURI_ENV_PLATFORM
+        ? 'tauri'
+        : _useLocalApi
+          ? 'local-api'
+          : 'supabase';
+
   return {
+  resolve: {
+    alias: {
+      '@lifeos/db-adapter': _adapterPath,
+    },
+  },
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
     __IS_TAURI__: JSON.stringify(!!process.env.TAURI_ENV_PLATFORM),
     __IS_ELECTRON__: JSON.stringify(!!process.env.ELECTRON_ENV),
     __IS_CAPACITOR__: JSON.stringify(!!process.env.CAPACITOR_ENV),
+    __DATA_ENV__: JSON.stringify(_dataEnv),
   },
   plugins: [
     tailwindcss(),

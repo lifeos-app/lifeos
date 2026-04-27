@@ -23,7 +23,13 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+
+    /* Build-time alias injection (TD-016) — matches Vite resolve.alias */
+    "baseUrl": ".",
+    "paths": {
+      "@lifeos/db-adapter": ["src/lib/data-access/adapters/supabase.ts"]
+    }
   },
   "include": ["src"]
 }

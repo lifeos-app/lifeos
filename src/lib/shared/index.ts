@@ -10,6 +10,6 @@
  * Features NEVER import components from other feature pages.
  */
 
-export { supabase } from '../data-access';
+export { supabase } from '../data-access/index';
 export { useUserStore } from '../../stores/useUserStore';
 export { logger } from '../../utils/logger';
