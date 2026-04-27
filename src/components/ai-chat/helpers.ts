@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import type { IntentAction, RateLimitInfo } from '../../lib/intent-engine';
 import type { OrchestratorToolResult } from '../../lib/llm/orchestrator';
+import type { QueryResult } from '../../lib/nl-query-engine';
 
 // ─── Chat Message Type ──────────────────────────────────────────
 export interface ChatMessage {
@@ -31,6 +32,8 @@ export interface ChatMessage {
   isEnhanced?: boolean;
   /** Whether agent enhancement is currently loading */
   agentLoading?: boolean;
+  /** Result from NL query engine (local data query, no LLM needed) */
+  nlQueryResult?: QueryResult;
 }
 
 // ─── Action Icon & Color Maps ───────────────────────────────────
@@ -229,7 +232,7 @@ export function saveChatHistory(messages: ChatMessage[], userId?: string) {
     // Keep last N messages to avoid bloating localStorage
     // Strip streaming flag before saving
     const toStore = messages.slice(-MAX_STORED_MESSAGES).map(m => {
-      const { isStreaming, orchestratorLoading, agentLoading, ...rest } = m;
+      const { isStreaming, orchestratorLoading, agentLoading, nlQueryResult, ...rest } = m;
       return rest;
     });
     localStorage.setItem(getChatStorageKey(userId), JSON.stringify(toStore));

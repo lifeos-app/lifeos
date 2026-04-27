@@ -16,6 +16,13 @@ import { genId } from '../../utils/date';
 import type { ChatMessage } from './helpers';
 import { getPageContext } from './helpers';
 import { logger } from '../../utils/logger';
+import { processQuery, mightMatchNLQuery, type StoreAccess } from '../../lib/nl-query-engine';
+import { useJournalStore } from '../../stores/useJournalStore';
+import { useHabitsStore } from '../../stores/useHabitsStore';
+import { useHealthStore } from '../../stores/useHealthStore';
+import { useGoalsStore } from '../../stores/useGoalsStore';
+import { useFinanceStore } from '../../stores/useFinanceStore';
+import { useScheduleStore } from '../../stores/useScheduleStore';
 
 export interface UseAIChatSendArgs {
   user: User | null;
@@ -185,6 +192,49 @@ export function useAIChatSend({
   const sendMessage = useCallback(async (text?: string, inputText?: string) => {
     const msg = text || (inputText || '').trim();
     if (!msg || loading || streaming) return;
+
+    // ─── NL Query Engine: fast path for data questions (no LLM needed) ──
+    if (mightMatchNLQuery(msg)) {
+      try {
+        const stores: StoreAccess = {
+          journal: useJournalStore.getState(),
+          habits: useHabitsStore.getState(),
+          health: useHealthStore.getState(),
+          goals: useGoalsStore.getState(),
+          finance: useFinanceStore.getState(),
+          schedule: useScheduleStore.getState(),
+        };
+        const nlResult = await processQuery(msg, stores);
+        if (nlResult.confidence > 0.5) {
+          // NL query matched with confidence — respond locally without LLM
+          const userMsg: ChatMessage = {
+            id: genId(),
+            role: 'user',
+            content: msg,
+            timestamp: new Date(),
+          };
+          const assistantMsg: ChatMessage = {
+            id: genId(),
+            role: 'assistant',
+            content: nlResult.answer,
+            nlQueryResult: nlResult,
+            timestamp: new Date(),
+          };
+          setMessages(prev => [...prev, userMsg, assistantMsg]);
+
+          // Create conversation if needed
+          if (!currentConversationId && user?.id) {
+            await appendToConversation(msg);
+          }
+
+          awardXP('ai_message', { description: 'NL query (local)' });
+          return; // Skip LLM call
+        }
+      } catch (err) {
+        logger.warn('[AIChat] NL query engine error, falling back to LLM:', err);
+        // Fall through to normal LLM flow
+      }
+    }
 
     // If context isn't loaded yet, load it now
     let ctx = intentContext;
