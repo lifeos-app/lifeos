@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { BookOpen, ChevronRight } from 'lucide-react';
 import { supabase } from '../../lib/data-access';
 import { localDateStr } from '../../utils/date';
+import { normalizeTags } from '../journal/helpers';
 
 const MOODS: Record<number, string> = { 1: '😫', 2: '😕', 3: '😐', 4: '🙂', 5: '😄' };
 
@@ -17,7 +18,7 @@ interface DashboardJournalProps {
 }
 
 export function DashboardJournal({ selectedDate }: DashboardJournalProps) {
-  const [journalEntry, setJournalEntry] = useState<{ date: string; mood?: number; content?: string; title?: string; tags?: string } | null>(null);
+  const [journalEntry, setJournalEntry] = useState<{ date: string; mood?: number; content?: string; title?: string; tags?: string | string[] } | null>(null);
   const [journalCount, setJournalCount] = useState(0);
   const [journalStreak, setJournalStreak] = useState(0);
   const [, setLoading] = useState(true);
@@ -99,8 +100,8 @@ export function DashboardJournal({ selectedDate }: DashboardJournalProps) {
             </p>
             {journalEntry.tags && (
               <div className="dash-journal-tags">
-                {journalEntry.tags.split(',').map((t: string, i: number) =>
-                  t.trim() && <span key={i} className="dash-journal-tag">{t.trim()}</span>
+                {normalizeTags(journalEntry.tags).map((t, i) =>
+                  <span key={i} className="dash-journal-tag">{t}</span>
                 )}
               </div>
             )}

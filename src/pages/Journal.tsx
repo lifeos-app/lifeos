@@ -18,7 +18,7 @@ import { JournalEditor } from '../components/journal/JournalEditor';
 import { JournalEntryList } from '../components/journal/JournalEntryList';
 import { MOODS, PAGE_SIZE } from '../components/journal/types';
 import type { JournalEntry } from '../components/journal/types';
-import { calculateStreak, calculateStats, formatDateLabel } from '../components/journal/helpers';
+import { calculateStreak, calculateStats, formatDateLabel, tagsToInputString, inputStringToTagsArray } from '../components/journal/helpers';
 import './Journal.css';
 import { logger } from '../utils/logger';
 
@@ -78,7 +78,7 @@ export function Journal() {
       setContent(storeEntry.content || '');
       setMood(storeEntry.mood);
       setEnergy(storeEntry.energy);
-      setTags(storeEntry.tags || '');
+      setTags(tagsToInputString(storeEntry.tags));
       setImageUrl(storeEntry.image_url || null);
     } else {
       setEntry(null); setTitle(''); setContent(''); setMood(null); setEnergy(null); setTags(''); setImageUrl(null);
@@ -142,13 +142,19 @@ export function Journal() {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     setSaving(true);
     
+    const rawTags = overrides?.tags !== undefined ? overrides.tags : tags;
+    // Normalize tags: if it's already a JSON-stringified array, keep it;
+    // if it's comma-separated input text, convert to JSON-stringified array
+    const normalizedTags = typeof rawTags === 'string' && !rawTags.startsWith('[')
+      ? inputStringToTagsArray(rawTags)
+      : rawTags;
     const payload = {
       date: selectedDate,
       title: overrides?.title ?? title,
       content: overrides?.content ?? content,
       mood: overrides?.mood !== undefined ? overrides.mood : mood,
       energy: overrides?.energy !== undefined ? overrides.energy : energy,
-      tags: overrides?.tags ?? tags,
+      tags: normalizedTags,
     };
 
     let entryId = entry?.id;
@@ -225,7 +231,7 @@ export function Journal() {
 
   const handleTitleChange = (v: string) => { setTitle(v); debouncedSave({ title: v }); };
   const handleContentChange = (v: string) => { setContent(v); debouncedSave({ content: v }); };
-  const handleTagsChange = (v: string) => { setTags(v); debouncedSave({ tags: v }); };
+  const handleTagsChange = (v: string) => { setTags(v); debouncedSave(); };
   const handleMoodChange = (v: number) => { setMood(v); saveEntry({ mood: v }); };
   const handleEnergyChange = (v: number) => { setEnergy(v); saveEntry({ energy: v }); };
 

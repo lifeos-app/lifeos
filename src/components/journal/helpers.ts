@@ -3,6 +3,44 @@ import type { JournalEntry } from './types';
 
 export const formatDateLabel = (d: string) => formatDateShort(d);
 
+/**
+ * Normalize tags from either format (comma-separated string or JSONB string array)
+ * into a clean string array. Handles backward compatibility:
+ * - Comma-separated string: "tag1,tag2" → ["tag1","tag2"]
+ * - JSON array string: '["tag1","tag2"]' → ["tag1","tag2"]
+ * - Already an array: ["tag1","tag2"] → ["tag1","tag2"]
+ * - Empty/null/undefined: → []
+ */
+export function normalizeTags(tags: string | string[] | null | undefined): string[] {
+  if (!tags) return [];
+  if (Array.isArray(tags)) return tags.filter(Boolean);
+  if (typeof tags === 'string') {
+    if (tags.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(tags);
+        if (Array.isArray(parsed)) return parsed.filter(Boolean);
+      } catch { /* fall through to comma-split */ }
+    }
+    return tags.split(',').map(t => t.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+/**
+ * Convert a tag array back to a comma-separated string for display in input fields.
+ */
+export function tagsToInputString(tags: string | string[] | null | undefined): string {
+  return normalizeTags(tags).join(', ');
+}
+
+/**
+ * Convert a comma-separated input string to a JSON-stringified array for storage.
+ */
+export function inputStringToTagsArray(input: string): string {
+  const tags = input.split(',').map(t => t.trim()).filter(Boolean);
+  return JSON.stringify(tags);
+}
+
 /** Group entries by date categories */
 export const groupEntries = (entries: JournalEntry[]) => {
   const today = todayStr();
@@ -73,9 +111,9 @@ export const calculateStats = (entries: JournalEntry[]) => {
 export const getPopularTags = (entries: JournalEntry[], limit = 8) => {
   const tagCounts: Record<string, number> = {};
   entries.forEach(e => {
-    if (!e.tags) return;
-    e.tags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean).forEach(tag => {
-      tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+    normalizeTags(e.tags).forEach(tag => {
+      const normalized = tag.toLowerCase();
+      if (normalized) tagCounts[normalized] = (tagCounts[normalized] || 0) + 1;
     });
   });
   return Object.entries(tagCounts)

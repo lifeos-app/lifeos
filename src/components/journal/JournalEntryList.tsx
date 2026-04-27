@@ -10,7 +10,7 @@ import { todayStr } from '../../utils/date';
 import { EmptyState } from '../EmptyState';
 import { MOODS } from './types';
 import type { JournalEntry } from './types';
-import { formatDateLabel, groupEntries, getPopularTags } from './helpers';
+import { formatDateLabel, groupEntries, getPopularTags, normalizeTags } from './helpers';
 import remarkGfm from 'remark-gfm';
 
 const ReactMarkdown = lazy(() => import('react-markdown'));
@@ -51,7 +51,7 @@ export function JournalEntryList({
   // Filter entries by tag if active
   const filteredEntries = tagFilter
     ? entries.filter(e => {
-        const entryTags = e.tags?.toLowerCase().split(',').map(t => t.trim()) || [];
+        const entryTags = normalizeTags(e.tags).map(t => t.toLowerCase());
         return entryTags.some(t => t.includes(tagFilter.toLowerCase()));
       })
     : entries;
@@ -157,7 +157,7 @@ export function JournalEntryList({
                           </div>
                           {e.tags && (
                             <div className="jnl-tag-pills small">
-                              {e.tags.split(',').map(t => t.trim()).filter(Boolean).map((t, i) => (
+                              {normalizeTags(e.tags).map((t, i) => (
                                 <span key={i} className="jnl-tag-pill">#{t}</span>
                               ))}
                             </div>

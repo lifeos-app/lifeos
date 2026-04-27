@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { MOODS, TAG_PRESETS, TEMPLATES } from './types';
 import type { JournalEntry } from './types';
+import { normalizeTags, tagsToInputString } from './helpers';
 import remarkGfm from 'remark-gfm';
 import { logger } from '../../utils/logger';
 
@@ -30,6 +31,7 @@ interface JournalEditorProps {
   content: string;
   mood: number | null;
   energy: number | null;
+  /** Tags as comma-separated string for the input field */
   tags: string;
   imageUrl: string | null;
   generatingImage: boolean;
@@ -120,7 +122,7 @@ export function JournalEditor({
   };
 
   const addTagPreset = (tag: string) => {
-    const currentTags = tags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+    const currentTags = normalizeTags(tags);
     if (!currentTags.includes(tag.toLowerCase())) {
       const newTags = [...currentTags, tag].join(', ');
       onTagsChange(newTags);
@@ -129,7 +131,7 @@ export function JournalEditor({
   };
 
   const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
-  const tagPills = tags.split(',').map(t => t.trim()).filter(Boolean);
+  const tagPills = normalizeTags(tags);
 
   return (
     <div className="jnl-editor" style={mood ? {

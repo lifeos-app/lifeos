@@ -266,7 +266,8 @@ export interface JournalEntry {
   content?: string;
   mood: number | null;
   energy: number | null;
-  tags: string;
+  /** Tag array — may be string (comma-separated legacy) or string[] (JSONB array) */
+  tags: string | string[];
   created_at: string;
   updated_at?: string;
   is_deleted: boolean;

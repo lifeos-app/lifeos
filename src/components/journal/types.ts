@@ -1,6 +1,8 @@
 export interface JournalEntry {
   id: string; user_id: string; date: string; title: string; content: string;
-  mood: number | null; energy: number | null; tags: string;
+  mood: number | null; energy: number | null;
+  /** Tag array — may be string (comma-separated legacy) or string[] (JSONB array) */
+  tags: string | string[];
   created_at: string; updated_at: string; is_deleted: boolean; sync_status: string;
   image_url?: string | null;
 }

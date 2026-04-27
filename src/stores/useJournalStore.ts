@@ -14,6 +14,8 @@ import { useUserStore } from './useUserStore';
 import type { JournalEntry as DBJournalEntry } from '../types/database';
 import { logger } from '../utils/logger';
 import { genId } from '../utils/date';
+import { normalizeTags } from '../components/journal/helpers';
+import { logAuditEntry } from '../lib/audit-logger';
 
 /**
  * Store-specific JournalEntry extends DB type with additional fields
@@ -63,16 +65,23 @@ export const useJournalStore = create<JournalState>((set, get) => ({
       // ALWAYS load from local DB first
       const allEntries = await localGetAll<JournalEntry>('journal_entries');
       
+      // Normalize tags from legacy comma-separated strings to string arrays
+      // This ensures backward compatibility with existing data
+      const normalizedEntries = allEntries.map(e => ({
+        ...e,
+        tags: normalizeTags(e.tags),
+      }));
+
       const sixMonthsAgo = new Date();
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
       const sixStr = sixMonthsAgo.toISOString().split('T')[0];
 
-      const filteredEntries = allEntries
+      const filteredEntries = normalizedEntries
         .filter(e => !e.is_deleted)
         .sort((a, b) => b.date.localeCompare(a.date))
         .slice(0, limit);
 
-      const entryCount = allEntries.filter(e => !e.is_deleted).length;
+      const entryCount = normalizedEntries.filter(e => !e.is_deleted).length;
       
       const recentDates = allEntries
         .filter(e => !e.is_deleted && e.date >= sixStr)
@@ -125,6 +134,8 @@ export const useJournalStore = create<JournalState>((set, get) => ({
         entryDates: new Set([...s.entryDates, newEntry.date]),
       }));
       if (isOnline()) syncNow(useUserStore.getState().user?.id).catch(e => logger.warn('[journal] sync failed:', e));
+      // Audit log
+      try { logAuditEntry({ userId: getEffectiveUserId() || '', action: 'INSERT', tableName: 'journal_entries', recordId: newEntry.id, newData: newEntry as any }); } catch {}
       return newEntry;
     } catch (err) {
       logger.error('[journal] addEntry error:', err);
@@ -134,9 +145,12 @@ export const useJournalStore = create<JournalState>((set, get) => ({
 
   updateEntry: async (id, updates) => {
     const prev = get().entries;
+    const oldEntry = prev.find(e => e.id === id);
     set(s => ({ entries: s.entries.map(e => e.id === id ? { ...e, ...updates } : e) }));
     try {
       await localUpdate('journal_entries', id, updates);
+      // Audit log
+      try { logAuditEntry({ userId: getEffectiveUserId() || '', action: 'UPDATE', tableName: 'journal_entries', recordId: id, oldData: oldEntry as any, newData: updates as any }); } catch {}
       if (isOnline()) syncNow(useUserStore.getState().user?.id).catch(e => logger.warn('[journal] sync failed:', e));
     } catch (err) {
       logger.error('[journal] updateEntry error:', err);
@@ -154,6 +168,8 @@ export const useJournalStore = create<JournalState>((set, get) => ({
     }));
     try {
       await localDelete('journal_entries', id);
+      // Audit log
+      try { logAuditEntry({ userId: getEffectiveUserId() || '', action: 'DELETE', tableName: 'journal_entries', recordId: id, oldData: entry as any }); } catch {}
       if (isOnline()) syncNow(useUserStore.getState().user?.id).catch(e => logger.warn('[journal] sync failed:', e));
     } catch (err) {
       logger.error('[journal] deleteEntry error:', err);
