@@ -800,8 +800,21 @@ export default function LearningToCode({ onStepComplete, completedSteps = [] }: 
     setPreviewKey(k => k + 1);
   }, [currentStep]);
 
+  // Debounced preview update — iframe re-renders 300ms after typing stops
+  const previewTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
   const handleCodeChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setCode(e.target.value);
+    // Auto-update preview after debounce
+    clearTimeout(previewTimerRef.current);
+    previewTimerRef.current = setTimeout(() => {
+      setPreviewKey(k => k + 1);
+    }, 300);
+  }, []);
+
+  // Cleanup debounce timer
+  useEffect(() => {
+    return () => clearTimeout(previewTimerRef.current);
   }, []);
 
   const handleRefresh = useCallback(() => {
