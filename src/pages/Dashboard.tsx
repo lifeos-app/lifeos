@@ -72,6 +72,7 @@ import {
   DashboardScheduleInsights,
   StreakShieldWidget,
   DashboardEveningReview,
+  DashboardAcademy,
 } from '../components/dashboard';
 import { ProactiveSuggestions } from '../components/dashboard/ProactiveSuggestions';
 import { HolyHermesOracle } from '../components/HolyHermesOracle';
@@ -425,6 +426,9 @@ export function Dashboard() {
               </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Streak Shield" compact>
                 <StreakShieldWidget />
+              </FeatureErrorBoundary>
+              <FeatureErrorBoundary feature="Academy" compact>
+                <DashboardAcademy />
               </FeatureErrorBoundary>
 
               {activeInsightCount > 0 && (

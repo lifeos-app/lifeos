@@ -35,3 +35,4 @@ export { DashboardScheduleInsights } from './DashboardScheduleInsights';
 export { StreakShieldWidget } from './StreakShieldWidget';
 export { DashboardEveningReview } from './DashboardEveningReview';
 export { DashboardSeasonalEvent } from './DashboardSeasonalEvent';
+export { DashboardAcademy } from './DashboardAcademy';
