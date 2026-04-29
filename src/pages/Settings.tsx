@@ -10,10 +10,11 @@ import {
   User, Palette, Sparkles, Send, Link2, Crown, Database,
   RotateCcw, Navigation, Info, Settings as SettingsIcon,
   AlertTriangle, Loader2, Shield,
-  BarChart3, Volume2, Bell, Puzzle, Cpu,
+  BarChart3, Volume2, Bell, Puzzle, Cpu, Gift,
 } from 'lucide-react';
 import { PluginManager } from '../components/PluginManager';
 import { NotificationPrefsPanel } from '../components/NotificationPrefsPanel';
+import { PushNotificationSetup } from '../components/PushNotificationSetup';
 import { TelegramConnect } from '../components/TelegramConnect';
 import { IntegrationCard } from '../components/settings/IntegrationCard';
 import { useGoogleIntegration } from '../hooks/useGoogleIntegration';
@@ -30,9 +31,10 @@ import { FamilyPlanSection } from '../components/settings/FamilyPlanSection';
 import { AIUsageStats } from '../components/AIUsageStats';
 import { LLMProviderSettings } from '../components/LLMProviderSettings';
 import { AuditLogViewer } from '../components/AuditLogViewer';
+import { ReferralPanel } from '../components/ReferralPanel';
 import './Settings.css';
 
-type TabId = 'profile' | 'preferences' | 'notifications' | 'ai' | 'ai-providers' | 'ai-usage' | 'audit' | 'telegram' | 'integrations' | 'subscription' | 'data' | 'onboarding' | 'tours' | 'plugins' | 'about';
+type TabId = 'profile' | 'preferences' | 'notifications' | 'ai' | 'ai-providers' | 'ai-usage' | 'audit' | 'telegram' | 'integrations' | 'subscription' | 'referral' | 'data' | 'onboarding' | 'tours' | 'plugins' | 'about';
 
 const TABS: { id: TabId; label: string; icon: typeof User }[] = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -45,6 +47,7 @@ const TABS: { id: TabId; label: string; icon: typeof User }[] = [
   { id: 'telegram', label: 'Telegram', icon: Send },
   { id: 'integrations', label: 'Integrations', icon: Link2 },
   { id: 'subscription', label: 'Subscription', icon: Crown },
+  { id: 'referral', label: 'Referrals', icon: Gift },
   { id: 'data', label: 'Data & Privacy', icon: Database },
   { id: 'plugins', label: 'Plugins', icon: Puzzle },
   { id: 'onboarding', label: 'Onboarding', icon: RotateCcw },
@@ -151,7 +154,12 @@ export function Settings() {
           <div className="set-content">
             {activeTab === 'profile' && <SettingsProfile onError={setError} />}
             {activeTab === 'preferences' && <SettingsPreferences />}
-            {activeTab === 'notifications' && <NotificationPrefsPanel />}
+            {activeTab === 'notifications' && (
+              <>
+                <PushNotificationSetup />
+                <NotificationPrefsPanel />
+              </>
+            )}
 
             {activeTab === 'ai' && (
               <AISettingsTab aiSettings={aiSettings} aiSaved={aiSaved} onChange={handleAISettingChange} />
@@ -186,6 +194,8 @@ export function Settings() {
             )}
 
             {activeTab === 'subscription' && <SubscriptionTab subLoading={subLoading} tier={tier} />}
+
+            {activeTab === 'referral' && <ReferralPanel />}
 
             {activeTab === 'data' && <SettingsDataPrivacy onError={setError} />}
 

@@ -75,6 +75,7 @@ import {
   DashboardAcademy,
   FlowStateIndicator,
   FlowInsightsCard,
+  SleepProductivityInsights,
 } from '../components/dashboard';
 import { ProactiveSuggestions } from '../components/dashboard/ProactiveSuggestions';
 import { AmbientSuggestions } from '../components/dashboard/AmbientSuggestions';
@@ -531,6 +532,11 @@ export function Dashboard() {
                     recentMetrics={recentMetrics}
                     onUpdateMetrics={updateHealthMetrics}
                   />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('sleep-productivity') && (
+                <FeatureErrorBoundary feature="Sleep-Productivity" compact>
+                  <SleepProductivityInsights />
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('streak-momentum') && (

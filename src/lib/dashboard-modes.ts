@@ -59,6 +59,7 @@ const W = {
   lifePulse:        'life-pulse',
   scheduleInsights: 'schedule-insights',
   sleepQuickLog:    'sleep-quick-log',
+  sleepProductivity: 'sleep-productivity',
   completionRates:  'completion-rates',
   suggestions:      'suggestions',
   journal:          'journal',
@@ -80,6 +81,7 @@ const MORNING_WIDGETS: ModeWidgetConfig[] = [
   { id: W.dailyReward,    priority: 10, collapsed: false },  // Daily login reward (morning prime)
   { id: W.schedule,        priority: 10, collapsed: false },  // Calendar preview
   { id: W.sleepQuickLog,   priority: 9,  collapsed: false },  // Sleep quick log (morning wake-up)
+  { id: W.sleepProductivity, priority: 9, collapsed: false },  // Sleep-productivity insights (morning=9)
   { id: W.sageOracle,      priority: 8,  collapsed: false },  // Sage Oracle — spiritual morning
   { id: W.ambientSuggest,  priority: 6,  collapsed: false },  // Ambient suggestions (morning=priority 6)
   { id: W.proactiveSuggest, priority: 7,  collapsed: false },  // Proactive AI suggestions
@@ -105,6 +107,7 @@ const ACTIVE_WIDGETS: ModeWidgetConfig[] = [
   { id: W.proactiveSuggest, priority: 7,  collapsed: false },  // Proactive AI suggestions
   { id: W.tasks,           priority: 7,  collapsed: false },  // Live timeline
   { id: W.habits,          priority: 6,  collapsed: false },  // Habit progress
+  { id: W.sleepProductivity, priority: 5,  collapsed: false },  // Sleep-productivity insights (active=5)
   { id: W.dailyProgress,   priority: 5,  collapsed: false },  // Goal progress
   { id: W.sleepQuickLog,   priority: 4,  collapsed: true },  // Sleep summary (collapsed)
   { id: W.morningBrief,    priority: 3,  collapsed: true },
@@ -119,6 +122,7 @@ const EVENING_WIDGETS: ModeWidgetConfig[] = [
   { id: W.dailyProgress,   priority: 10, collapsed: false },  // Daily review
   { id: W.dailyReward,    priority: 8,  collapsed: false },  // Daily login reward (evening catch-up)
   { id: W.sleepQuickLog,   priority: 9,  collapsed: false },  // Bedtime tracking
+  { id: W.sleepProductivity, priority: 7,  collapsed: false },  // Sleep-productivity insights (evening=7)
   { id: W.journal,         priority: 8,  collapsed: false },  // Journal entry
   { id: W.sageOracle,      priority: 7,  collapsed: false },  // Sage Oracle — evening wisdom
   { id: W.proactiveSuggest, priority: 7,  collapsed: false },  // Proactive AI suggestions
@@ -137,6 +141,7 @@ const NIGHT_WIDGETS: ModeWidgetConfig[] = [
   { id: W.sageOracle,      priority: 10, collapsed: false },  // Sage Oracle — prime spiritual time
   { id: W.eveningReview,   priority: 9,  collapsed: false },  // Evening review — night reflection
   { id: W.sleepQuickLog,   priority: 9,  collapsed: false },  // Bedtime tracking
+  { id: W.sleepProductivity, priority: 2,  collapsed: true },  // Sleep-productivity (night=2, collapsed)
   { id: W.journal,         priority: 8,  collapsed: false },  // Quick log
   { id: W.dailyReward,    priority: 8,  collapsed: false },  // Daily login reward (night owl catch)
   { id: W.dailyProgress,   priority: 7,  collapsed: false },  // Today's score
@@ -176,7 +181,7 @@ export function getHermeticBoost(widgetId: string): number {
     correspondence: [W.celestial, W.weeklyInsight, W.lifePulse],
     vibration:   [W.streakMomentum, W.habits, W.health],
     polarity:    [W.health, W.financialPulse, W.proactiveSuggest],
-    rhythm:      [W.schedule, W.scheduleInsights, W.sleepQuickLog],
+    rhythm:      [W.schedule, W.scheduleInsights, W.sleepQuickLog, W.sleepProductivity],
     'cause-and-effect': [W.financialPulse, W.dailyProgress, W.achievements],
     gender:      [W.goals, W.realmInvite, W.realmPreview],
   };

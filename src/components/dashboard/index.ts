@@ -39,3 +39,4 @@ export { DashboardAcademy } from './DashboardAcademy';
 export { FlowStateIndicator } from '../FlowStateIndicator';
 export { FlowInsightsCard } from '../FlowInsightsCard';
 export { AmbientSuggestions } from './AmbientSuggestions';
+export { SleepProductivityInsights } from './SleepProductivityInsights';
