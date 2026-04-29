@@ -18,8 +18,7 @@ import { db as supabase, getEnvironment } from './data-access';
 import { useUserStore } from '../stores/useUserStore';
 import { logger } from '../utils/logger';
 import { getTabCoordinator, initTabCoordinator } from './tab-coordinator';
-import type { TableName } from './local-db';
-import { detectConflict, logConflict } from './sync-conflict';
+import { detectConflict, logConflict, resolveConflict, USE_CRDT } from './sync-conflict';
 
 // ── Cloud Sync for Electron ──
 // In Electron, `db` routes to local SQLite. When a cloud session exists
@@ -52,6 +51,7 @@ async function getSyncClient(): Promise<any> {
 }
 import {
   localGetUnsynced,
+  localGet,
   localMarkSynced,
   localBulkUpsert,
   getSyncMeta,
@@ -558,9 +558,9 @@ function notifyListeners(status: SyncStatus) {
 
 /**
  * Fetch current remote versions of records and detect sync conflicts.
- * For each local record being pushed, checks if the remote already has a newer
- * version. If so, logs the conflict. Then proceeds with the LWW upsert as before
- * (no behavior change — conflicts are detection-only at this stage).
+ * When USE_CRDT is true, conflicts are resolved using CRDT merge and the
+ * resolved data is applied to the local record before the upsert proceeds.
+ * When USE_CRDT is false, conflicts are only logged (LWW behavior unchanged).
  *
  * Batch-fetches remote records in a single query per table for efficiency.
  *
@@ -610,6 +610,15 @@ async function detectConflictsForUpsert(
       if (conflict) {
         logConflict(conflict);
         conflictsDetected++;
+
+        // If CRDT merge produced resolved data, apply it to the local record
+        // so the subsequent upsert pushes the merged version
+        if (USE_CRDT && conflict.winner === 'crdt-merge' && conflict.resolvedData) {
+          // Merge resolved data into local record (preserves local metadata)
+          const resolved = resolveConflict(localRecord, remoteRecord, table);
+          Object.assign(localRecord, resolved);
+          localRecord.updated_at = new Date().toISOString();
+        }
       }
     }
   } catch (e: unknown) {
@@ -821,6 +830,10 @@ async function pushToSupabase(userId: string): Promise<number> {
 /**
  * Pull a single table from Supabase with pagination.
  * PostgREST defaults to 1000-row limit — we page through all results.
+ *
+ * When USE_CRDT is true, each pulled record is checked against the local
+ * version. If there is a conflict, the CRDT-merged result is stored instead
+ * of remote overwriting local (LWW).
  */
 async function pullTable(userId: string, table: TableName): Promise<number> {
   const syncClient = await getSyncClient();
@@ -848,8 +861,41 @@ async function pullTable(userId: string, table: TableName): Promise<number> {
     }
 
     if (data && data.length > 0) {
-      await localBulkUpsert(table, data);
-      totalForTable += data.length;
+      // When CRDT is enabled, check each pulled record against local for conflicts
+      if (USE_CRDT) {
+        const mergedData: Record<string, unknown>[] = [];
+        for (const remoteRecord of data) {
+          const pkField = getKeyPath(table);
+          const recordKey = remoteRecord[pkField] as string;
+          const localRecord = await localGet(table, recordKey);
+
+          if (localRecord) {
+            // Check for conflict
+            const conflict = detectConflict(
+              localRecord as Record<string, unknown>,
+              remoteRecord,
+              table
+            );
+            if (conflict && conflict.winner === 'crdt-merge' && conflict.resolvedData) {
+              // Use CRDT-merged data instead of raw remote
+              const resolved = conflict.resolvedData;
+              // Ensure required fields are preserved
+              resolved[pkField] = recordKey;
+              resolved.user_id = userId;
+              mergedData.push(resolved);
+              logConflict(conflict);
+              continue;
+            }
+          }
+          // No conflict or no local version — use remote data as-is
+          mergedData.push(remoteRecord);
+        }
+        await localBulkUpsert(table, mergedData);
+        totalForTable += mergedData.length;
+      } else {
+        await localBulkUpsert(table, data);
+        totalForTable += data.length;
+      }
     }
 
     // If we got fewer rows than PAGE_SIZE, we've reached the end

@@ -10,8 +10,9 @@ import {
   User, Palette, Sparkles, Send, Link2, Crown, Database,
   RotateCcw, Navigation, Info, Settings as SettingsIcon,
   AlertTriangle, Loader2, Shield,
-  BarChart3, Volume2, Bell,
+  BarChart3, Volume2, Bell, Puzzle, Cpu,
 } from 'lucide-react';
+import { PluginManager } from '../components/PluginManager';
 import { NotificationPrefsPanel } from '../components/NotificationPrefsPanel';
 import { TelegramConnect } from '../components/TelegramConnect';
 import { IntegrationCard } from '../components/settings/IntegrationCard';
@@ -27,22 +28,25 @@ import { SettingsDataPrivacy } from './settings/SettingsDataPrivacy';
 import { SettingsAbout } from './settings/SettingsAbout';
 import { FamilyPlanSection } from '../components/settings/FamilyPlanSection';
 import { AIUsageStats } from '../components/AIUsageStats';
+import { LLMProviderSettings } from '../components/LLMProviderSettings';
 import { AuditLogViewer } from '../components/AuditLogViewer';
 import './Settings.css';
 
-type TabId = 'profile' | 'preferences' | 'notifications' | 'ai' | 'ai-usage' | 'audit' | 'telegram' | 'integrations' | 'subscription' | 'data' | 'onboarding' | 'tours' | 'about';
+type TabId = 'profile' | 'preferences' | 'notifications' | 'ai' | 'ai-providers' | 'ai-usage' | 'audit' | 'telegram' | 'integrations' | 'subscription' | 'data' | 'onboarding' | 'tours' | 'plugins' | 'about';
 
 const TABS: { id: TabId; label: string; icon: typeof User }[] = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'preferences', label: 'Preferences', icon: Palette },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'ai', label: 'AI Assistant', icon: Sparkles },
+  { id: 'ai-providers', label: 'AI Providers', icon: Cpu },
   { id: 'ai-usage', label: 'AI Usage', icon: BarChart3 },
   { id: 'audit', label: 'Audit Log', icon: Shield },
   { id: 'telegram', label: 'Telegram', icon: Send },
   { id: 'integrations', label: 'Integrations', icon: Link2 },
   { id: 'subscription', label: 'Subscription', icon: Crown },
   { id: 'data', label: 'Data & Privacy', icon: Database },
+  { id: 'plugins', label: 'Plugins', icon: Puzzle },
   { id: 'onboarding', label: 'Onboarding', icon: RotateCcw },
   { id: 'tours', label: 'Tours & Help', icon: Navigation },
   { id: 'about', label: 'About', icon: Info },
@@ -153,6 +157,10 @@ export function Settings() {
               <AISettingsTab aiSettings={aiSettings} aiSaved={aiSaved} onChange={handleAISettingChange} />
             )}
 
+            {activeTab === 'ai-providers' && (
+              <LLMProviderSettings />
+            )}
+
             {activeTab === 'ai-usage' && (
               <section className="set-section">
                 <AIUsageStats />
@@ -180,6 +188,12 @@ export function Settings() {
             {activeTab === 'subscription' && <SubscriptionTab subLoading={subLoading} tier={tier} />}
 
             {activeTab === 'data' && <SettingsDataPrivacy onError={setError} />}
+
+            {activeTab === 'plugins' && (
+              <section className="set-section">
+                <PluginManager />
+              </section>
+            )}
 
             {activeTab === 'onboarding' && (
               <OnboardingTab showRedoConfirm={showRedoConfirm} setShowRedoConfirm={setShowRedoConfirm}

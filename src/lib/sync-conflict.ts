@@ -1,13 +1,26 @@
 /**
- * sync-conflict.ts — Sync Conflict Detection & Logging
+ * sync-conflict.ts — Sync Conflict Detection, Logging & CRDT Resolution
  *
- * Minimal conflict detection layer that runs BEFORE upserts in the sync engine.
- * Does NOT change sync behavior (LWW still wins). It only DETECTS and LOGS
- * when a sync overwrites newer remote data, so we can later surface it to the user.
+ * Detects conflicts between local and remote versions of records.
+ * When USE_CRDT is true (default), conflicts are automatically resolved
+ * using the CRDT engine for deterministic, type-aware merge instead of LWW.
+ * Conflicts are still logged for audit purposes.
  *
  * Storage: localStorage under 'lifeos:conflicts' (namespace-safe).
  * Keeps last 100 conflicts, most recent first.
  */
+
+import { CRDTEngine, type CRDTDocument } from './crdt-engine';
+
+// ── Config ─────────────────────────────────────────────────────
+
+/** Enable CRDT-based conflict resolution (default: true). Falls back to LWW when false. */
+export let USE_CRDT = true;
+
+/** Toggle CRDT resolution on/off. Useful for testing or emergency fallback. */
+export function setUseCRDT(enabled: boolean): void {
+  USE_CRDT = enabled;
+}
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -17,8 +30,9 @@ export interface ConflictRecord {
   recordId: string;      // the pk of the conflicted record
   localUpdatedAt: string;   // ISO timestamp of local version
   remoteUpdatedAt: string;  // ISO timestamp of remote version
-  winner: 'local' | 'remote';
+  winner: 'local' | 'remote' | 'crdt-merge';
   resolvedAt: string;    // ISO timestamp when conflict was detected/logged
+  resolvedData?: Record<string, unknown> | null; // CRDT-merged data (when winner is 'crdt-merge')
   fieldChanges: { field: string; localValue: unknown; remoteValue: unknown }[];
 }
 
@@ -76,18 +90,23 @@ function diffFields(
  *   - remote.updated_at > local.updated_at (remote is newer)
  *   - AND at least one field value differs (not just a timestamp difference)
  *
- * When a conflict is detected, under LWW the remote would normally win on pull
+ * When a conflict is detected, if USE_CRDT is true, the winner is set to
+ * 'crdt-merge' and resolvedData is populated with the CRDT-merged result.
+ * Otherwise, under LWW the remote would normally win on pull
  * and the local would win on push (since we upsert with onConflict). The `winner`
  * field indicates which version LWW would select:
  *   - 'remote': remote is newer, so its data takes precedence
  *   - 'local': local is newer, so its data takes precedence (unusual during push)
+ *   - 'crdt-merge': CRDT merge was used to combine both versions
  *
  * Returns null if no meaningful conflict (timestamps match, remote is older, or data is identical).
  */
 export function detectConflict(
   localRecord: Record<string, unknown>,
   remoteRecord: Record<string, unknown>,
-  tableName: string
+  tableName: string,
+  localCRDT?: CRDTDocument | null,
+  remoteCRDT?: CRDTDocument | null
 ): ConflictRecord | null {
   const localUpdatedAt = localRecord.updated_at as string | undefined;
   const remoteUpdatedAt = remoteRecord.updated_at as string | undefined;
@@ -107,11 +126,29 @@ export function detectConflict(
   if (fieldChanges.length === 0) return null; // Data is identical despite timestamp difference
 
   // Conflict detected: remote is newer AND has different data
-  // Under LWW, remote would win if we pulled, or local overwrites on push (with onConflict:pk)
-  const winner: 'local' | 'remote' = remoteTs > localTs ? 'remote' : 'local';
-
-  // Determine the record ID — try common pk fields
   const recordId = (remoteRecord.id ?? localRecord.id ?? remoteRecord.user_id ?? 'unknown') as string;
+
+  // Resolve using CRDT if enabled
+  let winner: ConflictRecord['winner'] = remoteTs > localTs ? 'remote' : 'local';
+  let resolvedData: Record<string, unknown> | null = null;
+
+  if (USE_CRDT) {
+    try {
+      const engine = CRDTEngine.getInstance();
+      resolvedData = engine.resolveConflict(
+        localRecord,
+        remoteRecord,
+        tableName,
+        recordId,
+        localCRDT,
+        remoteCRDT
+      );
+      winner = 'crdt-merge';
+    } catch (e) {
+      // CRDT merge failed — fall back to LWW
+      console.warn('[sync-conflict] CRDT merge failed, falling back to LWW:', e);
+    }
+  }
 
   return {
     id: generateId(),
@@ -121,6 +158,7 @@ export function detectConflict(
     remoteUpdatedAt,
     winner,
     resolvedAt: new Date().toISOString(),
+    resolvedData,
     fieldChanges,
   };
 }
@@ -130,8 +168,12 @@ export function detectConflict(
  * Keeps the last MAX_CONFLICTS entries (most recent first).
  */
 export function logConflict(conflict: ConflictRecord): void {
+  const winnerLabel = conflict.winner === 'crdt-merge'
+    ? `crdt-merge (${conflict.resolvedData ? 'resolved' : 'failed'})`
+    : conflict.winner;
+
   console.warn(
-    `[sync-conflict] ${conflict.tableName}#${conflict.recordId} — winner: ${conflict.winner}, ` +
+    `[sync-conflict] ${conflict.tableName}#${conflict.recordId} — winner: ${winnerLabel}, ` +
     `local: ${conflict.localUpdatedAt}, remote: ${conflict.remoteUpdatedAt}, ` +
     `${conflict.fieldChanges.length} field(s) changed`
   );
@@ -147,6 +189,65 @@ export function logConflict(conflict: ConflictRecord): void {
   } catch (e) {
     console.error('[sync-conflict] Failed to persist conflict:', e);
   }
+}
+
+/**
+ * Resolve a conflict between local and remote records using CRDT merge.
+ * This is the primary entry point called by the sync engine when a conflict
+ * is detected during push or pull.
+ *
+ * When USE_CRDT is true, creates CRDT documents from both sides and merges them,
+ * returning the merged plain data. Falls back to LWW when USE_CRDT is false
+ * or when CRDT state is unavailable.
+ *
+ * @returns The resolved record data that should be stored locally.
+ */
+export function resolveConflict(
+  localRecord: Record<string, unknown>,
+  remoteRecord: Record<string, unknown>,
+  tableName: string,
+  localCRDT?: CRDTDocument | null,
+  remoteCRDT?: CRDTDocument | null
+): Record<string, unknown> {
+  if (USE_CRDT) {
+    try {
+      const engine = CRDTEngine.getInstance();
+      const recordId = String(
+        remoteRecord.id ?? localRecord.id ?? remoteRecord.user_id ?? 'unknown'
+      );
+      return engine.resolveConflict(
+        localRecord,
+        remoteRecord,
+        tableName,
+        recordId,
+        localCRDT,
+        remoteCRDT
+      );
+    } catch (e) {
+      console.warn('[sync-conflict] CRDT resolution failed, falling back to LWW:', e);
+    }
+  }
+
+  // LWW fallback: remote wins if newer, local wins otherwise
+  const localTs = new Date(localRecord.updated_at as string || 0).getTime() || 0;
+  const remoteTs = new Date(remoteRecord.updated_at as string || 0).getTime() || 0;
+  return remoteTs > localTs ? { ...remoteRecord } : { ...localRecord };
+}
+
+/**
+ * Given a ConflictRecord that was produced by detectConflict(),
+ * extract the resolved data. If CRDT resolution was used, returns
+ * the resolvedData; otherwise returns the LWW winner's data.
+ */
+export function getResolvedData(
+  conflict: ConflictRecord,
+  localRecord: Record<string, unknown>,
+  remoteRecord: Record<string, unknown>
+): Record<string, unknown> {
+  if (conflict.winner === 'crdt-merge' && conflict.resolvedData) {
+    return conflict.resolvedData;
+  }
+  return conflict.winner === 'remote' ? { ...remoteRecord } : { ...localRecord };
 }
 
 /**
