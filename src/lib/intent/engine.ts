@@ -15,6 +15,7 @@ import type { IntentResult, IntentContext, RateLimitInfo, IntentAction } from '.
 import { buildSystemPrompt } from './system-prompt';
 import { parseShorthand } from './shorthand-parser';
 import { searchDatabase } from './action-executor';
+import { trackAICall } from '../ai-cost-tracker';
 
 // ─── Proxy Config ────────────────────────────────────────────────
 
@@ -55,6 +56,7 @@ export async function callIntentEngine(
   if (shorthand) return shorthand;
 
   const cfg = { ...DEFAULT_PROXY_CONFIG, ...config };
+  const intentStartTime = Date.now();
 
   // 30-second timeout to prevent indefinite hangs on proxy failure
   const INTENT_TIMEOUT_MS = 30_000;
@@ -97,6 +99,18 @@ export async function callIntentEngine(
     }
 
     const result = await res.json();
+    // ── Track AI usage (fire-and-forget) ──
+    try {
+      const model = cfg.model || 'gemini-2.0-flash';
+      trackAICall({
+        model,
+        tokensIn: Math.ceil(userMessage.length / 4),
+        tokensOut: Math.ceil((result.reply || '').length / 4),
+        source: 'intent',
+        latencyMs: Date.now() - intentStartTime,
+        userId: context.userId,
+      });
+    } catch { /* tracking failure must not break intent engine */ }
     return {
       actions: result.actions || [],
       reply: result.reply || 'Done.',
@@ -138,6 +152,21 @@ export async function callIntentEngine(
   const llmResponse = await res.json();
   const content = llmResponse.content || '';
   const rateLimitData: RateLimitInfo | undefined = llmResponse.rateLimit || undefined;
+
+  // ── Track AI usage for legacy path (fire-and-forget) ──
+  const legacyModel = llmResponse.model || cfg.model || 'gemini-2.0-flash';
+  const legacyTokensIn = llmResponse.usage?.input_tokens ?? Math.ceil(messages.map(m => m.content).join('').length / 4);
+  const legacyTokensOut = llmResponse.usage?.output_tokens ?? Math.ceil(content.length / 4);
+  try {
+    trackAICall({
+      model: legacyModel,
+      tokensIn: legacyTokensIn,
+      tokensOut: legacyTokensOut,
+      source: 'intent-legacy',
+      latencyMs: Date.now() - intentStartTime,
+      userId: context.userId,
+    });
+  } catch { /* tracking failure must not break intent engine */ }
 
   // Parse the JSON response — handle models that wrap JSON in conversational text
   let jsonContent = content;

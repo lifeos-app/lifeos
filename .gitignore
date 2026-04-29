@@ -43,3 +43,5 @@ CC-PROMPT.md
 node_modules
 dist
 .android-sdk
+.claude/
+playwright-report/

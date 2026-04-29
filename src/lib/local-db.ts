@@ -17,7 +17,7 @@ import { genId } from '../utils/date';
 import { logger } from '../utils/logger';
 
 const DB_NAME = 'lifeos-local';
-const DB_VERSION = 9;
+const DB_VERSION = 10;
 
 // All object stores (tables)
 const STORES = {
@@ -79,6 +79,10 @@ const STORES = {
   academy_assessments: 'id',
   academy_study_sessions: 'id',
   learner_profile: 'user_id',
+
+  // Knowledge Cards (SRS)
+  knowledge_cards: 'id',
+  knowledge_reviews: 'id',
 
   // Activity & Events
   unified_events: 'id',

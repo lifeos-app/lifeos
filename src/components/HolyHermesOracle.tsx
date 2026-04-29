@@ -95,7 +95,7 @@ export function HolyHermesOracle() {
       const res = await callLLMProxy([
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: q },
-      ]);
+      ], { _source: 'oracle' });
       setResponse(res.content);
       const updated = [...history, { q, a: res.content }].slice(-10);
       setHistory(updated);

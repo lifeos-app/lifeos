@@ -59,6 +59,9 @@ import { useSyncOnReconnect } from './hooks/useSyncOnReconnect';
 import { WelcomeWizard } from './components/WelcomeWizard';
 import './components/WelcomeWizard.css';
 import { registerPreload } from './utils/preload';
+import { GlobalMusicPlayer } from './components/GlobalMusicPlayer';
+import { useMusicPlayerStore } from './stores/useMusicPlayerStore';
+import { useAcademyStore } from './stores/useAcademyStore';
 
 import './App.css';
 
@@ -333,6 +336,24 @@ function AppRoutes() {
     };
   }, []);
 
+  // Sync music player store from AcademyStore if MusicPlayerStore has no track
+  // (one-time migration / initialization for backward compat)
+  useEffect(() => {
+    const mpStore = useMusicPlayerStore.getState();
+    if (!mpStore.currentTrack) {
+      const academyTrack = useAcademyStore.getState().currentTrack;
+      if (academyTrack) {
+        useMusicPlayerStore.setState({
+          currentTrack: academyTrack,
+          currentTrackIndex: useAcademyStore.getState().currentTrackIndex,
+          isPlaying: useAcademyStore.getState().isPlaying,
+        });
+      }
+    }
+    // Hydrate music player persisted settings
+    useMusicPlayerStore.getState().hydrate();
+  }, []);
+
   const showSpinner = <GlobalLoadingSpinner />;
 
   // 1. Wait for auth to resolve
@@ -521,6 +542,7 @@ function App() {
           </ErrorBoundary>
           <AsyncErrorToast />
           <ErrorMonitor />
+          <GlobalMusicPlayer />
         </Router>
       </ChunkLoadErrorBoundary>
     </AppErrorBoundary>

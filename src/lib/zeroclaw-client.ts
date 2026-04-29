@@ -185,7 +185,7 @@ export async function agentChat(request: AgentChatRequest): Promise<AgentChatRes
   const timeContext = `Current time: ${timeStr}, ${dayStr}`;
   ctxStr = timeContext + (ctxStr ? '\n' + ctxStr : '');
   const messages = buildMessages(request, ctxStr);
-  const res = await callLLMProxy(messages, { timeoutMs: 25000 });
+  const res = await callLLMProxy(messages, { timeoutMs: 25000, _source: 'zeroclaw' });
   // Strip JSON wrapper if LLM accidentally wraps response
   let text = res.content;
   try {
@@ -281,7 +281,7 @@ export async function agentInsight(request: AgentInsightRequest): Promise<AgentI
       { userId: request.userId, message: prompt },
       insightContext,
     );
-    const res = await callLLMProxy(messages, { timeoutMs: 25000 });
+    const res = await callLLMProxy(messages, { timeoutMs: 25000, _source: 'zeroclaw' });
     const chatResponse = { message: res.content };
 
     return {

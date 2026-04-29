@@ -11,6 +11,7 @@
 import { supabase } from './data-access';
 import { useUserStore } from '../stores/useUserStore';
 import { getErrorMessage, isAbortError } from '../utils/error';
+import { trackAICall } from './ai-cost-tracker';
 
 const PROXY_URL = '/api/llm-proxy.php';
 const DEFAULT_TIMEOUT_MS = 30000;
@@ -23,6 +24,8 @@ export interface LLMProxyOptions {
   skipAuth?: boolean;
   /** Response format: 'text' (default) or 'json'. Controls provider-level JSON mode. */
   format?: 'text' | 'json';
+  /** Source label for AI usage tracking (e.g. 'zeroclaw', 'intent', 'oracle') */
+  _source?: string;
 }
 
 export interface LLMProxyResponse {
@@ -124,14 +127,50 @@ export async function callLLMProxy(
   input: string | { role: string; content: string }[],
   options: LLMProxyOptions = {},
 ): Promise<LLMProxyResponse> {
+  const startTime = Date.now();
   try {
-    return await _callLLMProxyOnce(input, options);
+    const result = await _callLLMProxyOnce(input, options);
+    // ── Track AI usage (fire-and-forget) ──
+    const latency = Date.now() - startTime;
+    const promptStr = typeof input === 'string' ? input : input.map(m => m.content).join('');
+    const tokensIn = result.usage?.input_tokens ?? Math.ceil(promptStr.length / 4);
+    const tokensOut = result.usage?.output_tokens ?? Math.ceil((result.content || '').length / 4);
+    const userId = useUserStore.getState().user?.id || '';
+    try {
+      trackAICall({
+        model: result.model || options.model || 'unknown',
+        tokensIn,
+        tokensOut,
+        source: options._source || 'unknown',
+        latencyMs: latency,
+        userId,
+      });
+    } catch { /* tracking failure must not break LLM calls */ }
+    return result;
   } catch (err) {
     // Don't retry timeouts (abort errors) — they're intentional
     if (err instanceof Error && err.message === 'LLM request timed out') throw err;
     // Wait 2s then retry once
     await new Promise(r => setTimeout(r, 2000));
-    return await _callLLMProxyOnce(input, options);
+    const startTime2 = Date.now();
+    const result = await _callLLMProxyOnce(input, options);
+    // ── Track AI usage on retry success (fire-and-forget) ──
+    const latency = Date.now() - startTime2;
+    const promptStr = typeof input === 'string' ? input : input.map(m => m.content).join('');
+    const tokensIn = result.usage?.input_tokens ?? Math.ceil(promptStr.length / 4);
+    const tokensOut = result.usage?.output_tokens ?? Math.ceil((result.content || '').length / 4);
+    const userId = useUserStore.getState().user?.id || '';
+    try {
+      trackAICall({
+        model: result.model || options.model || 'unknown',
+        tokensIn,
+        tokensOut,
+        source: options._source || 'unknown',
+        latencyMs: latency,
+        userId,
+      });
+    } catch { /* tracking failure must not break LLM calls */ }
+    return result;
   }
 }
 

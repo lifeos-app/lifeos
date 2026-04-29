@@ -11,5 +11,8 @@ export { useJournalStore } from './useJournalStore';
 export type { JournalEntry } from './useJournalStore';
 export { useLiveActivityStore } from './useLiveActivityStore';
 export type { LiveEvent, LiveEventMetadata } from './useLiveActivityStore';
+export { useKnowledgeStore } from './useKnowledgeStore';
+export type { KnowledgeReview, StudyDeck, DeckStats } from './useKnowledgeStore';
+export { STUDY_DECKS } from './useKnowledgeStore';
 export { useInventoryStore } from './useInventoryStore';
 export type { InventoryItem, PetProfile, EquipSlot, ListType, ItemCategory } from './useInventoryStore';

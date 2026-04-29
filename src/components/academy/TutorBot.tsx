@@ -149,7 +149,7 @@ export function TutorBot({ goal, lesson, activeMode, onModeChange }: TutorBotPro
     let fullText = '';
 
     try {
-      const result = await callLLMProxy(llmMessages, { timeoutMs: 30000 });
+      const result = await callLLMProxy(llmMessages, { timeoutMs: 30000, _source: 'tutor' });
       fullText = result.content;
       // Animate text reveal
       await new Promise<void>((resolve) => {

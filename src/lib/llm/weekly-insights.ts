@@ -358,7 +358,7 @@ Most time spent on: ${ctx.topTimeCategory}
 Write exactly 3-4 sentences. First sentence: overall vibe of the week. Second: highlight something strong. Third: identify one improvement area. Fourth (optional): one specific actionable tip for next week.`;
 
   try {
-    const content = await callLLMSimple(prompt, { timeoutMs: 20000 });
+    const content = await callLLMSimple(prompt, { timeoutMs: 20000, _source: 'weekly-insights' });
     return content.trim();
   } catch (err) {
     logger.error('[weekly-insights] AI narrative failed:', err);
