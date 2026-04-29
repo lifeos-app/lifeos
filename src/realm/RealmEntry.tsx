@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { RealmEngine, type RealmState, type RealmCharacterData } from './RealmEngine';
 import { RealmHUD } from './ui/RealmHUD';
+import { RealmScreenshotButton } from '../components/RealmScreenshotButton';
 import { DialogueBox } from './ui/DialogueBox';
 import { ZoneTransition } from './ui/ZoneTransition';
 import { RealmTransition } from './ui/RealmTransition';
@@ -669,6 +670,7 @@ export function RealmEntry({ onExit, fullscreen = false }: RealmEntryProps) {
         onlineCount={onlineCount}
         onToggleBiomePicker={handleToggleBiomePicker}
         biomePickerOpen={showBiomePicker}
+        extraActions={<RealmScreenshotButton playerLevel={charData?.level || 1} />}
       />
 
       {/* Tutorial overlay — Genesis Garden step tracker */}

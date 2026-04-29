@@ -5,8 +5,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Users, Search, Globe, MessageCircle, UserCircle, UserPlus, Lock, User, Handshake, Crown, ChevronDown, ChevronUp, Trophy } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUserStore } from '../stores/useUserStore';
-import { isComingSoon } from '../lib/feature-gates';
-import { ComingSoon } from '../components/ComingSoon';
 import { PartnerList } from '../components/social/PartnerList';
 import { FriendsList } from '../components/social/FriendsList';
 import { PartnerActivityFeed } from '../components/social/PartnerActivityFeed';
@@ -92,8 +90,6 @@ export function SocialPage() {
     return () => clearInterval(interval);
   }, [userId]);
 
-  const showComingSoon = isComingSoon('social', userId);
-
   if (!userId) {
     return (
       <div className="social-empty" style={{ marginTop: 80 }}>
@@ -124,6 +120,17 @@ export function SocialPage() {
       slideDir={slideDir}
       activeColor={activeColor}
       headerExtra={
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            padding: '4px 10px', borderRadius: 6,
+            background: 'rgba(57,255,20,0.08)',
+            border: '1px solid rgba(57,255,20,0.2)',
+            color: '#39FF14', fontSize: 10, fontWeight: 700,
+            letterSpacing: '0.06em', textTransform: 'uppercase',
+          }}>
+            Live
+          </span>
         <button
           onClick={() => navigate('/social/profile')}
           aria-label={hasProfile ? 'View profile' : 'Setup profile'}
@@ -145,6 +152,7 @@ export function SocialPage() {
           <UserCircle size={13} />
           {hasProfile ? 'Profile' : 'Setup'}
         </button>
+        </div>
       }
     >
       {/* Profile prompt */}
@@ -291,10 +299,6 @@ export function SocialPage() {
       )}
     </FullscreenPage>
   );
-
-  if (showComingSoon) {
-    return <ComingSoon feature="Community & Social">{pageContent}</ComingSoon>;
-  }
 
   return pageContent;
 }

@@ -1540,3 +1540,181 @@ body.realm-fullscreen-active .layout-content {
   color: #A855F7;
   margin: 8px 0 0;
 }
+
+/* ═══════════════════════════════════════════════════
+   REALM SCREENSHOT — Button + Modal
+   ═══════════════════════════════════════════════════ */
+
+.realm-screenshot-btn {
+  position: relative;
+}
+
+.realm-screenshot-spinner {
+  position: absolute;
+  inset: 0;
+  border: 2px solid transparent;
+  border-top-color: #00D4FF;
+  border-radius: 50%;
+  animation: realm-screenshot-spin 0.6s linear infinite;
+}
+
+@keyframes realm-screenshot-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Overlay */
+.realm-screenshot-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 14, 26, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: realm-screenshot-fade-in 0.2s ease-out;
+}
+
+@keyframes realm-screenshot-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Modal */
+.realm-screenshot-modal {
+  background: rgba(15, 45, 74, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 16px;
+  max-width: 520px;
+  width: 90vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(0, 212, 255, 0.08), 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: realm-screenshot-slide-up 0.25s ease-out;
+}
+
+@keyframes realm-screenshot-slide-up {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Header */
+.realm-screenshot-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+}
+
+.realm-screenshot-modal-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  color: #00D4FF;
+  letter-spacing: 0.5px;
+}
+
+.realm-screenshot-modal-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.realm-screenshot-modal-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Preview */
+.realm-screenshot-modal-preview {
+  padding: 12px;
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.realm-screenshot-modal-img {
+  max-width: 100%;
+  max-height: 55vh;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 212, 255, 0.12);
+  object-fit: contain;
+}
+
+/* Actions */
+.realm-screenshot-modal-actions {
+  display: flex;
+  gap: 8px;
+  padding: 14px 18px;
+  border-top: 1px solid rgba(0, 212, 255, 0.1);
+}
+
+.realm-screenshot-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.realm-screenshot-action-btn:active {
+  transform: scale(0.97);
+}
+
+.realm-screenshot-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.realm-screenshot-share-btn {
+  background: rgba(0, 212, 255, 0.12);
+  color: #00D4FF;
+  border-color: rgba(0, 212, 255, 0.25);
+}
+
+.realm-screenshot-share-btn:hover:not(:disabled) {
+  background: rgba(0, 212, 255, 0.2);
+}
+
+.realm-screenshot-download-btn {
+  background: rgba(57, 255, 20, 0.08);
+  color: #39FF14;
+  border-color: rgba(57, 255, 20, 0.2);
+}
+
+.realm-screenshot-download-btn:hover {
+  background: rgba(57, 255, 20, 0.15);
+}
+
+.realm-screenshot-cancel-btn {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.08);
+  margin-left: auto;
+}
+
+.realm-screenshot-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+}

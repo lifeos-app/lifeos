@@ -243,6 +243,21 @@ const FEATURES: FeatureModule[] = [
     mobileNavOrder: 13,
     revealAfterDays: 3,
   },
+  {
+    id: 'knowledge-graph',
+    name: 'Knowledge Graph',
+    route: '/knowledge-graph',
+    icon: 'Brain',
+    color: '#00D4FF',
+    enabled: true,
+    requiresAuth: true,
+    showInSidebar: true,
+    showInMobileNav: true,
+    mobileNavGroup: 'more-growth',
+    sidebarOrder: 14,
+    mobileNavOrder: 14,
+    revealAfterDays: 3,
+  },
 ];
 
 /** Get nav features for a given surface, sorted by appropriate order. */

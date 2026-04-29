@@ -4,7 +4,7 @@ import { useUserStore } from '../stores/useUserStore';
 import { getUnreadCount, subscribeToInbox } from '../lib/social/messaging';
 import {
   LayoutDashboard, Calendar, Target, Flame,
-  Wallet, Heart, BookOpen, BarChart3, Inbox, Settings, MoreHorizontal, X, Users, LogOut, Sparkles, Swords, GraduationCap,
+  Wallet, Heart, BookOpen, BarChart3, Inbox, Settings, MoreHorizontal, X, Users, LogOut, Sparkles, Swords, GraduationCap, Clock, Brain,
   type LucideIcon,
 } from 'lucide-react';
 import { SpaceAge } from './SpaceAge';
@@ -14,7 +14,7 @@ import './MobileNav.css';
 /** Map icon name strings from the feature registry to Lucide components. */
 const ICON_MAP: Record<string, LucideIcon> = {
   LayoutDashboard, Calendar, Target, Flame, Wallet, Heart,
-  BookOpen, Users, Swords, Settings, BarChart3, GraduationCap, Sparkles,
+  BookOpen, Users, Swords, Settings, BarChart3, GraduationCap, Sparkles, Clock, Brain,
 };
 
 interface Tab {

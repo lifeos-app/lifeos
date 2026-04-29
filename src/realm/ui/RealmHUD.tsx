@@ -4,7 +4,7 @@
  * Shows: zone name, minimap indicator, controls hint, back button
  */
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Map, ZoomIn, ZoomOut, Volume2, VolumeX, MessageCircle, Palette } from 'lucide-react';
 import type { RealmState } from '../RealmEngine';
 import { getRealmTimeToday } from '../bridge/RealmSessionGuard';
@@ -28,6 +28,8 @@ interface RealmHUDProps {
   worldMapOpen?: boolean;
   onToggleBiomePicker?: () => void;
   biomePickerOpen?: boolean;
+  /** Extra action buttons rendered in the HUD actions area */
+  extraActions?: React.ReactNode;
 }
 
 export function RealmHUD({
@@ -49,6 +51,7 @@ export function RealmHUD({
   worldMapOpen,
   onToggleBiomePicker,
   biomePickerOpen,
+  extraActions,
 }: RealmHUDProps) {
   const [showControls, setShowControls] = useState(true);
   const [realmMinutes, setRealmMinutes] = useState(() => getRealmTimeToday());
@@ -127,6 +130,7 @@ export function RealmHUD({
           <button className="realm-hud-btn" onClick={onToggleMusic} title="Toggle music">
             {musicEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
           </button>
+          {extraActions}
         </div>
       </div>
 
