@@ -33,7 +33,8 @@ export type SuggestionType =
   | 'streak_at_risk'
   | 'predictive_schedule'
   | 'streak_shield_available'
-  | 'evening_review';
+  | 'evening_review'
+  | 'ambient';
 
 export interface ProactiveSuggestion {
   id: string;
@@ -639,6 +640,9 @@ function extractIdentifier(suggestion: ProactiveSuggestion): string {
   if (suggestion.type === 'predictive_schedule') {
     const slotType = data.slot_type as string;
     return slotType || 'global';
+  }
+  if (suggestion.type === 'ambient') {
+    return (data.location_context as string) || 'unknown';
   }
   // Fallback to id
   return suggestion.id;

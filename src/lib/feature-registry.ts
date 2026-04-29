@@ -228,6 +228,21 @@ const FEATURES: FeatureModule[] = [
     sidebarOrder: 99,
     mobileNavOrder: 9,
   },
+  {
+    id: 'temporal-playback',
+    name: 'Playback',
+    route: '/temporal-playback',
+    icon: 'Clock',
+    color: '#00D4FF',
+    enabled: true,
+    requiresAuth: true,
+    showInSidebar: true,
+    showInMobileNav: true,
+    mobileNavGroup: 'more-growth',
+    sidebarOrder: 13,
+    mobileNavOrder: 13,
+    revealAfterDays: 3,
+  },
 ];
 
 /** Get nav features for a given surface, sorted by appropriate order. */

@@ -178,6 +178,10 @@ const yearInReviewLoader = () => import('./pages/YearInReview');
 registerPreload('/year-in-review', yearInReviewLoader);
 const YearInReview = lazyRetry(yearInReviewLoader);
 
+const temporalPlaybackLoader = () => import('./components/TemporalPlayback');
+registerPreload('/temporal-playback', temporalPlaybackLoader);
+const TemporalPlayback = lazyRetry(temporalPlaybackLoader);
+
 const LazyFeedbackButton = lazyRetry(() => import('./components/FeedbackButton').then(m => ({ default: m.FeedbackButton })));
 const LazyFlipperCheckin = lazyRetry(() => import('./components/FlipperCheckin').then(m => ({ default: m.FlipperCheckin })));
 const LazyLifePulseModal = lazyRetry(() => import('./components/LifePulseModal').then(m => ({ default: m.LifePulseModal })));
@@ -496,6 +500,7 @@ function AppRoutes() {
             <Route path="/replicator" element={<PageErrorBoundary pageName="Replicator"><Suspense fallback={<PageSkeleton />}><Replicator /></Suspense></PageErrorBoundary>} />
             <Route path="/sage" element={<PageErrorBoundary pageName="Sage"><Suspense fallback={<PageSkeleton />}><Sage /></Suspense></PageErrorBoundary>} />
             <Route path="/year-in-review" element={<PageErrorBoundary pageName="YearInReview"><Suspense fallback={<PageSkeleton />}><YearInReview /></Suspense></PageErrorBoundary>} />
+            <Route path="/temporal-playback" element={<PageErrorBoundary pageName="TemporalPlayback"><Suspense fallback={<PageSkeleton />}><TemporalPlayback /></Suspense></PageErrorBoundary>} />
             <Route path="/settings" element={<PageErrorBoundary pageName="Settings"><Suspense fallback={<PageSkeleton />}><Settings /></Suspense></PageErrorBoundary>} />
             <Route path="/work" element={<PageErrorBoundary pageName="Work"><Suspense fallback={<WorkSkeleton />}><WorkPage /></Suspense></PageErrorBoundary>} />
             <Route path="/work/*" element={<PageErrorBoundary pageName="Work"><Suspense fallback={<WorkSkeleton />}><WorkPage /></Suspense></PageErrorBoundary>} />

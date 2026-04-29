@@ -77,6 +77,7 @@ import {
   FlowInsightsCard,
 } from '../components/dashboard';
 import { ProactiveSuggestions } from '../components/dashboard/ProactiveSuggestions';
+import { AmbientSuggestions } from '../components/dashboard/AmbientSuggestions';
 import { HolyHermesOracle } from '../components/HolyHermesOracle';
 import { DailyHermeticAffirmation } from '../components/dashboard/DailyHermeticAffirmation';
 import { Brain } from 'lucide-react';
@@ -516,6 +517,11 @@ export function Dashboard() {
               {isWidgetVisible('proactive-suggest') && (
                 <FeatureErrorBoundary feature="Proactive Suggestions" compact>
                   <ProactiveSuggestions />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('ambient-suggest') && (
+                <FeatureErrorBoundary feature="Ambient Suggestions" compact>
+                  <AmbientSuggestions />
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('sleep-quick-log') && (

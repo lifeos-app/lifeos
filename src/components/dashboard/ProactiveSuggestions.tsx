@@ -35,6 +35,10 @@ const TYPE_STYLES: Record<string, { accent: string; icon: string }> = {
   health_warning:    { accent: '#F43F5E', icon: '❤️' },
   goal_progress:     { accent: '#39FF14', icon: '🎯' },
   streak_at_risk:    { accent: '#FF6B2B', icon: '🔥' },
+  predictive_schedule: { accent: '#A78BFA', icon: '📅' },
+  streak_shield_available: { accent: '#F59E0B', icon: '🛡' },
+  evening_review:    { accent: '#8B5CF6', icon: '🌙' },
+  ambient:           { accent: '#00D4FF', icon: '📍' },
 };
 
 const REFRESH_INTERVAL = 30 * 60 * 1000; // 30 minutes

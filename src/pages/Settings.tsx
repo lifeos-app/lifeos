@@ -10,8 +10,9 @@ import {
   User, Palette, Sparkles, Send, Link2, Crown, Database,
   RotateCcw, Navigation, Info, Settings as SettingsIcon,
   AlertTriangle, Loader2, Shield,
-  BarChart3, Volume2,
+  BarChart3, Volume2, Bell,
 } from 'lucide-react';
+import { NotificationPrefsPanel } from '../components/NotificationPrefsPanel';
 import { TelegramConnect } from '../components/TelegramConnect';
 import { IntegrationCard } from '../components/settings/IntegrationCard';
 import { useGoogleIntegration } from '../hooks/useGoogleIntegration';
@@ -29,11 +30,12 @@ import { AIUsageStats } from '../components/AIUsageStats';
 import { AuditLogViewer } from '../components/AuditLogViewer';
 import './Settings.css';
 
-type TabId = 'profile' | 'preferences' | 'ai' | 'ai-usage' | 'audit' | 'telegram' | 'integrations' | 'subscription' | 'data' | 'onboarding' | 'tours' | 'about';
+type TabId = 'profile' | 'preferences' | 'notifications' | 'ai' | 'ai-usage' | 'audit' | 'telegram' | 'integrations' | 'subscription' | 'data' | 'onboarding' | 'tours' | 'about';
 
 const TABS: { id: TabId; label: string; icon: typeof User }[] = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'preferences', label: 'Preferences', icon: Palette },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'ai', label: 'AI Assistant', icon: Sparkles },
   { id: 'ai-usage', label: 'AI Usage', icon: BarChart3 },
   { id: 'audit', label: 'Audit Log', icon: Shield },
@@ -145,6 +147,7 @@ export function Settings() {
           <div className="set-content">
             {activeTab === 'profile' && <SettingsProfile onError={setError} />}
             {activeTab === 'preferences' && <SettingsPreferences />}
+            {activeTab === 'notifications' && <NotificationPrefsPanel />}
 
             {activeTab === 'ai' && (
               <AISettingsTab aiSettings={aiSettings} aiSaved={aiSaved} onChange={handleAISettingChange} />

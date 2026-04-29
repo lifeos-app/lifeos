@@ -38,3 +38,4 @@ export { DashboardSeasonalEvent } from './DashboardSeasonalEvent';
 export { DashboardAcademy } from './DashboardAcademy';
 export { FlowStateIndicator } from '../FlowStateIndicator';
 export { FlowInsightsCard } from '../FlowInsightsCard';
+export { AmbientSuggestions } from './AmbientSuggestions';
