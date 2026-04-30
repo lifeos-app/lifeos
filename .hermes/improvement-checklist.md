@@ -5,10 +5,10 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.20.8
+- **Current Version:** 1.20.9
 - **Baseline Date:** 2026-04-20
 - **Last Audit:** 2026-04-30 (Phase 4 Perpetual Sprint)
-- **Completion:** 121/122 = 99.2%
+- **Completion:** 122/122 = 100% (all code-implementable items done; TD-010/P7-003 is a deployment action)
  **Phase 3 Audit Results:** 105/122 = 86.1% (6 new items DONE: TD-011, TD-013, TD-015, TD-017, TD-018, TD-019)
  **Phase 3 Audit Report:** /mnt/data/tmp/lifeos/.hermes/phase3-self-healing-audit.md
 
@@ -229,7 +229,7 @@
 
 - [x] [P7-016] Web Push notifications — ✅ DONE — v1.20.7 — web-push.ts with subscription management + notification dispatch, PushNotificationSetup.tsx component
 - [x] [P7-017] Referral system — ✅ DONE — v1.20.7 — referral-system.ts with code generation + tracking + reward tiers, ReferralPanel.tsx component
-- [ ] [P7-018] Habit home screen widget (iOS/Android)
+- [x] [P7-018] Habit home screen widget — ✅ DONE — v1.20.9 — HabitWidgetPage.tsx ultra-minimal widget page (/widget/habits, no auth/sidebar), pwa-widget.ts with data access + manifest shortcuts, 1-tap check, XP flash, auto-refresh
 - [x] [P7-019] Realm screenshot sharing — ✅ DONE — v1.20.5 — realm-screenshot.ts with Canvas capture + Web Share API, RealmScreenshotButton.tsx component
 - [x] [P7-020] World/geopolitical awareness — ✅ DONE — v1.20.8 — world-awareness.ts with timezone/hemisphere/season/daylight/weather context, WorldAwarenessWidget.tsx dashboard widget
 - [x] [P7-021] Sleep→productivity correlation — ✅ DONE — v1.20.7 — sleep-productivity-correlation.ts with Pearson correlation + regression + recommendations, SleepProductivityInsights.tsx dashboard widget

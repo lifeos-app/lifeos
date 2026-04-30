@@ -70,6 +70,7 @@ import './App.css';
 // and keeping it lazy prevents the 479KB Dashboard code from bloating index.
 import { Login } from './pages/Login';
 import { Habits } from './pages/Habits';
+import { HabitWidgetPage } from './pages/HabitWidgetPage';
 
 // ─── Lazy imports: loaded on demand with retry on chunk failure ───
 // Preload factories are registered so Sidebar can preload on hover.
@@ -522,6 +523,8 @@ function AppRoutes() {
           <Route path="/setup/health" element={<HealthOnboarding />} />
           <Route path="/setup/finance" element={<FinanceOnboarding />} />
           <Route path="/setup/life" element={<LifeOnboarding />} />
+          {/* PWA Widget routes — standalone, no layout/auth, for home screen widgets */}
+          <Route path="/widget/habits" element={<HabitWidgetPage />} />
         </Routes>
       </Suspense>
       <Suspense fallback={null}><LazyFeedbackButton /></Suspense>
