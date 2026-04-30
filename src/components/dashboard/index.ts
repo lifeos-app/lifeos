@@ -40,3 +40,4 @@ export { FlowStateIndicator } from '../FlowStateIndicator';
 export { FlowInsightsCard } from '../FlowInsightsCard';
 export { AmbientSuggestions } from './AmbientSuggestions';
 export { SleepProductivityInsights } from './SleepProductivityInsights';
+export { WorldAwarenessWidget } from './WorldAwarenessWidget';

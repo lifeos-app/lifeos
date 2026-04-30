@@ -70,6 +70,7 @@ const W = {
   agentNudge:       'agent-nudge',
   dailyReward:      'daily-reward',
   eveningReview:    'evening-review',
+  worldAwareness:  'world-awareness',
 } as const;
 
 type WidgetId = typeof W[keyof typeof W];
@@ -94,6 +95,7 @@ const MORNING_WIDGETS: ModeWidgetConfig[] = [
   { id: W.quickActions,    priority: 2,  collapsed: true },
   { id: W.stats,           priority: 1,  collapsed: true },
   { id: W.eveningReview,   priority: 0,  collapsed: true },  // Hidden in morning
+  { id: W.worldAwareness,  priority: 7,  collapsed: false },  // Morning — world awareness is key in morning
 ];
 
 const ACTIVE_WIDGETS: ModeWidgetConfig[] = [
@@ -114,6 +116,7 @@ const ACTIVE_WIDGETS: ModeWidgetConfig[] = [
   { id: W.streakMomentum,  priority: 2,  collapsed: true },
   { id: W.sageOracle,      priority: 1,  collapsed: true },  // Lower priority during active hours
   { id: W.eveningReview,   priority: 0,  collapsed: true },  // Hidden during active
+  { id: W.worldAwareness,  priority: 6,  collapsed: false },  // Active — world context during doing
 ];
 
 const EVENING_WIDGETS: ModeWidgetConfig[] = [
@@ -134,6 +137,7 @@ const EVENING_WIDGETS: ModeWidgetConfig[] = [
   { id: W.holyHermes,      priority: 3,  collapsed: true },
   { id: W.financialPulse,  priority: 2,  collapsed: true },
   { id: W.triage,          priority: 1,  collapsed: true },
+  { id: W.worldAwareness,  priority: 4,  collapsed: false },  // Evening — seasonal awareness during reflection
 ];
 
 const NIGHT_WIDGETS: ModeWidgetConfig[] = [
@@ -152,6 +156,7 @@ const NIGHT_WIDGETS: ModeWidgetConfig[] = [
   { id: W.scheduleInsights, priority: 3,  collapsed: true },  // Schedule suggestions (collapsed night)
   { id: W.habits,          priority: 2,  collapsed: true },
   { id: W.holyHermes,      priority: 1,  collapsed: true },
+  { id: W.worldAwareness,  priority: 1,  collapsed: true },  // Night — minimal world awareness (collapsed)
 ];
 
 const MODE_CONFIGS: Record<DashboardMode, ModeWidgetConfig[]> = {
@@ -178,7 +183,7 @@ export function getHermeticBoost(widgetId: string): number {
   // Map each principle to the widget it governs
   const PRINCIPLE_WIDGET_BOOST: Record<string, string[]> = {
     mentalism:    [W.sageOracle, W.holyHermes, W.journal],
-    correspondence: [W.celestial, W.weeklyInsight, W.lifePulse],
+    correspondence: [W.celestial, W.weeklyInsight, W.lifePulse, W.worldAwareness],
     vibration:   [W.streakMomentum, W.habits, W.health],
     polarity:    [W.health, W.financialPulse, W.proactiveSuggest],
     rhythm:      [W.schedule, W.scheduleInsights, W.sleepQuickLog, W.sleepProductivity],

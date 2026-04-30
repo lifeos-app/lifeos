@@ -97,6 +97,7 @@ import { useTCSEnabled } from '../hooks/useTCSEnabled';
 import { DashboardHeatmap } from '../components/dashboard/DashboardHeatmap';
 import { CharacterCorner } from '../components/CharacterCorner';
 import { DashboardSeasonalEvent } from '../components/dashboard/DashboardSeasonalEvent';
+import { WorldAwarenessWidget } from '../components/dashboard/WorldAwarenessWidget';
 
 type DashTab = 'today' | 'schedule' | 'goals' | 'habits' | 'insights';
 
@@ -583,6 +584,11 @@ export function Dashboard() {
               {isWidgetVisible('celestial') && (
                 <FeatureErrorBoundary feature="Celestial" compact>
                   <DashboardCelestial />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('world-awareness') && (
+                <FeatureErrorBoundary feature="World Awareness" compact>
+                  <WorldAwarenessWidget />
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('seasonal-event') && (

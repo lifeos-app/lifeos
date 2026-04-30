@@ -59,6 +59,7 @@ import {
   getKeyPath,
   type TableName,
 } from './local-db';
+import { sanitizeRecord } from './server-enforcement';
 
 // Tables to sync (excludes meta tables)
 // SYNC ORDER MATTERS — parent tables MUST sync before child tables.
@@ -276,9 +277,13 @@ async function sanitizeForSupabase(table: string, data: Record<string, unknown>)
   const runtimeCols = await fetchRuntimeColumns();
   const allowedColumns = runtimeCols?.[supabaseTable] || STATIC_COLUMNS[supabaseTable];
 
+  // Apply server-side enforcement: validate & sanitize fields before column filtering
+  // This catches bad enum values, out-of-range numbers, missing required fields, etc.
+  const enforced = sanitizeRecord(table, data);
+
   // If we don't have a whitelist for this table, fall back to stripping only 'synced'
   if (!allowedColumns) {
-    const cleaned = { ...data };
+    const cleaned = { ...enforced };
     delete cleaned.synced;
     return cleaned;
   }
@@ -286,7 +291,7 @@ async function sanitizeForSupabase(table: string, data: Record<string, unknown>)
   // Apply field renames first
   const renames = FIELD_RENAMES[table] || {};
   const renamed: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(data)) {
+  for (const [key, value] of Object.entries(enforced)) {
     const newKey = renames[key] || key;
     renamed[newKey] = value;
   }

@@ -258,6 +258,21 @@ const FEATURES: FeatureModule[] = [
     mobileNavOrder: 14,
     revealAfterDays: 3,
   },
+  {
+    id: 'gcal-sync',
+    name: 'Calendar Sync',
+    route: '/gcal-sync',
+    icon: 'CalendarSync',
+    color: '#4285F4',
+    enabled: true,
+    requiresAuth: true,
+    showInSidebar: true,
+    showInMobileNav: true,
+    mobileNavGroup: 'more-growth',
+    sidebarOrder: 15,
+    mobileNavOrder: 15,
+    revealAfterDays: 1,
+  },
 ];
 
 /** Get nav features for a given surface, sorted by appropriate order. */

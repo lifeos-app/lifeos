@@ -178,6 +178,10 @@ const knowledgeGraphLoader = () => import('./pages/KnowledgeGraph').then(m => ({
 registerPreload('/knowledge-graph', knowledgeGraphLoader);
 const KnowledgeGraph = lazyRetry(knowledgeGraphLoader);
 
+const gcalSyncLoader = () => import('./pages/GCalSyncPage').then(m => ({ default: m.GCalSync }));
+registerPreload('/gcal-sync', gcalSyncLoader);
+const GCalSync = lazyRetry(gcalSyncLoader);
+
 const yearInReviewLoader = () => import('./pages/YearInReview');
 registerPreload('/year-in-review', yearInReviewLoader);
 const YearInReview = lazyRetry(yearInReviewLoader);
@@ -504,6 +508,7 @@ function AppRoutes() {
             <Route path="/replicator" element={<PageErrorBoundary pageName="Replicator"><Suspense fallback={<PageSkeleton />}><Replicator /></Suspense></PageErrorBoundary>} />
             <Route path="/sage" element={<PageErrorBoundary pageName="Sage"><Suspense fallback={<PageSkeleton />}><Sage /></Suspense></PageErrorBoundary>} />
             <Route path="/knowledge-graph" element={<PageErrorBoundary pageName="KnowledgeGraph"><Suspense fallback={<PageSkeleton />}><KnowledgeGraph /></Suspense></PageErrorBoundary>} />
+            <Route path="/gcal-sync" element={<PageErrorBoundary pageName="GCalSync"><Suspense fallback={<PageSkeleton />}><GCalSync /></Suspense></PageErrorBoundary>} />
             <Route path="/year-in-review" element={<PageErrorBoundary pageName="YearInReview"><Suspense fallback={<PageSkeleton />}><YearInReview /></Suspense></PageErrorBoundary>} />
             <Route path="/temporal-playback" element={<PageErrorBoundary pageName="TemporalPlayback"><Suspense fallback={<PageSkeleton />}><TemporalPlayback /></Suspense></PageErrorBoundary>} />
             <Route path="/settings" element={<PageErrorBoundary pageName="Settings"><Suspense fallback={<PageSkeleton />}><Settings /></Suspense></PageErrorBoundary>} />

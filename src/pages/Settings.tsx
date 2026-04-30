@@ -32,9 +32,10 @@ import { AIUsageStats } from '../components/AIUsageStats';
 import { LLMProviderSettings } from '../components/LLMProviderSettings';
 import { AuditLogViewer } from '../components/AuditLogViewer';
 import { ReferralPanel } from '../components/ReferralPanel';
+import { HealthDeviceImport } from '../components/HealthDeviceImport';
 import './Settings.css';
 
-type TabId = 'profile' | 'preferences' | 'notifications' | 'ai' | 'ai-providers' | 'ai-usage' | 'audit' | 'telegram' | 'integrations' | 'subscription' | 'referral' | 'data' | 'onboarding' | 'tours' | 'plugins' | 'about';
+type TabId = 'profile' | 'preferences' | 'notifications' | 'ai' | 'ai-providers' | 'ai-usage' | 'audit' | 'telegram' | 'integrations' | 'health-import' | 'subscription' | 'referral' | 'data' | 'onboarding' | 'tours' | 'plugins' | 'about';
 
 const TABS: { id: TabId; label: string; icon: typeof User }[] = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -46,6 +47,7 @@ const TABS: { id: TabId; label: string; icon: typeof User }[] = [
   { id: 'audit', label: 'Audit Log', icon: Shield },
   { id: 'telegram', label: 'Telegram', icon: Send },
   { id: 'integrations', label: 'Integrations', icon: Link2 },
+  { id: 'health-import', label: 'Health Import', icon: Activity },
   { id: 'subscription', label: 'Subscription', icon: Crown },
   { id: 'referral', label: 'Referrals', icon: Gift },
   { id: 'data', label: 'Data & Privacy', icon: Database },
@@ -192,6 +194,8 @@ export function Settings() {
               <IntegrationsTab googleIntegration={googleIntegration} gcalEventCount={gcalEventCount}
                 gcalLastSynced={gcalLastSynced} gcalRefetch={gcalRefetch} />
             )}
+
+            {activeTab === 'health-import' && <HealthDeviceImport />}
 
             {activeTab === 'subscription' && <SubscriptionTab subLoading={subLoading} tier={tier} />}
 
