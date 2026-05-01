@@ -74,6 +74,7 @@ import {
   DashboardEveningReview,
   DashboardLifeScore,
   DashboardCorrelations,
+  DashboardJunctionRecommender,
 } from '../components/dashboard';
 import { ProactiveSuggestions } from '../components/dashboard/ProactiveSuggestions';
 import { HolyHermesOracle } from '../components/HolyHermesOracle';
@@ -633,6 +634,9 @@ export function Dashboard() {
             </FeatureErrorBoundary>
             <FeatureErrorBoundary feature="Achievements" compact>
               <DashboardAchievements />
+            </FeatureErrorBoundary>
+            <FeatureErrorBoundary feature="Junction Recommender" compact>
+              <DashboardJunctionRecommender goalTexts={goals.map(g => g.title).filter(Boolean)} />
             </FeatureErrorBoundary>
           </div>
         )}
