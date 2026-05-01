@@ -9,7 +9,7 @@ import { useUserStore } from '../stores/useUserStore';
 import {
   User, Palette, Sparkles, Send, Link2, Crown, Database,
   RotateCcw, Navigation, Info, Settings as SettingsIcon,
-  AlertTriangle, Loader2, Shield,
+  AlertTriangle, Loader2, Shield, Gauge,
 } from 'lucide-react';
 import { TelegramConnect } from '../components/TelegramConnect';
 import { IntegrationCard } from '../components/settings/IntegrationCard';
@@ -17,6 +17,8 @@ import { useGoogleIntegration } from '../hooks/useGoogleIntegration';
 import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
 import { getAISettings, saveAISettings, type AISettings } from '../lib/intent-engine';
 import { useSubscription } from '../hooks/useSubscription';
+import { useAIRateLimit } from '../hooks/useAIRateLimit';
+import { getCostCaps } from '../lib/ai-rate-limiter';
 import { resetTours, startTourManually } from '../components/SpotlightTour';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SettingsProfile } from './settings/SettingsProfile';
@@ -180,6 +182,13 @@ function AISettingsTab({ aiSettings, aiSaved, onChange }: {
   aiSettings: AISettings; aiSaved: boolean;
   onChange: (key: keyof AISettings, value: string | boolean) => void;
 }): JSX.Element {
+  const rateLimit = useAIRateLimit();
+  const costCaps = getCostCaps();
+  const tier = rateLimit.messagesLimit <= 5 ? 'Free' : 'Pro';
+  const costCapDollars = (rateLimit.costLimitCents / 100).toFixed(2);
+  const costUsedDollars = (rateLimit.costUsedCents / 100).toFixed(2);
+  const resetTimeStr = rateLimit.resetAt.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true });
+
   return (
     <section className="set-section">
       <div className="set-section-header">
@@ -197,9 +206,80 @@ function AISettingsTab({ aiSettings, aiSaved, onChange }: {
           </button>
         </div>
       </div>
+
+      {/* ── Rate Limit Usage Card ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(0,212,255,0.06), rgba(139,92,246,0.06))',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 12,
+        padding: '16px 20px',
+        marginTop: 16,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <Gauge size={16} style={{ color: '#00D4FF' }} />
+          <h4 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#00D4FF' }}>Daily Usage</h4>
+          <span style={{
+            fontSize: 11,
+            padding: '2px 8px',
+            borderRadius: 6,
+            background: tier === 'Pro' ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.08)',
+            color: tier === 'Pro' ? '#00D4FF' : 'rgba(255,255,255,0.5)',
+          }}>{tier}</span>
+        </div>
+
+        {/* Message usage bar */}
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Messages</span>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', fontVariantNumeric: 'tabular-nums' }}>
+              {rateLimit.messagesUsed} / {rateLimit.messagesLimit}
+            </span>
+          </div>
+          <div style={{ width: '100%', height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3, overflow: 'hidden' }}>
+            <div style={{
+              width: `${Math.min(100, (rateLimit.messagesUsed / Math.max(1, rateLimit.messagesLimit)) * 100)}%`,
+              height: '100%',
+              background: rateLimit.isLimited ? '#EF4444' : rateLimit.remaining <= 2 ? '#FFD93D' : '#00D4FF',
+              borderRadius: 3,
+              transition: 'width 0.3s ease, background 0.3s ease',
+            }} />
+          </div>
+        </div>
+
+        {/* Cost usage bar */}
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Cost</span>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', fontVariantNumeric: 'tabular-nums' }}>
+              ${costUsedDollars} / ${costCapDollars}
+            </span>
+          </div>
+          <div style={{ width: '100%', height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3, overflow: 'hidden' }}>
+            <div style={{
+              width: `${Math.min(100, (rateLimit.costUsedCents / Math.max(1, rateLimit.costLimitCents)) * 100)}%`,
+              height: '100%',
+              background: rateLimit.isLimited ? '#EF4444' : rateLimit.costUsedCents >= rateLimit.costLimitCents * 0.8 ? '#FFD93D' : '#8B5CF6',
+              borderRadius: 3,
+              transition: 'width 0.3s ease, background 0.3s ease',
+            }} />
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
+            Resets at {resetTimeStr}
+          </span>
+          {rateLimit.isLimited && (
+            <span style={{ fontSize: 11, color: '#EF4444', fontWeight: 600 }}>
+              Limit reached
+            </span>
+          )}
+        </div>
+      </div>
+
       <div className="set-ai-info">
         <Info size={14} />
-        <span>API keys are stored on the server. Use <kbd>⌘J</kbd> to open the AI assistant.</span>
+        <span>API keys are stored on the server. Use <kbd>Cmd+J</kbd> to open the AI assistant.</span>
       </div>
     </section>
   );

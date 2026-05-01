@@ -92,6 +92,8 @@ interface ChatMessageListProps {
   onScroll: () => void;
   onConfirmActions: (msgId: string) => void;
   onDismissActions: (msgId: string) => void;
+  remainingMessages?: number;
+  maxMessages?: number;
 }
 
 export function ChatMessageList({
@@ -103,6 +105,8 @@ export function ChatMessageList({
   onScroll,
   onConfirmActions,
   onDismissActions,
+  remainingMessages,
+  maxMessages,
 }: ChatMessageListProps) {
   return (
     <div className="ai-chat-messages" ref={messagesContainerRef} onScroll={onScroll}>
@@ -116,9 +120,9 @@ export function ChatMessageList({
             <span className="ai-chat-example">"Spent $45 on fuel"</span>
             <span className="ai-chat-example">"Slept 7 hours, feeling good"</span>
           </div>
-          {/* Early adopter — all users get Pro */}
+          {/* Daily AI message limit */}
           <div className="ai-chat-tier-hint" style={{ marginTop: 16, padding: '8px 14px', background: 'rgba(0,212,255,0.08)', borderRadius: 8, fontSize: 12, color: '#00D4FF', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Crown size={12} /> Early Adopter · 15 AI messages/day
+            <Crown size={12} /> {remainingMessages !== undefined && maxMessages !== undefined ? `${remainingMessages}/${maxMessages} messages remaining today` : 'Early Adopter \u00b7 15 AI messages/day'}
           </div>
         </div>
       )}

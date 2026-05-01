@@ -4,13 +4,16 @@
  * This ensures:
  * 1. API keys stay server-side (never exposed in client JS)
  * 2. Referer-restricted keys work regardless of which domain the user is on
- * 3. Rate limiting is enforced server-side
+ * 3. Rate limiting is enforced server-side and client-side
  * 4. Single point of configuration for provider/model changes
  */
 
 import { supabase } from './data-access';
 import { useUserStore } from '../stores/useUserStore';
 import { getErrorMessage, isAbortError } from '../utils/error';
+import { checkRateLimit, recordAIUsage, RateLimitError } from './ai-rate-limiter';
+
+export { RateLimitError } from './ai-rate-limiter';
 
 const PROXY_URL = '/api/llm-proxy.php';
 const DEFAULT_TIMEOUT_MS = 30000;
@@ -23,6 +26,8 @@ export interface LLMProxyOptions {
   skipAuth?: boolean;
   /** Response format: 'text' (default) or 'json'. Controls provider-level JSON mode. */
   format?: 'text' | 'json';
+  /** Service identifier for rate limit tracking (default: 'ai') */
+  service?: string;
 }
 
 export interface LLMProxyResponse {
@@ -124,10 +129,20 @@ export async function callLLMProxy(
   input: string | { role: string; content: string }[],
   options: LLMProxyOptions = {},
 ): Promise<LLMProxyResponse> {
+  // Client-side rate limit check before any LLM call
+  const rateResult = checkRateLimit(options.service || 'ai');
+  if (!rateResult.allowed) {
+    throw new RateLimitError(rateResult.remaining, rateResult.resetAt, rateResult.reason || 'Daily AI limit reached');
+  }
+
   try {
-    return await _callLLMProxyOnce(input, options);
+    const response = await _callLLMProxyOnce(input, options);
+    // Record successful AI usage for rate limit tracking
+    recordAIUsage(0); // Cost cents will be updated by ai-cost-tracker separately
+    return response;
   } catch (err) {
     // Don't retry timeouts (abort errors) — they're intentional
+    if (err instanceof RateLimitError) throw err;
     if (err instanceof Error && err.message === 'LLM request timed out') throw err;
     // Wait 2s then retry once
     await new Promise(r => setTimeout(r, 2000));
