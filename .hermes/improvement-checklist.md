@@ -7,8 +7,8 @@
 - **Baseline Version:** 1.19.27
 - **Current Version:** 1.20.9
 - **Baseline Date:** 2026-04-20
-- **Last Audit:** 2026-04-30 (Phase 4 Perpetual Sprint)
-- **Completion:** 122/122 = 100% (all code-implementable items done; TD-010/P7-003 is a deployment action)
+- **Last Audit:** 2026-05-02 (Phase 5 Near-Complete Trap Re-Audit)
+- **Completion:** 122/163 = 74.8% (41 new items from Phase 5 audit; ~10 previously DONE items are partial/stubs)
  **Phase 3 Audit Results:** 105/122 = 86.1% (6 new items DONE: TD-011, TD-013, TD-015, TD-017, TD-018, TD-019)
  **Phase 3 Audit Report:** /mnt/data/tmp/lifeos/.hermes/phase3-self-healing-audit.md
 
@@ -241,3 +241,82 @@
 - [x] [P7-027] Sync conflict resolution (full CRDT) — ✅ DONE — v1.20.6 — crdt-engine.ts with G-Counter + LWW-Register + OR-Set merge, CrdtStatus.tsx settings component
 - 2026-04-28: Batch 6 execution. P7-008 TTS (SpeechSynthesis + auto-speak), P7-010 flow state detection (ultradian rhythm + Rhythm principle), P7-014 NL query engine (12 patterns, saves LLM costs). Score: 105/122 = 86.1%. Version: 1.20.1.
 - 2026-04-30: Phase 4 perpetual sprint. 16 items DONE across 5 batches (v1.20.4→v1.20.8). P7-009 Ambient computing, P7-015 Temporal playback, P7-026 Notification prefs (Batch 1). P7-012 Knowledge graph, P7-024 Social gate removed, P7-019 Realm screenshot (Batch 2). P7-011 Plugin system, P7-013 Multi-LLM federation, P7-027 CRDT sync (Batch 3). P7-016 Web Push, P7-017 Referral system, P7-021 Sleep-productivity correlation (Batch 4). P7-020 World awareness, P7-022 Health device import, P7-023 GCal sync, P7-025 Server enforcement (Batch 5). Score: 121/122 = 99.2%. Version: 1.20.8.
+
+
+## Phase 5 Re-Audit (2026-05-02): Near-Complete Trap Discovery
+
+41 new items discovered across 4 categories. Checklist claimed 100%, actual completion ~65%.
+
+## Priority 1: BROKEN — New Items from Phase 5 Audit
+
+- [ ] [P1-101] Voice-first wake word + continuous mode — 🔨 PARTIAL — VoiceFirst feature (2,309 lines) exists with VoiceCommandHistory, VoiceSettings, VoiceWaveform, but wake word detection and continuous mode not implemented, voice-to-intent bridge incomplete — [Vision: VISION-v2-ori §8.1 "Wake word detection using Web Speech API continuous mode", "All intent engine actions available via voice"] — [Impact: 4/5]
+- [ ] [P1-102] Gmail integration — 📦 STUB — gmail.ts (90 lines) is API scaffolding calling non-existent google-proxy.php — [Vision: VISION-v2-ori §8.2 Google integration] — [Impact: 2/5]
+- [ ] [P1-103] Adaptive/dynamic bottom navigation — ❌ MISSING — Sidebar and MobileNav have hardcoded nav order, no usage tracking for dynamic reorder — [Vision: VISION-v2-ori §6.2 "Bottom nav → dynamic based on top 4 most-used pages + More"] — [Impact: 3/5]
+- [ ] [P1-104] Flipper Zero workstation activation — 🔨 PARTIAL — FlipperCheckin.tsx (355 lines) exists for WebUSB game overlay, but native flipper-activate.sh and launchd daemon absent — [Vision: MASTER_BUILD_PLAN §2] — [Impact: 1/5]
+- [ ] [P1-105] Onboarding V2 quick 5-step flow — 🔨 PARTIAL — WelcomeWizard exists (split into 3 files) but still LLM-heavy, not the 5-step 3-minute slider-based flow described in VISION-v2-ori §7.2 — [Impact: 5/5]
+
+## Priority 2: FOUNDATION — New Items from Phase 5 Audit
+
+- [ ] [P2-101] ZeroClaw autonomous actions return false — 📦 STUB — zeroclaw-client.ts exists but agentExecuteAction() returns {success: false}. Nudge system exists but doesn't write data through Supabase tools — [Vision: VISION-v2-ori §6.1 "Add Supabase tools to ZeroClaw" with 12+ tool operations] — [Impact: 5/5]
+- [ ] [P2-102] Dual income/expense table schema not migrated — 🔨 PARTIAL — Code routes through useFinanceStore but DB still has both income AND expenses tables (should be unified transactions table) — [Impact: 4/5]
+
+## Priority 3: VISION-CRITICAL — New Items from Phase 5 Audit
+
+- [ ] [P3-101] "God Mode" unified dashboard — 🔨 PARTIAL — Knowledge Graph (P7-012), Temporal Playback (P7-015), NL Query (P7-014) exist as separate widgets but no unified cross-domain visualization — [Vision: VISION-v2 "God mode dashboard — WorldView-inspired unified visualization"] — [Impact: 4/5]
+- [ ] [P3-102] Multi-person intelligence dashboards — 🔨 PARTIAL — FamilyCircles (2,933 lines) has SharedBudget/SharedGoals panels but no cross-person insight layer — [Vision: VISION-v2 "Multi-person intelligence — partner/team dashboards"] — [Impact: 3/5]
+- [ ] [P3-103] Evidence-based framework matrix gaps — 🔨 PARTIAL — 8 of 14 frameworks implemented (Covey, GTD, Keystone, Stoic, Grit, Motivation, Decision, Difficulty). Missing: Atomic Habits 4 laws, Deep Work scheduling, Essentialism pruning, Sleep→performance engine, Drive autonomy tracking — [Vision: VISION-v2 foundational research list] — [Impact: 4/5]
+- [ ] [P3-105] SRS engine not wired to Academy — 🔨 PARTIAL — srs-engine.ts (508 lines) exists but not integrated into Academy store/lessons — [Vision: VISION-v2 "Brain Forge — spaced repetition, exam prep"] — [Impact: 3/5]
+- [ ] [P3-106] Smart Scheduler auto-execution — 🔨 PARTIAL — smart-scheduler.ts generates suggestions but doesn't auto-create schedule events — [Vision: VISION-v2-ori §5 "AI sees patterns you don't"] — [Impact: 4/5]
+- [ ] [P3-107] BookForge / Life Chronicle — 📦 STUB — bookforge.ts (133 lines) exists, Story page rated 4/10 in audit. No AI-powered writing generation — [Vision: VISION-v2-ori "BookForge integration for life chronicle"}] — [Impact: 2/5]
+
+## Priority 4: ENGAGEMENT — New Items from Phase 5 Audit
+
+- [ ] [P4-101] Churn prevention / re-engagement system — 🔨 PARTIAL — Web Push (P7-016) and Proactive Suggestions exist, but no inactivity triggers, no NPC-themed notification templates, no churn signal detection — [Vision: LIFEOS-ROADMAP §11 "No login 2d/7d/30d → NPC messages"] — [Impact: 4/5]
+- [ ] [P4-102] Duolingo-style daily reward chest animation — 🔨 PARTIAL — DailyRewardToast shows XP with fire animation but no chest-opening mechanic — [Vision: LIFEOS-ROADMAP §3.1 "Daily reward chest is their #1 retention mechanic"] — [Impact: 3/5]
+
+## Priority 5: DEPTH — New Items from Phase 5 Audit
+
+- [ ] [P5-101] Digital Twin / Life Simulator — 🔨 PARTIAL — Full feature code (digital-twin 2,404 lines + life-simulator 2,561 lines) exists but not in checklist. Routed at /simulator, /twin — [Impact: 3/5]
+- [ ] [P5-102] Dream Journal system — 🔨 PARTIAL — Full feature (2,150 lines) with DreamCalendar, DreamInterpreter, DreamSymbolExplorer. Routed at /dreams. Not in checklist — [Impact: 2/5]
+- [ ] [P5-103] Life Timeline — 🔨 PARTIAL — Full feature (1,726 lines) with LifeChapters, EventDetailPanel. Routed at /timeline. Not in checklist — [Impact: 3/5]
+- [ ] [P5-104] Location Context system — 🔨 PARTIAL — Full feature (2,514 lines) with LocationAutomations, PlacesManager. Routed at /location. Not in checklist — [Impact: 4/5]
+- [ ] [P5-105] Mini Games system — 🔨 PARTIAL — Full feature (2,003 lines) with 7 game types. Routed at /mini-games. Not in checklist — [Impact: 2/5]
+- [ ] [P5-106] Realm real-time multiplayer gameplay — 🔨 PARTIAL — RealmMultiplayer.ts uses cloudSupabase for subscriptions, OnlinePlayersHUD shows player count, but no real avatar movement or multiplayer gameplay — [Vision: WORLD-CLASS-ROADMAP "Multiplayer Presence"] — [Impact: 2/5]
+
+## Priority 6: SCALE — New Items from Phase 5 Audit
+
+- [ ] [P6-101] Guild Wars system — 🔨 PARTIAL — Full code (8,109 lines) with WarDeclaration, WarScoreboard, WarRewards. Not tracked in P6-005 — [Impact: 3/5]
+- [ ] [P6-102] Family Circles / shared dashboard — 🔨 PARTIAL — Full code (2,933 lines) with SharedBudget, SharedGoals, FamilyAchievements. Not tracked in P6-013 — [Impact: 4/5]
+- [ ] [P6-103] Mentorship system — 🔨 PARTIAL — Full code (1,301 lines) with MentorMatching, MentorDashboard, MenteeDashboard. Routed at /mentor — [Impact: 2/5]
+- [ ] [P6-104] Social Feed V2 + Collaborative Quests — 🔨 PARTIAL — Massive feature (8,109 lines). SocialFeed, CollaborativeQuests, GuildEvents. Not in P6-005/P6-006 — [Impact: 3/5]
+- [ ] [P6-105] Contract Intelligence (TCS Business V2) — 🔨 PARTIAL — Full code (2,316 lines) with ClientHealthDashboard, RevenueProjections, SmartAlerts. Routed at /contract-intel — [Impact: 3/5]
+- [ ] [P6-106] Audio Rooms (voice chat) — 🔨 PARTIAL — Full code (948 lines) with useAudioRooms. Routed at /audio-rooms — [Impact: 2/5]
+- [ ] [P6-107] Public API / Integration Platform — 🔨 PARTIAL — Full code (1,606 lines) with ApiUsageDashboard, IntegrationGuides. Routed at /api-settings — [Impact: 3/5]
+- [ ] [P6-108] Player Housing (Realm) — 🔨 PARTIAL — Full code (1,214 lines) with HouseEditor, HouseVisitor, HouseThemes. Routed at /housing — [Impact: 3/5]
+- [ ] [P6-109] Market / Trading System (Realm) — 🔨 PARTIAL — Full code (1,188 lines) with Market, TradeCenter, InventoryView. Routed at /market — [Impact: 2/5]
+
+## Technical Debt — New Items from Phase 5 Audit
+
+- [ ] [TD-020] Feature gates not enforcing (canAccess returns true for everything) — BREAKS MONETIZATION — [Impact: 5/5]
+- [ ] [TD-021] ZeroClaw autonomous actions return false — [DUPLICATE of P2-101, see above] — [Impact: 4/5]
+- [ ] [TD-022] Google Calendar integration is stub (proxy endpoint doesn't exist) — [Impact: 4/5]
+- [ ] [TD-023] Health Device Import is parser only (CSV/JSON/XML), no real device API — [Impact: 3/5]
+- [ ] [TD-024] Web Push notifications have no backend (VAPID key + push endpoint missing) — [DEPLOYMENT ACTION for backend, but client code needs VAPID key config] — [Impact: 3/5]
+- [ ] [TD-025] RLS migration not applied — [DUPLICATE of TD-010/P7-003, DEPLOYMENT ACTION] — [Impact: 5/5]
+- [ ] [TD-026] Workout→Schedule integration broken (day_of_week in workout templates not read by anything) — [Impact: 3/5]
+- [ ] [TD-027] Multi-tab sync edge cases untested — CRDT engine added but detection-only, not resolution — [Impact: 3/5]
+- [ ] [TD-028] Social features untested with real users — All client-side, never validated with concurrent users — [Impact: 2/5]
+- [ ] [TD-029] Google proxy endpoint missing — Both gcal-sync.ts and gmail.ts route through google-proxy.php which doesn't exist — [Impact: 3/5]
+- [ ] [TD-030] Dual financial table schema not migrated — Code routes through store but DB still has income+expenses tables — [DUPLICATE of P2-102] — [Impact: 4/5]
+- [ ] [TD-031] 40+ feature directories not in checklist — "Dark features" with routes/stores but zero test coverage — [Impact: 3/5]
+- [ ] [TD-032] Bundle size growing uncontrolled — 979+ TS files, 20+ feature directories, lazy loading only for routes — [Impact: 3/5]
+- [ ] [TD-033] No rate limiting on AI endpoints — ai-cost-tracker.ts tracks costs but doesn't enforce per-user rate limits — [Impact: 4/5]
+- [ ] [TD-034] Zero integration/E2E tests for new features — 20,000+ lines of new code with zero test coverage — [Impact: 4/5]
+- [ ] [TD-035] Supabase query patterns bypass store layer — New features in src/features/ make direct Supabase calls — [Impact: 3/5]
+- [ ] [TD-036] Feature registry not driving visibility — canAccess() returns true for everything, no progressive disclosure — [DUPLICATE of TD-020] — [Impact: 3/5]
+- [ ] [TD-037] Telegram/Webapp parity not complete — Bot can't do: decompose_objective, start_focus, etc. Webapp can't do: log_mood separate, etc. — [Impact: 2/5]
+
+## Audit Log (continued)
+
+- 2026-05-02: Phase 5 Near-Complete re-audit. Discovered 41 new items across 4 categories (20 untracked features, 10 partial/stubs, 3 incomplete integrations, 8 technical debt). Checklist was 122/122 = 100%, actual completion estimated at ~65-75%. Prioritized by impact: TD-020 (feature gates), TD-033 (AI rate limiting), P1-105 (onboarding V2), P2-101 (ZeroClaw actions) as top items. Version: 1.20.9.
+
