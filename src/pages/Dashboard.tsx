@@ -73,6 +73,7 @@ import {
   StreakShieldWidget,
   DashboardEveningReview,
   DashboardLifeScore,
+  DashboardCorrelations,
 } from '../components/dashboard';
 import { ProactiveSuggestions } from '../components/dashboard/ProactiveSuggestions';
 import { HolyHermesOracle } from '../components/HolyHermesOracle';
@@ -674,6 +675,9 @@ export function Dashboard() {
                   bestStreak: bestHabitStreak,
                   yesterdayScore: null,
                 }} />
+              </FeatureErrorBoundary>
+              <FeatureErrorBoundary feature="Cross-Domain Intelligence" compact>
+                <DashboardCorrelations limit={3} />
               </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Insights" compact>
                 <DashboardInsights isToday={isToday} todayStr={todayStr} dayTaskProgress={dayTaskProgress}
