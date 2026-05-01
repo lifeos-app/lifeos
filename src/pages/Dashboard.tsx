@@ -75,6 +75,7 @@ import {
   DashboardLifeScore,
   DashboardCorrelations,
   DashboardJunctionRecommender,
+  DashboardTemporalPlayback,
 } from '../components/dashboard';
 import { ProactiveSuggestions } from '../components/dashboard/ProactiveSuggestions';
 import { HolyHermesOracle } from '../components/HolyHermesOracle';
@@ -92,6 +93,7 @@ import { EmptyState } from '../components/EmptyState';
 import { FeatureErrorBoundary } from '../components/FeatureErrorBoundary';
 import { TCSTodayCard, DailyCheckin, TCSDrivingWidget } from '../components/tcs';
 import { useTCSEnabled } from '../hooks/useTCSEnabled';
+import { useTemporalSnapshots } from '../hooks/useTemporalSnapshots';
 import { DashboardHeatmap } from '../components/dashboard/DashboardHeatmap';
 
 type DashTab = 'today' | 'schedule' | 'goals' | 'habits' | 'insights';
@@ -313,6 +315,8 @@ export function Dashboard() {
     }
     return days;
   }, [weeklyTasks]);
+
+  const temporalSnapshots = useTemporalSnapshots(7);
 
   const todayMood = journalEntry?.mood ? MOODS[journalEntry.mood] : null;
   const agentNudges = useAgentStore(s => s.nudges);
@@ -682,6 +686,9 @@ export function Dashboard() {
               </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Cross-Domain Intelligence" compact>
                 <DashboardCorrelations limit={3} />
+              </FeatureErrorBoundary>
+              <FeatureErrorBoundary feature="Temporal Playback" compact>
+                <DashboardTemporalPlayback snapshots={temporalSnapshots} />
               </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Insights" compact>
                 <DashboardInsights isToday={isToday} todayStr={todayStr} dayTaskProgress={dayTaskProgress}
