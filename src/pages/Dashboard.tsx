@@ -72,6 +72,7 @@ import {
   DashboardScheduleInsights,
   StreakShieldWidget,
   DashboardEveningReview,
+  DashboardLifeScore,
 } from '../components/dashboard';
 import { ProactiveSuggestions } from '../components/dashboard/ProactiveSuggestions';
 import { HolyHermesOracle } from '../components/HolyHermesOracle';
@@ -659,6 +660,21 @@ export function Dashboard() {
         {activeTab === 'insights' && (
           <div className="dash-insights-layout">
             <div className="dash-full-row">
+              <FeatureErrorBoundary feature="Life Score" compact>
+                <DashboardLifeScore input={{
+                  habitCompletion: habits.length > 0 ? dayHabitsDone / habits.length : 0,
+                  goalProgress: avgGoalProgress,
+                  mood: healthMetrics?.mood_score ?? null,
+                  energy: healthMetrics?.energy_score ?? null,
+                  sleepHours: healthMetrics?.sleep_hours ?? null,
+                  taskCompletion: dayTaskProgress,
+                  netIncome: net,
+                  overdueBills: bills.filter(b => b.status !== 'paid').length,
+                  scheduleCompletion: dayEvents.length > 0 ? 1 : 0,
+                  bestStreak: bestHabitStreak,
+                  yesterdayScore: null,
+                }} />
+              </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Insights" compact>
                 <DashboardInsights isToday={isToday} todayStr={todayStr} dayTaskProgress={dayTaskProgress}
                   dayDoneTasks={dayDoneTasks} dayTasks={dayTasks} dayHabitsDone={dayHabitsDone} totalHabits={habits.length}
