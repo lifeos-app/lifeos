@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import {
   Dumbbell, Brain, Moon, Apple,
   Scale, Droplets, Zap, Activity, Flame,
-  AlertTriangle, ChevronRight, Sun,
+  AlertTriangle, ChevronRight, Sun, Calendar,
 } from 'lucide-react';
 import { ProgressRing, SparkLine } from '../../components/charts';
 import { InsightsBanner, SnapCard } from './components';
@@ -16,7 +16,7 @@ const MOOD_EMOJI_COLORS = ['#EF4444', '#F43F5E', '#FACC15', '#6BCB77', '#39FF14'
 const ENERGY_EMOJIS = ['😴', '🥱', '😐', '💪', '⚡'];
 const ENERGY_EMOJI_COLORS = ['#EF4444', '#F43F5E', '#FACC15', '#39FF14', '#00D4FF'];
 
-export function OverviewTab({ metrics, exerciseLogs, meditationLogs, gratitudeEntries, templates, markers, allMetrics, onUpdateMetrics, meals, onTabChange }: OverviewTabProps) {
+export function OverviewTab({ metrics, exerciseLogs, meditationLogs, gratitudeEntries, templates, markers, allMetrics, onUpdateMetrics, meals, onTabChange, onSyncToSchedule, scheduleEvents }: OverviewTabProps) {
   const today = new Date().toISOString().split('T')[0];
   const todayWorkouts = exerciseLogs.filter((l: ExerciseLog) => l.date === today && l.completed);
   const todayMeditation = meditationLogs.filter((l: MeditationLog) => l.date === today);
@@ -32,7 +32,18 @@ export function OverviewTab({ metrics, exerciseLogs, meditationLogs, gratitudeEn
   const weekWorkoutDays = new Set(
     exerciseLogs.filter((l: ExerciseLog) => l.completed && l.date >= weekStartStr).map((l: ExerciseLog) => l.date)
   ).size;
-  const todayPlanned = templates.filter((t: WorkoutTemplate) => t.day_of_week.includes(new Date().getDay())).length;
+  const currentDayOfWeek = new Date().getDay();
+  const todayPlanned = templates.filter((t: WorkoutTemplate) => t.day_of_week.includes(currentDayOfWeek));
+
+  // Detect templates scheduled for today that have no matching schedule events
+  const unsyncedTemplates = todayPlanned.filter((t: WorkoutTemplate) => {
+    if (!t.id) return false;
+    const hasScheduleEvent = (scheduleEvents || []).some(
+      (e: { workout_template_id?: string; event_type?: string; is_deleted?: boolean }) =>
+        e.workout_template_id === t.id && !e.is_deleted
+    );
+    return !hasScheduleEvent;
+  });
 
   const healthScore = calculateHealthScore(metrics, todayWorkouts.length, meditationMins, todayGratitude.length);
 
@@ -44,7 +55,7 @@ export function OverviewTab({ metrics, exerciseLogs, meditationLogs, gratitudeEn
   const energySpark = last7.map((date: string) => allMetrics.find((m: HealthMetrics) => m.date === date)?.energy_score || 0);
 
   const lowSleep = (metrics?.sleep_hours || 0) > 0 && (metrics?.sleep_hours || 0) < 7;
-  const noWorkout = todayPlanned > 0 && todayWorkouts.length === 0;
+  const noWorkout = todayPlanned.length > 0 && todayWorkouts.length === 0;
   const weightTrend = useMemo(() => {
     const withWeight = allMetrics.filter((m: HealthMetrics) => m.weight_kg).slice(0, 14);
     if (withWeight.length < 2) return null;
@@ -58,7 +69,7 @@ export function OverviewTab({ metrics, exerciseLogs, meditationLogs, gratitudeEn
 
   const insights: { text: string; type: 'positive' | 'warning' | 'insight' }[] = [];
   if (lowSleep) insights.push({ text: 'You slept less than 7 hours. Prioritize recovery.', type: 'warning' });
-  if (noWorkout && todayPlanned > 0) insights.push({ text: `You have ${todayPlanned} workout${todayPlanned > 1 ? 's' : ''} scheduled today.`, type: 'insight' });
+  if (noWorkout && todayPlanned.length > 0) insights.push({ text: `You have ${todayPlanned.length} workout${todayPlanned.length > 1 ? 's' : ''} scheduled today.`, type: 'insight' });
   if (activeMarkers.length > 0) insights.push({ text: `${activeMarkers.length} body issue${activeMarkers.length > 1 ? 's' : ''} may affect training.`, type: 'warning' });
   if ((metrics?.water_intake || 0) < 2000) insights.push({ text: 'Hydration looks low—aim for 2L+ today.', type: 'positive' });
 
@@ -80,6 +91,27 @@ export function OverviewTab({ metrics, exerciseLogs, meditationLogs, gratitudeEn
         />
       )}
       {insights.length > 0 && <InsightsBanner insights={insights} />}
+
+      {unsyncedTemplates.length > 0 && onSyncToSchedule && (
+        <div className="hv2-sync-banner glass-card">
+          <div className="hv2-sync-banner-content">
+            <Calendar size={16} className="text-amber-400" />
+            <div className="hv2-sync-banner-text">
+              <span className="hv2-sync-banner-title">Workout not synced</span>
+              <span className="hv2-sync-banner-desc">
+                {unsyncedTemplates.map(t => t.name).join(', ')} {unsyncedTemplates.length === 1 ? 'is' : 'are'} scheduled for today but not in your calendar.
+              </span>
+            </div>
+          </div>
+          <div className="hv2-sync-banner-actions">
+            {unsyncedTemplates.map(t => (
+              <button key={t.id} className="btn-glow-sm" onClick={() => onSyncToSchedule(t)}>
+                Sync {t.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="hv2-score-hero glass-card">
         <div className="hv2-score-left">
@@ -190,17 +222,17 @@ export function OverviewTab({ metrics, exerciseLogs, meditationLogs, gratitudeEn
             <span className="hv2-snap-emoji"><Dumbbell size={16} /></span>
             <Dumbbell size={14} color="#39FF14" />
           </div>
-          <span className="hv2-snap-value">{todayWorkouts.length}/{todayPlanned}</span>
+          <span className="hv2-snap-value">{todayWorkouts.length}/{todayPlanned.length}</span>
           <span className="hv2-snap-label">Exercise</span>
-          {todayPlanned > 0 && (
+          {todayPlanned.length > 0 && (
             <div className="hv2-snap-progress">
               <div className="hv2-snap-progress-bar" style={{
-                width: `${Math.min((todayWorkouts.length / todayPlanned) * 100, 100)}%`,
-                background: todayWorkouts.length >= todayPlanned ? '#39FF14' : '#FACC15'
+                width: `${Math.min((todayWorkouts.length / todayPlanned.length) * 100, 100)}%`,
+                background: todayWorkouts.length >= todayPlanned.length ? '#39FF14' : '#FACC15'
               }} />
             </div>
           )}
-          <span className="hv2-snap-sub">{todayWorkouts.length >= todayPlanned && todayPlanned > 0 ? 'Complete ✓' : todayPlanned > 0 ? `${todayPlanned - todayWorkouts.length} remaining` : 'Rest day'}</span>
+          <span className="hv2-snap-sub">{todayWorkouts.length >= todayPlanned.length && todayPlanned.length > 0 ? 'Complete' : todayPlanned.length > 0 ? `${todayPlanned.length - todayWorkouts.length} remaining` : 'Rest day'}</span>
         </SnapCard>
 
         <SnapCard className="hv2-snap-card hv2-snap-enhanced" onClick={() => onTabChange('mind')}>

@@ -72,13 +72,12 @@ import {
   DashboardScheduleInsights,
   StreakShieldWidget,
   DashboardEveningReview,
-  DashboardAcademy,
-  FlowStateIndicator,
-  FlowInsightsCard,
-  SleepProductivityInsights,
+  DashboardLifeScore,
+  DashboardCorrelations,
+  DashboardJunctionRecommender,
+  DashboardTemporalPlayback,
 } from '../components/dashboard';
 import { ProactiveSuggestions } from '../components/dashboard/ProactiveSuggestions';
-import { AmbientSuggestions } from '../components/dashboard/AmbientSuggestions';
 import { HolyHermesOracle } from '../components/HolyHermesOracle';
 import { DailyHermeticAffirmation } from '../components/dashboard/DailyHermeticAffirmation';
 import { Brain } from 'lucide-react';
@@ -94,10 +93,8 @@ import { EmptyState } from '../components/EmptyState';
 import { FeatureErrorBoundary } from '../components/FeatureErrorBoundary';
 import { TCSTodayCard, DailyCheckin, TCSDrivingWidget } from '../components/tcs';
 import { useTCSEnabled } from '../hooks/useTCSEnabled';
+import { useTemporalSnapshots } from '../hooks/useTemporalSnapshots';
 import { DashboardHeatmap } from '../components/dashboard/DashboardHeatmap';
-import { CharacterCorner } from '../components/CharacterCorner';
-import { DashboardSeasonalEvent } from '../components/dashboard/DashboardSeasonalEvent';
-import { WorldAwarenessWidget } from '../components/dashboard/WorldAwarenessWidget';
 
 type DashTab = 'today' | 'schedule' | 'goals' | 'habits' | 'insights';
 
@@ -319,6 +316,8 @@ export function Dashboard() {
     return days;
   }, [weeklyTasks]);
 
+  const temporalSnapshots = useTemporalSnapshots(7);
+
   const todayMood = journalEntry?.mood ? MOODS[journalEntry.mood] : null;
   const agentNudges = useAgentStore(s => s.nudges);
   const activeInsightCount = agentNudges.filter(n => !n.dismissed).length;
@@ -405,9 +404,6 @@ export function Dashboard() {
               <FeatureErrorBoundary feature="Greeting" compact>
                 <DashboardGreeting selectedDate={selectedDate} bestHabitStreak={bestHabitStreak} todayMood={todayMood} onEditLayout={() => layout.setEditing(true)} />
               </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="Character" compact>
-                <CharacterCorner />
-              </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Quick Actions" compact>
                 <DashboardQuickActions />
               </FeatureErrorBoundary>
@@ -431,12 +427,6 @@ export function Dashboard() {
               </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Streak Shield" compact>
                 <StreakShieldWidget />
-              </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="Flow State" compact>
-                <FlowStateIndicator />
-              </FeatureErrorBoundary>
-              <FeatureErrorBoundary feature="Academy" compact>
-                <DashboardAcademy />
               </FeatureErrorBoundary>
 
               {activeInsightCount > 0 && (
@@ -521,11 +511,6 @@ export function Dashboard() {
                   <ProactiveSuggestions />
                 </FeatureErrorBoundary>
               )}
-              {isWidgetVisible('ambient-suggest') && (
-                <FeatureErrorBoundary feature="Ambient Suggestions" compact>
-                  <AmbientSuggestions />
-                </FeatureErrorBoundary>
-              )}
               {isWidgetVisible('sleep-quick-log') && (
                 <FeatureErrorBoundary feature="Sleep Quick Log" compact>
                   <SleepQuickLog
@@ -533,11 +518,6 @@ export function Dashboard() {
                     recentMetrics={recentMetrics}
                     onUpdateMetrics={updateHealthMetrics}
                   />
-                </FeatureErrorBoundary>
-              )}
-              {isWidgetVisible('sleep-productivity') && (
-                <FeatureErrorBoundary feature="Sleep-Productivity" compact>
-                  <SleepProductivityInsights />
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('streak-momentum') && (
@@ -555,9 +535,6 @@ export function Dashboard() {
                   <DashboardScheduleInsights />
                 </FeatureErrorBoundary>
               )}
-              <FeatureErrorBoundary feature="Flow Insights" compact>
-                <FlowInsightsCard />
-              </FeatureErrorBoundary>
               {isWidgetVisible('weekly-insight') && (
                 <FeatureErrorBoundary feature="Weekly Insight" compact>
                   <DashboardWeeklyInsight />
@@ -584,16 +561,6 @@ export function Dashboard() {
               {isWidgetVisible('celestial') && (
                 <FeatureErrorBoundary feature="Celestial" compact>
                   <DashboardCelestial />
-                </FeatureErrorBoundary>
-              )}
-              {isWidgetVisible('world-awareness') && (
-                <FeatureErrorBoundary feature="World Awareness" compact>
-                  <WorldAwarenessWidget />
-                </FeatureErrorBoundary>
-              )}
-              {isWidgetVisible('seasonal-event') && (
-                <FeatureErrorBoundary feature="Seasonal Event" compact>
-                  <DashboardSeasonalEvent />
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('holy-hermes') && (
@@ -672,6 +639,9 @@ export function Dashboard() {
             <FeatureErrorBoundary feature="Achievements" compact>
               <DashboardAchievements />
             </FeatureErrorBoundary>
+            <FeatureErrorBoundary feature="Junction Recommender" compact>
+              <DashboardJunctionRecommender goalTexts={goals.map(g => g.title).filter(Boolean)} />
+            </FeatureErrorBoundary>
           </div>
         )}
 
@@ -699,6 +669,27 @@ export function Dashboard() {
         {activeTab === 'insights' && (
           <div className="dash-insights-layout">
             <div className="dash-full-row">
+              <FeatureErrorBoundary feature="Life Score" compact>
+                <DashboardLifeScore input={{
+                  habitCompletion: habits.length > 0 ? dayHabitsDone / habits.length : 0,
+                  goalProgress: avgGoalProgress,
+                  mood: healthMetrics?.mood_score ?? null,
+                  energy: healthMetrics?.energy_score ?? null,
+                  sleepHours: healthMetrics?.sleep_hours ?? null,
+                  taskCompletion: dayTaskProgress,
+                  netIncome: net,
+                  overdueBills: bills.filter(b => b.status !== 'paid').length,
+                  scheduleCompletion: dayEvents.length > 0 ? 1 : 0,
+                  bestStreak: bestHabitStreak,
+                  yesterdayScore: null,
+                }} />
+              </FeatureErrorBoundary>
+              <FeatureErrorBoundary feature="Cross-Domain Intelligence" compact>
+                <DashboardCorrelations limit={3} />
+              </FeatureErrorBoundary>
+              <FeatureErrorBoundary feature="Temporal Playback" compact>
+                <DashboardTemporalPlayback snapshots={temporalSnapshots} />
+              </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Insights" compact>
                 <DashboardInsights isToday={isToday} todayStr={todayStr} dayTaskProgress={dayTaskProgress}
                   dayDoneTasks={dayDoneTasks} dayTasks={dayTasks} dayHabitsDone={dayHabitsDone} totalHabits={habits.length}
@@ -714,9 +705,6 @@ export function Dashboard() {
               </FeatureErrorBoundary>
             </div>
             <div className="dash-secondary-col">
-              <FeatureErrorBoundary feature="Flow Insights" compact>
-                <FlowInsightsCard />
-              </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Finances" compact>
                 <DashboardFinances ref={finRef} income={income} expenses={expenses} bills={bills}
                   businesses={businesses} transactions={transactions} goals={goals} finSnapshot={finSnapshot} />

@@ -1,0 +1,246 @@
+/* ═══════════════════════════════════════════════════════════
+   DashboardJunctionRecommender — AI Junction suggestions
+   Dark glass aesthetic, Poppins font, Lucide icons only
+   ═══════════════════════════════════════════════════════════ */
+
+.junction-recommender-card {
+  contain: layout style paint;
+}
+
+.junction-recommender-card .card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.junction-recommender-card .card-top h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
+
+.recommender-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.recommender-toggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.recommender-toggle:focus-visible {
+  outline: 2px solid #00D4FF;
+  outline-offset: 2px;
+}
+
+.recommender-subtitle {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0 0 10px;
+}
+
+/* ── List ── */
+.recommender-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: max-height 0.3s ease;
+  overflow: hidden;
+}
+
+.recommender-list.collapsed {
+  max-height: 200px;
+}
+
+.recommender-list.expanded {
+  max-height: 600px;
+}
+
+/* ── Item ── */
+.recommender-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 2px solid;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.recommender-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.recommender-item.selected {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.recommender-item:focus-visible {
+  outline: 2px solid #00D4FF;
+  outline-offset: 2px;
+}
+
+/* ── Icon ── */
+.recommender-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Info ── */
+.recommender-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.recommender-name {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.recommender-tagline {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Detail panel ── */
+.recommender-detail {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.detail-name {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.detail-tagline {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 8px;
+}
+
+.detail-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.keyword-chip {
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.detail-activate {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s ease, filter 0.1s ease;
+}
+
+.detail-activate:hover {
+  transform: scale(1.02);
+  filter: brightness(1.1);
+}
+
+.detail-activate:focus-visible {
+  outline: 2px solid #00D4FF;
+  outline-offset: 2px;
+}
+
+/* ── Browse button ── */
+.recommender-browse {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.recommender-browse:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .recommender-list.collapsed {
+    max-height: 160px;
+  }
+
+  .recommender-item {
+    padding: 6px 8px;
+  }
+
+  .recommender-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .recommender-name {
+    font-size: 12px;
+  }
+}

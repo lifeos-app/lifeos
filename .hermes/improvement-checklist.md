@@ -5,10 +5,10 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.20.9
+- **Current Version:** 1.20.12
 - **Baseline Date:** 2026-04-20
 - **Last Audit:** 2026-05-02 (Phase 5 Near-Complete Trap Re-Audit)
-- **Completion:** 122/163 = 74.8% (41 new items from Phase 5 audit; ~10 previously DONE items are partial/stubs)
+- **Completion:** 125/163 = 76.7% (41 new items from Phase 5 audit; ~10 previously DONE items are partial/stubs; 3 new items completed this session: TD-020, TD-033, TD-026)
  **Phase 3 Audit Results:** 105/122 = 86.1% (6 new items DONE: TD-011, TD-013, TD-015, TD-017, TD-018, TD-019)
  **Phase 3 Audit Report:** /mnt/data/tmp/lifeos/.hermes/phase3-self-healing-audit.md
 
@@ -297,20 +297,20 @@
 
 ## Technical Debt — New Items from Phase 5 Audit
 
-- [ ] [TD-020] Feature gates not enforcing (canAccess returns true for everything) — BREAKS MONETIZATION — [Impact: 5/5]
+- [x] [TD-020] Feature gates not enforcing — ✅ DONE — Commit: dcb8009 — v1.20.10 — canAccess now enforces Pro/Free tiers even in early adopter mode (soft gate for non-owners), ProGateOverlay component, useProFeatureCheck hook, AI usage limit enforcement, OWNER_EMAILS filled, SettingsDataPrivacy gated
 - [ ] [TD-021] ZeroClaw autonomous actions return false — [DUPLICATE of P2-101, see above] — [Impact: 4/5]
 - [ ] [TD-022] Google Calendar integration is stub (proxy endpoint doesn't exist) — [Impact: 4/5]
 - [ ] [TD-023] Health Device Import is parser only (CSV/JSON/XML), no real device API — [Impact: 3/5]
 - [ ] [TD-024] Web Push notifications have no backend (VAPID key + push endpoint missing) — [DEPLOYMENT ACTION for backend, but client code needs VAPID key config] — [Impact: 3/5]
 - [ ] [TD-025] RLS migration not applied — [DUPLICATE of TD-010/P7-003, DEPLOYMENT ACTION] — [Impact: 5/5]
-- [ ] [TD-026] Workout→Schedule integration broken (day_of_week in workout templates not read by anything) — [Impact: 3/5]
+- [x] [TD-026] Workout→Schedule integration broken — ✅ DONE — Commit: 214026b — v1.20.12 — syncToSchedule() rewritten with workout_template_id dedup, auto-sync on template save, deleteTemplate removes linked events, OverviewTab shows unsynced templates banner with one-tap sync
 - [ ] [TD-027] Multi-tab sync edge cases untested — CRDT engine added but detection-only, not resolution — [Impact: 3/5]
 - [ ] [TD-028] Social features untested with real users — All client-side, never validated with concurrent users — [Impact: 2/5]
 - [ ] [TD-029] Google proxy endpoint missing — Both gcal-sync.ts and gmail.ts route through google-proxy.php which doesn't exist — [Impact: 3/5]
 - [ ] [TD-030] Dual financial table schema not migrated — Code routes through store but DB still has income+expenses tables — [DUPLICATE of P2-102] — [Impact: 4/5]
 - [ ] [TD-031] 40+ feature directories not in checklist — "Dark features" with routes/stores but zero test coverage — [Impact: 3/5]
 - [ ] [TD-032] Bundle size growing uncontrolled — 979+ TS files, 20+ feature directories, lazy loading only for routes — [Impact: 3/5]
-- [ ] [TD-033] No rate limiting on AI endpoints — ai-cost-tracker.ts tracks costs but doesn't enforce per-user rate limits — [Impact: 4/5]
+- [x] [TD-033] No rate limiting on AI endpoints — ✅ DONE — Commit: a0c1989 — v1.20.11 — ai-rate-limiter.ts with checkRateLimit (5 free/15 pro msgs + $0.50/$2.00 cost caps), RateLimitError class, llm-proxy wired, useAIRateLimit hook, ChatInput remaining indicator, Settings AI tab daily usage card
 - [ ] [TD-034] Zero integration/E2E tests for new features — 20,000+ lines of new code with zero test coverage — [Impact: 4/5]
 - [ ] [TD-035] Supabase query patterns bypass store layer — New features in src/features/ make direct Supabase calls — [Impact: 3/5]
 - [ ] [TD-036] Feature registry not driving visibility — canAccess() returns true for everything, no progressive disclosure — [DUPLICATE of TD-020] — [Impact: 3/5]
@@ -319,4 +319,5 @@
 ## Audit Log (continued)
 
 - 2026-05-02: Phase 5 Near-Complete re-audit. Discovered 41 new items across 4 categories (20 untracked features, 10 partial/stubs, 3 incomplete integrations, 8 technical debt). Checklist was 122/122 = 100%, actual completion estimated at ~65-75%. Prioritized by impact: TD-020 (feature gates), TD-033 (AI rate limiting), P1-105 (onboarding V2), P2-101 (ZeroClaw actions) as top items. Version: 1.20.9.
+- 2026-05-02: Executed 3 items. TD-020 Feature gates enforcement DONE (v1.20.10, dcb8009): canAccess enforces tiers, ProGateOverlay, useProFeatureCheck hook, AIChat/DataExport gated. TD-033 AI rate limiting DONE (v1.20.11, a0c1989): checkRateLimit + cost caps in ai-rate-limiter.ts, llm-proxy wired, useAIRateLimit hook, ChatInput indicator, Settings usage card. TD-026 Workout→Schedule integration DONE (v1.20.12, 214026b): syncToSchedule with template_id dedup, auto-sync on save, delete cascades, OverviewTab unsynced banner. Score: 125/163 = 76.7%.
 

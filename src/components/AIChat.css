@@ -1419,6 +1419,19 @@
   cursor: not-allowed;
 }
 
+/* ── Rate Limit Remaining Hint ── */
+.ai-chat-rate-hint {
+  position: absolute;
+  bottom: 4px;
+  right: 56px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  user-select: none;
+  transition: color 0.3s ease;
+}
+
 .ai-chat-input-area--locked .ai-chat-send {
   opacity: 0.4;
   cursor: not-allowed;

@@ -4,55 +4,39 @@
  * Extracted tabs into lazy-loaded components under ./settings/ for maintainability.
  * Shell handles: tab navigation, error banner, loading state.
  */
-import { useState, useEffect, type JSX } from 'react';
+import { useState, type JSX } from 'react';
 import { useUserStore } from '../stores/useUserStore';
 import {
   User, Palette, Sparkles, Send, Link2, Crown, Database,
   RotateCcw, Navigation, Info, Settings as SettingsIcon,
-  AlertTriangle, Loader2, Shield, RefreshCw, CheckCircle, XCircle, Server, Activity,
-  BarChart3, Volume2, Bell, Puzzle, Cpu, Gift,
+  AlertTriangle, Loader2, Shield, Gauge,
 } from 'lucide-react';
-import { PluginManager } from '../components/PluginManager';
-import { NotificationPrefsPanel } from '../components/NotificationPrefsPanel';
-import { PushNotificationSetup } from '../components/PushNotificationSetup';
 import { TelegramConnect } from '../components/TelegramConnect';
 import { IntegrationCard } from '../components/settings/IntegrationCard';
 import { useGoogleIntegration } from '../hooks/useGoogleIntegration';
 import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
-import { getAISettings, saveAISettings, PROVIDER_DEFAULTS, ALLOWED_PROVIDERS, type AISettings } from '../lib/intent-engine';
-import { checkOllamaConnection, type OllamaStatus } from '../lib/llm-proxy';
+import { getAISettings, saveAISettings, type AISettings } from '../lib/intent-engine';
 import { useSubscription } from '../hooks/useSubscription';
+import { useAIRateLimit } from '../hooks/useAIRateLimit';
+import { getCostCaps } from '../lib/ai-rate-limiter';
 import { resetTours, startTourManually } from '../components/SpotlightTour';
 import { PageHeader } from '../components/ui/PageHeader';
 import { SettingsProfile } from './settings/SettingsProfile';
 import { SettingsPreferences } from './settings/SettingsPreferences';
 import { SettingsDataPrivacy } from './settings/SettingsDataPrivacy';
 import { SettingsAbout } from './settings/SettingsAbout';
-import { FamilyPlanSection } from '../components/settings/FamilyPlanSection';
-import { AIUsageStats } from '../components/AIUsageStats';
-import { LLMProviderSettings } from '../components/LLMProviderSettings';
-import { AuditLogViewer } from '../components/AuditLogViewer';
-import { ReferralPanel } from '../components/ReferralPanel';
-import { HealthDeviceImport } from '../components/HealthDeviceImport';
 import './Settings.css';
 
-type TabId = 'profile' | 'preferences' | 'notifications' | 'ai' | 'ai-providers' | 'ai-usage' | 'audit' | 'telegram' | 'integrations' | 'health-import' | 'subscription' | 'referral' | 'data' | 'onboarding' | 'tours' | 'plugins' | 'about';
+type TabId = 'profile' | 'preferences' | 'ai' | 'telegram' | 'integrations' | 'subscription' | 'data' | 'onboarding' | 'tours' | 'about';
 
 const TABS: { id: TabId; label: string; icon: typeof User }[] = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'preferences', label: 'Preferences', icon: Palette },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'ai', label: 'AI Assistant', icon: Sparkles },
-  { id: 'ai-providers', label: 'AI Providers', icon: Cpu },
-  { id: 'ai-usage', label: 'AI Usage', icon: BarChart3 },
-  { id: 'audit', label: 'Audit Log', icon: Shield },
   { id: 'telegram', label: 'Telegram', icon: Send },
   { id: 'integrations', label: 'Integrations', icon: Link2 },
-  { id: 'health-import', label: 'Health Import', icon: Activity },
   { id: 'subscription', label: 'Subscription', icon: Crown },
-  { id: 'referral', label: 'Referrals', icon: Gift },
   { id: 'data', label: 'Data & Privacy', icon: Database },
-  { id: 'plugins', label: 'Plugins', icon: Puzzle },
   { id: 'onboarding', label: 'Onboarding', icon: RotateCcw },
   { id: 'tours', label: 'Tours & Help', icon: Navigation },
   { id: 'about', label: 'About', icon: Info },
@@ -157,31 +141,9 @@ export function Settings() {
           <div className="set-content">
             {activeTab === 'profile' && <SettingsProfile onError={setError} />}
             {activeTab === 'preferences' && <SettingsPreferences />}
-            {activeTab === 'notifications' && (
-              <>
-                <PushNotificationSetup />
-                <NotificationPrefsPanel />
-              </>
-            )}
 
             {activeTab === 'ai' && (
               <AISettingsTab aiSettings={aiSettings} aiSaved={aiSaved} onChange={handleAISettingChange} />
-            )}
-
-            {activeTab === 'ai-providers' && (
-              <LLMProviderSettings />
-            )}
-
-            {activeTab === 'ai-usage' && (
-              <section className="set-section">
-                <AIUsageStats />
-              </section>
-            )}
-
-            {activeTab === 'audit' && (
-              <section className="set-section">
-                <AuditLogViewer />
-              </section>
             )}
 
             {activeTab === 'telegram' && (
@@ -196,19 +158,9 @@ export function Settings() {
                 gcalLastSynced={gcalLastSynced} gcalRefetch={gcalRefetch} />
             )}
 
-            {activeTab === 'health-import' && <HealthDeviceImport />}
-
             {activeTab === 'subscription' && <SubscriptionTab subLoading={subLoading} tier={tier} />}
 
-            {activeTab === 'referral' && <ReferralPanel />}
-
             {activeTab === 'data' && <SettingsDataPrivacy onError={setError} />}
-
-            {activeTab === 'plugins' && (
-              <section className="set-section">
-                <PluginManager />
-              </section>
-            )}
 
             {activeTab === 'onboarding' && (
               <OnboardingTab showRedoConfirm={showRedoConfirm} setShowRedoConfirm={setShowRedoConfirm}
@@ -230,58 +182,12 @@ function AISettingsTab({ aiSettings, aiSaved, onChange }: {
   aiSettings: AISettings; aiSaved: boolean;
   onChange: (key: keyof AISettings, value: string | boolean) => void;
 }): JSX.Element {
-  const [ttsEnabled, setTtsEnabled] = useState(() => {
-    try { return localStorage.getItem('lifeos:tts-enabled') === 'true'; } catch { return false; }
-  });
-
-  const handleTTSToggle = () => {
-    const next = !ttsEnabled;
-    setTtsEnabled(next);
-    try { localStorage.setItem('lifeos:tts-enabled', next ? 'true' : 'false'); } catch { /* Safari private */ }
-  };
-
-  const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
-  const [checking, setChecking] = useState(false);
-
-  const checkConnection = async () => {
-    setChecking(true);
-    try {
-      const status = await checkOllamaConnection();
-      setOllamaStatus(status);
-    } catch {
-      setOllamaStatus({ available: false, models: [], error: 'Failed to check' });
-    }
-    setChecking(false);
-  };
-
-  // Check connection when provider changes to ollama
-  useEffect(() => {
-    if (aiSettings.provider === 'ollama' && !ollamaStatus) {
-      checkConnection();
-    }
-  }, [aiSettings.provider]);
-
-  const handleProviderChange = (provider: string) => {
-    const defaults = PROVIDER_DEFAULTS[provider];
-    const updated: AISettings = {
-      ...aiSettings,
-      provider,
-      model: defaults?.model || aiSettings.model,
-      proxyUrl: defaults?.proxyUrl || aiSettings.proxyUrl,
-    };
-    // Directly update all fields via onChange
-    Object.entries(updated).forEach(([key, value]) => {
-      onChange(key as keyof AISettings, value);
-    });
-  };
-
-  const providerLabels: Record<string, string> = {
-    ollama: 'Ollama (Local)',
-    openrouter: 'OpenRouter',
-    gemini: 'Google Gemini',
-    anthropic: 'Anthropic',
-    openai: 'OpenAI',
-  };
+  const rateLimit = useAIRateLimit();
+  const costCaps = getCostCaps();
+  const tier = rateLimit.messagesLimit <= 5 ? 'Free' : 'Pro';
+  const costCapDollars = (rateLimit.costLimitCents / 100).toFixed(2);
+  const costUsedDollars = (rateLimit.costUsedCents / 100).toFixed(2);
+  const resetTimeStr = rateLimit.resetAt.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true });
 
   return (
     <section className="set-section">
@@ -299,86 +205,82 @@ function AISettingsTab({ aiSettings, aiSaved, onChange }: {
             <span className="set-toggle-label">{aiSettings.enabled ? 'On' : 'Off'}</span>
           </button>
         </div>
-        <div className="set-form-group">
-          <label>Read AI responses aloud<span className="set-form-hint">Use text-to-speech to read AI responses out loud after streaming completes</span></label>
-          <button className={`set-toggle ${ttsEnabled ? 'on' : 'off'}`}
-            onClick={handleTTSToggle}>
-            <span className="set-toggle-dot" />
-            <span className="set-toggle-label">{ttsEnabled ? 'On' : 'Off'}</span>
-          </button>
-        </div>
-        <div className="set-form-group">
-          <label>Provider<span className="set-form-hint">AI backend to use for intent processing</span></label>
-          <select value={aiSettings.provider} onChange={e => handleProviderChange(e.target.value)}
-            style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 14 }}>
-            {ALLOWED_PROVIDERS.map(p => (
-              <option key={p} value={p} style={{ background: '#1a1a2e' }}>{providerLabels[p] || p}</option>
-            ))}
-          </select>
-        </div>
-        <div className="set-form-group">
-          <label>Model<span className="set-form-hint">Model name for the selected provider</span></label>
-          <input type="text" value={aiSettings.model} onChange={e => onChange('model', e.target.value)}
-            style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 14 }}
-            placeholder={PROVIDER_DEFAULTS[aiSettings.provider]?.model || 'model-name'} />
-        </div>
-        <div className="set-form-group">
-          <label>Proxy URL<span className="set-form-hint">API endpoint URL</span></label>
-          <input type="text" value={aiSettings.proxyUrl} onChange={e => onChange('proxyUrl', e.target.value)}
-            style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 14 }}
-            placeholder={PROVIDER_DEFAULTS[aiSettings.provider]?.proxyUrl || '/api/llm-proxy.php'} />
-        </div>
       </div>
 
-      {/* Ollama Connection Check */}
-      {aiSettings.provider === 'ollama' && (
-        <div style={{ marginTop: 16, padding: 16, borderRadius: 12, background: 'rgba(0,212,255,0.05)', border: '1px solid rgba(0,212,255,0.2)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <Server size={16} style={{ color: '#00D4FF' }} />
-            <strong style={{ fontSize: 14 }}>Ollama Connection</strong>
+      {/* ── Rate Limit Usage Card ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(0,212,255,0.06), rgba(139,92,246,0.06))',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 12,
+        padding: '16px 20px',
+        marginTop: 16,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <Gauge size={16} style={{ color: '#00D4FF' }} />
+          <h4 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#00D4FF' }}>Daily Usage</h4>
+          <span style={{
+            fontSize: 11,
+            padding: '2px 8px',
+            borderRadius: 6,
+            background: tier === 'Pro' ? 'rgba(0,212,255,0.15)' : 'rgba(255,255,255,0.08)',
+            color: tier === 'Pro' ? '#00D4FF' : 'rgba(255,255,255,0.5)',
+          }}>{tier}</span>
+        </div>
+
+        {/* Message usage bar */}
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Messages</span>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', fontVariantNumeric: 'tabular-nums' }}>
+              {rateLimit.messagesUsed} / {rateLimit.messagesLimit}
+            </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <button onClick={checkConnection} disabled={checking}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(0,212,255,0.3)', background: 'rgba(0,212,255,0.1)', color: '#00D4FF', fontSize: 13, cursor: checking ? 'wait' : 'pointer' }}>
-              <RefreshCw size={13} className={checking ? 'spin' : ''} />
-              {checking ? 'Checking...' : 'Check Connection'}
-            </button>
-            {ollamaStatus && (
-              ollamaStatus.available
-                ? <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#22C55E', fontSize: 13 }}><CheckCircle size={14} /> Connected</span>
-                : <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#EF4444', fontSize: 13 }}><XCircle size={14} /> {ollamaStatus.error || 'Not reachable'}</span>
-            )}
+          <div style={{ width: '100%', height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3, overflow: 'hidden' }}>
+            <div style={{
+              width: `${Math.min(100, (rateLimit.messagesUsed / Math.max(1, rateLimit.messagesLimit)) * 100)}%`,
+              height: '100%',
+              background: rateLimit.isLimited ? '#EF4444' : rateLimit.remaining <= 2 ? '#FFD93D' : '#00D4FF',
+              borderRadius: 3,
+              transition: 'width 0.3s ease, background 0.3s ease',
+            }} />
           </div>
-          {ollamaStatus?.available && ollamaStatus.models.length > 0 && (
-            <div style={{ marginTop: 4 }}>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>Available models:</p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                {ollamaStatus.models.map(m => (
-                  <span key={m} onClick={() => onChange('model', m)}
-                    style={{ padding: '3px 8px', borderRadius: 6, background: m === aiSettings.model ? 'rgba(0,212,255,0.2)' : 'rgba(255,255,255,0.05)',
-                      border: m === aiSettings.model ? '1px solid rgba(0,212,255,0.4)' : '1px solid rgba(255,255,255,0.1)',
-                      fontSize: 11, color: m === aiSettings.model ? '#00D4FF' : 'rgba(255,255,255,0.6)', cursor: 'pointer' }}>
-                    {m}
-                  </span>
-                ))}
-              </div>
-            </div>
+        </div>
+
+        {/* Cost usage bar */}
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Cost</span>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', fontVariantNumeric: 'tabular-nums' }}>
+              ${costUsedDollars} / ${costCapDollars}
+            </span>
+          </div>
+          <div style={{ width: '100%', height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3, overflow: 'hidden' }}>
+            <div style={{
+              width: `${Math.min(100, (rateLimit.costUsedCents / Math.max(1, rateLimit.costLimitCents)) * 100)}%`,
+              height: '100%',
+              background: rateLimit.isLimited ? '#EF4444' : rateLimit.costUsedCents >= rateLimit.costLimitCents * 0.8 ? '#FFD93D' : '#8B5CF6',
+              borderRadius: 3,
+              transition: 'width 0.3s ease, background 0.3s ease',
+            }} />
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
+            Resets at {resetTimeStr}
+          </span>
+          {rateLimit.isLimited && (
+            <span style={{ fontSize: 11, color: '#EF4444', fontWeight: 600 }}>
+              Limit reached
+            </span>
           )}
         </div>
-      )}
+      </div>
 
       <div className="set-ai-info">
         <Info size={14} />
-        <span>{aiSettings.provider === 'ollama'
-          ? 'Ollama runs locally — no API key needed. Use ⌘J to open the AI assistant.'
-          : 'API keys are stored on the server. Use ⌘J to open the AI assistant.'}</span>
+        <span>API keys are stored on the server. Use <kbd>Cmd+J</kbd> to open the AI assistant.</span>
       </div>
-      {ttsEnabled && (
-        <div className="set-ai-info" style={{ background: 'rgba(0,212,255,0.08)', borderColor: 'rgba(0,212,255,0.2)' }}>
-          <Volume2 size={14} style={{ color: '#00D4FF' }} />
-          <span style={{ color: 'rgba(255,255,255,0.7)' }}>TTS is active — AI responses will be spoken aloud after they finish generating. Click the <Volume2 size={12} style={{ verticalAlign: 'middle' }} /> button on any message to replay it.</span>
-        </div>
-      )}
     </section>
   );
 }
@@ -402,30 +304,25 @@ function IntegrationsTab({ googleIntegration, gcalEventCount, gcalLastSynced, gc
 
 function SubscriptionTab({ subLoading, tier }: { subLoading: boolean; tier: string }): JSX.Element {
   return (
-    <>
-      <section className="set-section">
-        <div className="set-section-header"><Crown size={18} /><h2>Subscription</h2>
-          {tier === 'pro' && <span className="set-badge" style={{ background: 'rgba(0,212,255,0.15)', color: '#00D4FF' }}>Pro</span>}
+    <section className="set-section">
+      <div className="set-section-header"><Crown size={18} /><h2>Subscription</h2>
+        {tier === 'pro' && <span className="set-badge" style={{ background: 'rgba(0,212,255,0.15)', color: '#00D4FF' }}>Pro</span>}
+      </div>
+      {subLoading ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0' }}>
+          <Loader2 size={16} className="spin" /><span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>Loading...</span>
         </div>
-        {subLoading ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0' }}>
-            <Loader2 size={16} className="spin" /><span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>Loading...</span>
+      ) : (
+        <div style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.08), rgba(139,92,246,0.08))', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 12, padding: '20px 24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <Crown size={16} /><h4 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: '#00D4FF' }}>Early Adopter — Pro Unlocked</h4>
           </div>
-        ) : (
-          <div style={{ background: 'linear-gradient(135deg, rgba(0,212,255,0.08), rgba(139,92,246,0.08))', border: '1px solid rgba(0,212,255,0.2)', borderRadius: 12, padding: '20px 24px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <Crown size={16} /><h4 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: '#00D4FF' }}>Early Adopter — Pro Unlocked</h4>
-            </div>
-            <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}>
-              Thank you for being one of the first! Full access to all Pro features — no subscription required.
-            </p>
-          </div>
-        )}
-      </section>
-
-      {/* Family Plan */}
-      <FamilyPlanSection />
-    </>
+          <p style={{ margin: 0, fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.6 }}>
+            Thank you for being one of the first! Full access to all Pro features — no subscription required.
+          </p>
+        </div>
+      )}
+    </section>
   );
 }
 

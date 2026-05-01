@@ -53,6 +53,8 @@ interface ChatInputAreaProps {
   micSupported: boolean;
   rateLimitExhausted?: boolean;
   rateLimitResetTime?: string;
+  remainingMessages?: number;
+  maxMessages?: number;
 }
 
 export function ChatInputArea({
@@ -70,6 +72,8 @@ export function ChatInputArea({
   micSupported,
   rateLimitExhausted,
   rateLimitResetTime,
+  remainingMessages,
+  maxMessages,
 }: ChatInputAreaProps) {
   const isDisabled = loading || contextLoading;
 
@@ -78,7 +82,7 @@ export function ChatInputArea({
       {rateLimitExhausted && (
         <div className="ai-chat-lockout-banner">
           <Lock size={14} />
-          <span>Daily limit reached{rateLimitResetTime ? ` • Resets at ${rateLimitResetTime}` : ''}</span>
+          <span>Daily limit reached{rateLimitResetTime ? ` \u00b7 Resets at ${rateLimitResetTime}` : ''}</span>
         </div>
       )}
       <textarea
@@ -88,7 +92,7 @@ export function ChatInputArea({
           isMicListening
             ? 'Listening\u2026'
             : rateLimitExhausted
-              ? 'Daily limit reached — send to retry'
+              ? 'Daily limit reached \u2014 send to retry'
               : 'Add bananas and milk to my grocery list...'
         }
         value={input}
@@ -123,6 +127,12 @@ export function ChatInputArea({
         >
           <Send size={16} />
         </button>
+      )}
+      {/* Rate limit remaining indicator */}
+      {!rateLimitExhausted && remainingMessages !== undefined && maxMessages !== undefined && (
+        <div className="ai-chat-rate-hint" title={`${remainingMessages} of ${maxMessages} messages remaining today`}>
+          {remainingMessages}/{maxMessages}
+        </div>
       )}
     </div>
   );

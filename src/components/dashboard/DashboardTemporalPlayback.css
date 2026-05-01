@@ -1,0 +1,219 @@
+/* ═══════════════════════════════════════════════════════════
+   DashboardTemporalPlayback — Week scrubber with daily snapshots
+   Dark glass aesthetic, Poppins font, Lucide icons only
+   ═══════════════════════════════════════════════════════════ */
+
+.temporal-playback-card {
+  contain: layout style paint;
+}
+
+.temporal-playback-card .card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.temporal-playback-card .card-top h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
+
+.temporal-range {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ── Timeline strip ── */
+.temporal-timeline {
+  display: flex;
+  gap: 4px;
+  padding: 8px 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.temporal-day-dot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 40px;
+  padding: 6px 4px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: none;
+}
+
+.temporal-day-dot:hover {
+  transform: translateY(-2px);
+}
+
+.temporal-day-dot.active {
+  transform: translateY(-2px);
+}
+
+.temporal-day-dot:focus-visible {
+  outline: 2px solid #00D4FF;
+  outline-offset: 2px;
+}
+
+.dot-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dot-score {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Controls ── */
+.temporal-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 0 10px;
+}
+
+.temporal-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.temporal-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.temporal-btn:focus-visible {
+  outline: 2px solid #00D4FF;
+  outline-offset: 2px;
+}
+
+/* ── Day snapshot ── */
+.temporal-snapshot {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.snapshot-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.snapshot-date {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  flex: 1;
+}
+
+.snapshot-score {
+  font-size: 16px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Metrics ── */
+.snapshot-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.snapshot-metric {
+  display: grid;
+  grid-template-columns: 48px 1fr 40px;
+  align-items: center;
+  gap: 8px;
+}
+
+.metric-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.metric-bar-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.metric-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.metric-value {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Trend ── */
+.snapshot-trend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .temporal-day-dot {
+    min-width: 34px;
+    padding: 4px 2px;
+  }
+
+  .dot-label {
+    font-size: 8px;
+  }
+
+  .dot-score {
+    font-size: 10px;
+  }
+
+  .snapshot-metric {
+    grid-template-columns: 40px 1fr 36px;
+  }
+
+  .metric-label {
+    font-size: 10px;
+  }
+}

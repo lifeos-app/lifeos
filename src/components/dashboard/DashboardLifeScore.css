@@ -1,0 +1,144 @@
+/* ═══════════════════════════════════════════════════════════
+   DashboardLifeScore — Aggregate life quality gauge
+   Dark glass aesthetic, Poppins font, Lucide icons only
+   ═══════════════════════════════════════════════════════════ */
+
+.life-score-card {
+  contain: layout style paint;
+}
+
+.life-score-card .card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.life-score-card .card-top h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
+
+.life-score-trend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ── Main ring ── */
+.life-score-main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 0 16px;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.life-score-main:hover {
+  transform: scale(1.02);
+}
+
+.life-score-main:focus-visible {
+  outline: 2px solid #00D4FF;
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.life-score-ring {
+  position: relative;
+}
+
+/* ── Domain breakdown ── */
+.life-score-domains {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.life-score-domain {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.domain-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.domain-name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.domain-value {
+  font-weight: 700;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  min-width: 24px;
+  text-align: right;
+}
+
+.domain-bar-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.domain-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: width;
+}
+
+/* ── Weakest domain nudge ── */
+.life-score-nudge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.life-score-nudge strong {
+  color: #EAB308;
+  font-weight: 600;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .life-score-main {
+    padding: 4px 0 12px;
+  }
+
+  .life-score-domains {
+    gap: 4px;
+  }
+
+  .domain-label {
+    font-size: 10px;
+  }
+
+  .domain-bar-track {
+    height: 3px;
+  }
+}

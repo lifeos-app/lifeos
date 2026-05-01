@@ -27,6 +27,7 @@ export interface WorkoutTemplate {
   day_of_week: number[];
   preferred_time: string;
   is_active: boolean;
+  auto_sync?: boolean;
   exercises?: TemplateExercise[];
 }
 

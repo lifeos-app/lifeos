@@ -1,7 +1,7 @@
 {
   "name": "lifeos-app",
   "private": true,
-  "version": "1.20.9",
+  "version": "1.19.78",
   "description": "LifeOS \u2014 Personal life operating system by Teddy's Cleaning Systems",
   "author": "Tewedros Gebrewubet <tewedros@teddyscleaning.com.au>",
   "type": "module",
@@ -17,9 +17,6 @@
     "tauri": "tauri",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed",
     "electron:dev": "ELECTRON_ENV=1 vite build --mode desktop && electron .",
     "electron:build": "ELECTRON_ENV=1 vite build --mode desktop && electron-builder",
     "electron:build:linux": "ELECTRON_ENV=1 vite build --mode desktop && electron-builder --linux",
@@ -125,7 +122,6 @@
   "devDependencies": {
     "@electron/rebuild": "^4.0.3",
     "@eslint/js": "^9.39.1",
-    "@playwright/test": "^1.59.1",
     "@tailwindcss/vite": "^4.2.0",
     "@tauri-apps/cli": "^2.10.0",
     "@testing-library/jest-dom": "^6.6.3",
