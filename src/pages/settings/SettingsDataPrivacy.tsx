@@ -1,9 +1,12 @@
 /**
  * SettingsDataPrivacy — Data export and Danger Zone (delete account)
+ * Gated behind Pro feature 'data_export' for free-tier users.
  */
 import { useState, type JSX } from 'react';
 import { supabase } from '../../lib/data-access';
 import { useUserStore } from '../../stores/useUserStore';
+import { useProFeatureCheck } from '../../hooks/useProFeatureCheck';
+import { ProGateOverlay } from '../../components/ProGateOverlay';
 import {
   Database, Download, Loader2, Shield, Trash2, AlertTriangle, LogOut,
 } from 'lucide-react';
@@ -20,8 +23,11 @@ export function SettingsDataPrivacy({ onError }: SettingsDataPrivacyProps): JSX.
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteText, setDeleteText] = useState('');
 
+  const dataExportGate = useProFeatureCheck('data_export');
+
   const exportData = async () => {
     if (!user?.id) return;
+    if (!dataExportGate.canUse) return;
     setExporting(true);
     try {
       const tables = ['tasks', 'goals', 'schedule_events', 'habits', 'journal_entries', 'notes', 'income', 'expenses', 'bills', 'clients', 'inbox_items'];
@@ -82,20 +88,30 @@ export function SettingsDataPrivacy({ onError }: SettingsDataPrivacyProps): JSX.
           <Database size={18} />
           <h2>Data & Privacy</h2>
         </div>
-        <p className="set-section-desc">Export all your data for backup or portability.</p>
-        <div className="set-export-format">
-          <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>Format:</label>
-          <div className="set-format-btns">
-            <button className={`set-format-btn ${exportFormat === 'json' ? 'active' : ''}`}
-              onClick={() => setExportFormat('json')}>JSON</button>
-            <button className={`set-format-btn ${exportFormat === 'csv' ? 'active' : ''}`}
-              onClick={() => setExportFormat('csv')}>CSV</button>
-          </div>
-        </div>
-        <button className="set-export-btn" onClick={exportData} disabled={exporting}>
-          {exporting ? <><Loader2 size={14} className="spin" /> Exporting...</> :
-           <><Download size={14} /> Export as {exportFormat.toUpperCase()}</>}
-        </button>
+
+        {!dataExportGate.canUse ? (
+          <ProGateOverlay
+            feature="data_export"
+            earlyAdopterFree={dataExportGate.earlyAdopterFree}
+          />
+        ) : (
+          <>
+            <p className="set-section-desc">Export all your data for backup or portability.</p>
+            <div className="set-export-format">
+              <label style={{ fontSize: 12, color: 'var(--text-muted)' }}>Format:</label>
+              <div className="set-format-btns">
+                <button className={`set-format-btn ${exportFormat === 'json' ? 'active' : ''}`}
+                  onClick={() => setExportFormat('json')}>JSON</button>
+                <button className={`set-format-btn ${exportFormat === 'csv' ? 'active' : ''}`}
+                  onClick={() => setExportFormat('csv')}>CSV</button>
+              </div>
+            </div>
+            <button className="set-export-btn" onClick={exportData} disabled={exporting}>
+              {exporting ? <><Loader2 size={14} className="spin" /> Exporting...</> :
+               <><Download size={14} /> Export as {exportFormat.toUpperCase()}</>}
+            </button>
+          </>
+        )}
       </section>
 
       {/* Danger Zone */}

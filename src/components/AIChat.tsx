@@ -4,10 +4,14 @@ import { useUserStore } from '../stores/useUserStore';
 import { useSubscription } from '../hooks/useSubscription';
 import { useGamificationContext } from '../lib/gamification/context';
 import { Sparkles } from 'lucide-react';
+import { useProFeatureCheck, getAIUsageToday, incrementAIUsage } from '../hooks/useProFeatureCheck';
+import { ProGateOverlay } from './ProGateOverlay';
 import { getErrorMessage } from '../utils/error';
 import { showToast } from '../components/Toast';
 import { agentChatStream, type AgentChatResponse } from '../lib/zeroclaw-client';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
+import { useAIRateLimit } from '../hooks/useAIRateLimit';
+import { RateLimitError } from '../lib/llm-proxy';
 import {
   callIntentEngine, executeActions, loadIntentContext,
   getAISettings,
@@ -47,6 +51,7 @@ export function AIChat() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
+  const [aiUsageCount, setAiUsageCount] = useState(getAIUsageToday);
   const [streaming, setStreaming] = useState(false);
   const agentAbortRef = useRef<AbortController | null>(null);
   const [externalInputFocused, setExternalInputFocused] = useState(false);
@@ -86,6 +91,7 @@ export function AIChat() {
   const [context, setContext] = useState<IntentContext | null>(null);
   const [contextLoading, setContextLoading] = useState(false);
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null);
+  const rateLimitHook = useAIRateLimit();
   const [showSuggestions, setShowSuggestions] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -97,6 +103,7 @@ export function AIChat() {
   const location = useLocation();
   const user = useUserStore(s => s.user);
   const { tier } = useSubscription();
+  const aiFeatureGate = useProFeatureCheck('unlimited_ai', aiUsageCount);
 
   // ─── Speech Recognition (mic button in input area) ────────────
   const voiceAutoSendRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -400,6 +407,11 @@ export function AIChat() {
   const sendMessage = useCallback(async (text?: string) => {
     const msg = text || input.trim();
     if (!msg || loading || streaming) return;
+    // Pro feature gate: block if free tier limit reached
+    if (!aiFeatureGate.canUse) return;
+    // Track usage for free-tier limiting
+    const newCount = incrementAIUsage();
+    setAiUsageCount(newCount);
     if (!text) setInput('');
     setShowSuggestions(false); // Hide suggestions after first message
     userScrolledUpRef.current = false; // Reset scroll state for new message
@@ -717,6 +729,13 @@ export function AIChat() {
         return;
       }
 
+      // Handle client-side RateLimitError from ai-rate-limiter
+      let friendlyMsg: string;
+      if (err instanceof RateLimitError) {
+        const resetMin = Math.max(1, Math.ceil((err.resetAt.getTime() - Date.now()) / 60000));
+        friendlyMsg = `Daily message limit reached (${rateLimitHook.messagesUsed}/${rateLimitHook.messagesLimit}). Resets in ${resetMin} min.`;
+        rateLimitHook.refresh();
+      } else {
       const rawMsg = getErrorMessage(err);
       // Try to parse structured error body (JSON from our proxy)
       let errBody: any = null;
@@ -725,7 +744,7 @@ export function AIChat() {
       // Extract rateLimit from error body if present
       if (errBody?.rateLimit) setRateLimit(errBody.rateLimit);
       
-      let friendlyMsg = `Sorry, something went wrong: ${errBody?.error || rawMsg}`;
+      friendlyMsg = `Sorry, something went wrong: ${errBody?.error || rawMsg}`;
       const isDailyLimit = errBody?.error?.includes('Daily limit') || rawMsg.includes('Daily limit');
       const isRateLimit = isDailyLimit || rawMsg.includes('429') || rawMsg.includes('RESOURCE_EXHAUSTED') || rawMsg.includes('Rate limit') || errBody?.error?.includes('limit');
       
@@ -735,15 +754,16 @@ export function AIChat() {
           setRateLimit(rl);
           const resetMin = rl.resetIn ? Math.ceil(rl.resetIn / 60) : null;
           friendlyMsg = resetMin
-            ? `⏳ You've used all ${rl.limit} messages for today. Resets in ${resetMin} min.`
-            : `⏳ Daily message limit reached. Try again later.`;
+            ? `You've used all ${rl.limit} messages for today. Resets in ${resetMin} min.`
+            : `Daily message limit reached. Try again later.`;
         } else {
-          friendlyMsg = '⏳ AI message limit reached. Try again later.';
+          friendlyMsg = 'AI message limit reached. Try again later.';
         }
       } else if (rawMsg.includes('401') || rawMsg.includes('token') || errBody?.error?.includes('token')) {
         friendlyMsg = 'Session expired. Please refresh the page and log in again.';
       } else if (rawMsg.includes('502') || rawMsg.includes('503')) {
         friendlyMsg = 'AI service temporarily unavailable. Try again in a moment.';
+      }
       }
       const errorMsg: ChatMessage = {
         id: genId(),
@@ -940,6 +960,21 @@ export function AIChat() {
         onDeleteConversation={handleDeleteConversation}
       />
 
+      {/* Pro feature gate overlay — shown when free tier limit is reached */}
+      {!aiFeatureGate.canUse && (
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+          <ProGateOverlay
+            feature="unlimited_ai"
+            earlyAdopterFree={aiFeatureGate.earlyAdopterFree}
+            remaining={typeof aiFeatureGate.remaining === 'number' ? aiFeatureGate.remaining : undefined}
+            limit={typeof aiFeatureGate.limit === 'number' ? aiFeatureGate.limit : undefined}
+            onUpgrade={() => navigate('/settings')}
+          />
+        </div>
+      )}
+
+      {aiFeatureGate.canUse && (
+        <>
       <ChatMessageList
         messages={messages}
         loading={loading}
@@ -949,6 +984,8 @@ export function AIChat() {
         onScroll={handleScroll}
         onConfirmActions={confirmActions}
         onDismissActions={dismissActions}
+        remainingMessages={rateLimitHook.remaining}
+        maxMessages={rateLimitHook.messagesLimit}
       />
 
       <SuggestionChips
@@ -972,9 +1009,13 @@ export function AIChat() {
         isGenerating={isGenerating}
         isMicListening={isMicListening}
         micSupported={micSupported}
-        rateLimitExhausted={rateLimit?.remaining === 0 && (rateLimit?.limit ?? 0) < 9999}
-        rateLimitResetTime={rateLimit?.resetAt ? new Date(rateLimit.resetAt * 1000).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Australia/Melbourne' }) : undefined}
+        rateLimitExhausted={rateLimit?.remaining === 0 && (rateLimit?.limit ?? 0) < 9999 || rateLimitHook.isLimited}
+        rateLimitResetTime={rateLimit?.resetAt ? new Date(rateLimit.resetAt * 1000).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Australia/Melbourne' }) : rateLimitHook.resetAt.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true })}
+        remainingMessages={rateLimitHook.remaining}
+        maxMessages={rateLimitHook.messagesLimit}
       />
+      </>
+      )}
     </div>
     </>
   );
