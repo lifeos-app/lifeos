@@ -15,6 +15,7 @@ import { SpotlightTour } from '../components/SpotlightTour';
 import { HealthAI } from '../components/ai/HealthAI';
 import '../components/nutrition/nutrition.css';
 import { useGamificationContext } from '../lib/gamification/context';
+import { useScheduleStore } from '../stores/useScheduleStore';
 import { FullscreenPage } from '../components/FullscreenPage';
 import './Health.css';
 
@@ -64,7 +65,7 @@ export function Health() {
     }
     return result;
   }, [rawUpsertToday, awardXP]);
-  const { templates, saveTemplate, deleteTemplate, syncToSchedule } = useWorkoutTemplates();
+  const { templates, saveTemplate, deleteTemplate, syncToSchedule, removeScheduleEvents } = useWorkoutTemplates();
   const { logs: exerciseLogs, logWorkout, updateLog, deleteLog, skipWorkout } = useExerciseLogs();
   const { markers, addMarker, resolveMarker, updateMarker, deleteMarker } = useBodyMarkers();
   const { logs: meditationLogs, logMeditation } = useMeditation();
@@ -95,7 +96,8 @@ export function Health() {
         <OverviewTab metrics={todayMetrics} exerciseLogs={exerciseLogs}
           meditationLogs={meditationLogs} gratitudeEntries={gratitudeEntries}
           templates={templates} markers={markers} allMetrics={metrics}
-          onUpdateMetrics={upsertToday} meals={meals} onTabChange={handleTabChange} />
+          onUpdateMetrics={upsertToday} meals={meals} onTabChange={handleTabChange}
+          onSyncToSchedule={syncToSchedule} scheduleEvents={useScheduleStore(s => s.events)} />
       )}
       {activeTab === 'body' && (
         <BodyTab metrics={todayMetrics} allMetrics={metrics} markers={markers}

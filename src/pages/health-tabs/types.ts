@@ -34,6 +34,8 @@ export interface OverviewTabProps {
   onUpdateMetrics: (updates: Partial<HealthMetrics>) => Promise<void>;
   meals: Meal[];
   onTabChange: (tab: HealthTab) => void;
+  onSyncToSchedule?: (template: WorkoutTemplate) => Promise<void>;
+  scheduleEvents?: { workout_template_id?: string; event_type?: string; is_deleted?: boolean }[];
 }
 
 export interface MindTabProps {

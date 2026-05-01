@@ -44,6 +44,7 @@ export function useWorkoutTemplates() {
     if (!user?.user) return;
 
     const { exercises, ...tmpl } = template as Partial<WorkoutTemplate> & { exercises?: TemplateExercise[] };
+    let savedTemplateId = template.id;
 
     if (template.id) {
       // Update existing template
@@ -73,6 +74,7 @@ export function useWorkoutTemplates() {
       }
     } else {
       const { data: newTmpl } = await supabase.from('workout_templates').insert({ ...tmpl, user_id: user.user.id }).select().single();
+      savedTemplateId = newTmpl?.id;
       if (newTmpl && exercises?.length) {
         await supabase.from('template_exercises').insert(
           exercises.map((e: TemplateExercise, i: number) => ({
@@ -91,54 +93,103 @@ export function useWorkoutTemplates() {
       }
     }
     refresh();
+
+    // Auto-sync to schedule if enabled and day_of_week is populated
+    if (template.auto_sync && template.day_of_week && template.day_of_week.length > 0 && savedTemplateId) {
+      const fullTemplate: WorkoutTemplate = {
+        ...template,
+        id: savedTemplateId,
+        name: template.name || '',
+        color: template.color || '#39FF14',
+        icon: template.icon || '',
+        estimated_duration_min: template.estimated_duration_min || 60,
+        day_of_week: template.day_of_week,
+        preferred_time: template.preferred_time || '06:00',
+        is_active: template.is_active ?? true,
+      };
+      await syncToSchedule(fullTemplate);
+    }
   };
 
   const deleteTemplate = async (templateId: string) => {
+    // Remove linked schedule events first
+    await removeScheduleEvents(templateId);
     await supabase.from('workout_templates').update({ is_deleted: true, updated_at: new Date().toISOString() }).eq('id', templateId);
     refresh();
   };
 
   // Sync workout templates to schedule_events
+  // Creates one recurring schedule_event per day_of_week entry, linked by workout_template_id
   const syncToSchedule = async (template: WorkoutTemplate) => {
     const { data: user } = await supabase.auth.getUser();
     if (!user?.user || !template.id) return;
 
-    for (const dow of template.day_of_week) {
-      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      const title = `${template.icon} ${template.name}`;
+    // Remove existing schedule events for this template (will re-create below)
+    const { data: existing } = await supabase
+      .from('schedule_events')
+      .select('id')
+      .eq('user_id', user.user.id)
+      .eq('workout_template_id', template.id)
+      .eq('is_deleted', false);
 
-      const { data: existing } = await supabase
+    if (existing && existing.length > 0) {
+      await supabase
         .from('schedule_events')
-        .select('id')
-        .eq('user_id', user.user.id)
-        .eq('title', title)
-        .eq('day_type', dayNames[dow])
-        .eq('is_template', true)
-        .eq('is_deleted', false)
-        .limit(1);
-
-      if (!existing?.length) {
-        const nextDate = getNextDayOfWeek(dow);
-        const startTime = `${nextDate}T${template.preferred_time || '06:00'}:00`;
-        const endMins = template.estimated_duration_min || 60;
-        const endTime = new Date(new Date(startTime).getTime() + endMins * 60000).toISOString();
-
-        await createScheduleEvent(supabase, {
-          userId: user.user.id,
-          title,
-          startTime,
-          endTime,
-          color: template.color,
-          category: 'health',
-          isTemplate: true,
-          recurrenceRule: `FREQ=WEEKLY;BYDAY=${['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][dow]}`,
-          description: template.description || `${template.name} — ${template.exercises?.length || 0} exercises`,
-        });
-      }
+        .update({ is_deleted: true, updated_at: new Date().toISOString() })
+        .in('id', existing.map((e: { id: string }) => e.id));
     }
+
+    // Create a recurring schedule event for each day_of_week
+    for (const dow of template.day_of_week) {
+      const nextDate = getNextDayOfWeek(dow);
+      const startTime = `${nextDate}T${template.preferred_time || '06:00'}:00`;
+      const endMins = template.estimated_duration_min || 60;
+      const endTime = new Date(new Date(startTime).getTime() + endMins * 60000).toISOString();
+      const title = template.name;
+
+      await createScheduleEvent(supabase, {
+        userId: user.user.id,
+        title,
+        startTime,
+        endTime,
+        color: template.color,
+        category: 'health',
+        eventType: 'exercise',
+        scheduleLayer: 'primary',
+        isTemplate: true,
+        recurrenceRule: `FREQ=WEEKLY;BYDAY=${['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][dow]}`,
+        description: template.description || `${template.name} -- ${template.exercises?.length || 0} exercises`,
+        workoutTemplateId: template.id,
+      });
+    }
+
+    // Dispatch refresh so Schedule page picks up new events
+    window.dispatchEvent(new CustomEvent('lifeos-refresh'));
   };
 
-  return { templates, loading, refresh, saveTemplate, deleteTemplate, syncToSchedule };
+  // Remove schedule events linked to a workout template (call on template delete)
+  const removeScheduleEvents = async (templateId: string) => {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user?.user) return;
+
+    const { data: existing } = await supabase
+      .from('schedule_events')
+      .select('id')
+      .eq('user_id', user.user.id)
+      .eq('workout_template_id', templateId)
+      .eq('is_deleted', false);
+
+    if (existing && existing.length > 0) {
+      await supabase
+        .from('schedule_events')
+        .update({ is_deleted: true, updated_at: new Date().toISOString() })
+        .in('id', existing.map((e: { id: string }) => e.id));
+    }
+
+    window.dispatchEvent(new CustomEvent('lifeos-refresh'));
+  };
+
+  return { templates, loading, refresh, saveTemplate, deleteTemplate, syncToSchedule, removeScheduleEvents };
 }
 
 // ═══════════════════════════════════════════════════════════

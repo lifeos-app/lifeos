@@ -201,6 +201,7 @@ export interface ScheduleEventInput {
   isTemplate?: boolean;
   goalTag?: string | null;     // e.g. "[goal:abc123]"
   priority?: string | null;    // e.g. "high", "critical"
+  workoutTemplateId?: string | null;  // links to workout_template.id
 }
 
 // ── Row Type (what goes into Supabase) ──
@@ -224,6 +225,7 @@ export interface ScheduleEventRow {
   sync_status: string;
   status: string;
   is_live: boolean;
+  workout_template_id: string | null;
 }
 
 // ── Builder ──
@@ -297,6 +299,7 @@ export function buildScheduleEvent(input: ScheduleEventInput): ScheduleEventRow 
     sync_status:      'synced',
     status:           'scheduled',
     is_live:          false,
+    workout_template_id: input.workoutTemplateId || null,
   };
 }
 
