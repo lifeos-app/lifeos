@@ -4,12 +4,12 @@
  * Extracted tabs into lazy-loaded components under ./settings/ for maintainability.
  * Shell handles: tab navigation, error banner, loading state.
  */
-import { useState, type JSX } from 'react';
+import { useState, useEffect, type JSX } from 'react';
 import { useUserStore } from '../stores/useUserStore';
 import {
   User, Palette, Sparkles, Send, Link2, Crown, Database,
   RotateCcw, Navigation, Info, Settings as SettingsIcon,
-  AlertTriangle, Loader2, Shield,
+  AlertTriangle, Loader2, Shield, RefreshCw, CheckCircle, XCircle, Server, Activity,
   BarChart3, Volume2, Bell, Puzzle, Cpu, Gift,
 } from 'lucide-react';
 import { PluginManager } from '../components/PluginManager';
@@ -19,7 +19,8 @@ import { TelegramConnect } from '../components/TelegramConnect';
 import { IntegrationCard } from '../components/settings/IntegrationCard';
 import { useGoogleIntegration } from '../hooks/useGoogleIntegration';
 import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
-import { getAISettings, saveAISettings, type AISettings } from '../lib/intent-engine';
+import { getAISettings, saveAISettings, PROVIDER_DEFAULTS, ALLOWED_PROVIDERS, type AISettings } from '../lib/intent-engine';
+import { checkOllamaConnection, type OllamaStatus } from '../lib/llm-proxy';
 import { useSubscription } from '../hooks/useSubscription';
 import { resetTours, startTourManually } from '../components/SpotlightTour';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -239,6 +240,49 @@ function AISettingsTab({ aiSettings, aiSaved, onChange }: {
     try { localStorage.setItem('lifeos:tts-enabled', next ? 'true' : 'false'); } catch { /* Safari private */ }
   };
 
+  const [ollamaStatus, setOllamaStatus] = useState<OllamaStatus | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  const checkConnection = async () => {
+    setChecking(true);
+    try {
+      const status = await checkOllamaConnection();
+      setOllamaStatus(status);
+    } catch {
+      setOllamaStatus({ available: false, models: [], error: 'Failed to check' });
+    }
+    setChecking(false);
+  };
+
+  // Check connection when provider changes to ollama
+  useEffect(() => {
+    if (aiSettings.provider === 'ollama' && !ollamaStatus) {
+      checkConnection();
+    }
+  }, [aiSettings.provider]);
+
+  const handleProviderChange = (provider: string) => {
+    const defaults = PROVIDER_DEFAULTS[provider];
+    const updated: AISettings = {
+      ...aiSettings,
+      provider,
+      model: defaults?.model || aiSettings.model,
+      proxyUrl: defaults?.proxyUrl || aiSettings.proxyUrl,
+    };
+    // Directly update all fields via onChange
+    Object.entries(updated).forEach(([key, value]) => {
+      onChange(key as keyof AISettings, value);
+    });
+  };
+
+  const providerLabels: Record<string, string> = {
+    ollama: 'Ollama (Local)',
+    openrouter: 'OpenRouter',
+    gemini: 'Google Gemini',
+    anthropic: 'Anthropic',
+    openai: 'OpenAI',
+  };
+
   return (
     <section className="set-section">
       <div className="set-section-header">
@@ -263,10 +307,71 @@ function AISettingsTab({ aiSettings, aiSaved, onChange }: {
             <span className="set-toggle-label">{ttsEnabled ? 'On' : 'Off'}</span>
           </button>
         </div>
+        <div className="set-form-group">
+          <label>Provider<span className="set-form-hint">AI backend to use for intent processing</span></label>
+          <select value={aiSettings.provider} onChange={e => handleProviderChange(e.target.value)}
+            style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 14 }}>
+            {ALLOWED_PROVIDERS.map(p => (
+              <option key={p} value={p} style={{ background: '#1a1a2e' }}>{providerLabels[p] || p}</option>
+            ))}
+          </select>
+        </div>
+        <div className="set-form-group">
+          <label>Model<span className="set-form-hint">Model name for the selected provider</span></label>
+          <input type="text" value={aiSettings.model} onChange={e => onChange('model', e.target.value)}
+            style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 14 }}
+            placeholder={PROVIDER_DEFAULTS[aiSettings.provider]?.model || 'model-name'} />
+        </div>
+        <div className="set-form-group">
+          <label>Proxy URL<span className="set-form-hint">API endpoint URL</span></label>
+          <input type="text" value={aiSettings.proxyUrl} onChange={e => onChange('proxyUrl', e.target.value)}
+            style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 14 }}
+            placeholder={PROVIDER_DEFAULTS[aiSettings.provider]?.proxyUrl || '/api/llm-proxy.php'} />
+        </div>
       </div>
+
+      {/* Ollama Connection Check */}
+      {aiSettings.provider === 'ollama' && (
+        <div style={{ marginTop: 16, padding: 16, borderRadius: 12, background: 'rgba(0,212,255,0.05)', border: '1px solid rgba(0,212,255,0.2)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <Server size={16} style={{ color: '#00D4FF' }} />
+            <strong style={{ fontSize: 14 }}>Ollama Connection</strong>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <button onClick={checkConnection} disabled={checking}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(0,212,255,0.3)', background: 'rgba(0,212,255,0.1)', color: '#00D4FF', fontSize: 13, cursor: checking ? 'wait' : 'pointer' }}>
+              <RefreshCw size={13} className={checking ? 'spin' : ''} />
+              {checking ? 'Checking...' : 'Check Connection'}
+            </button>
+            {ollamaStatus && (
+              ollamaStatus.available
+                ? <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#22C55E', fontSize: 13 }}><CheckCircle size={14} /> Connected</span>
+                : <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#EF4444', fontSize: 13 }}><XCircle size={14} /> {ollamaStatus.error || 'Not reachable'}</span>
+            )}
+          </div>
+          {ollamaStatus?.available && ollamaStatus.models.length > 0 && (
+            <div style={{ marginTop: 4 }}>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', marginBottom: 4 }}>Available models:</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                {ollamaStatus.models.map(m => (
+                  <span key={m} onClick={() => onChange('model', m)}
+                    style={{ padding: '3px 8px', borderRadius: 6, background: m === aiSettings.model ? 'rgba(0,212,255,0.2)' : 'rgba(255,255,255,0.05)',
+                      border: m === aiSettings.model ? '1px solid rgba(0,212,255,0.4)' : '1px solid rgba(255,255,255,0.1)',
+                      fontSize: 11, color: m === aiSettings.model ? '#00D4FF' : 'rgba(255,255,255,0.6)', cursor: 'pointer' }}>
+                    {m}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="set-ai-info">
         <Info size={14} />
-        <span>API keys are stored on the server. Use <kbd>⌘J</kbd> to open the AI assistant.</span>
+        <span>{aiSettings.provider === 'ollama'
+          ? 'Ollama runs locally — no API key needed. Use ⌘J to open the AI assistant.'
+          : 'API keys are stored on the server. Use ⌘J to open the AI assistant.'}</span>
       </div>
       {ttsEnabled && (
         <div className="set-ai-info" style={{ background: 'rgba(0,212,255,0.08)', borderColor: 'rgba(0,212,255,0.2)' }}>

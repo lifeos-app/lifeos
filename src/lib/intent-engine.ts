@@ -24,5 +24,7 @@ export {
   searchDatabase,
   getAISettings,
   saveAISettings,
+  PROVIDER_DEFAULTS,
+  ALLOWED_PROVIDERS,
   callIntentEngine,
 } from './intent/index';

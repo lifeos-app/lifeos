@@ -49,7 +49,8 @@ export interface BuildingPlacement {
 export type BuildingType =
   | 'house' | 'town_hall' | 'bulletin_board' | 'well'
   | 'garden' | 'forge' | 'library' | 'temple'
-  | 'bank' | 'tavern' | 'clocktower' | 'signpost';
+  | 'bank' | 'tavern' | 'clocktower' | 'signpost'
+  | 'arena' | 'guild_hall' | 'workshop' | 'observatory' | 'market_hall';
 
 export interface NPCAppearance {
   skinTone?: number;
@@ -72,7 +73,7 @@ export interface NPCPlacement {
   tileX: number;
   tileY: number;
   /** Sprite type for rendering */
-  spriteType: 'guide' | 'blacksmith' | 'librarian' | 'healer' | 'merchant' | 'sage';
+  spriteType: 'guide' | 'blacksmith' | 'librarian' | 'healer' | 'merchant' | 'sage' | 'mayor' | 'arena_master' | 'tavern_keeper';
   /** Dialogue lines */
   dialogue: string[];
   /** Optional character appearance */
@@ -839,6 +840,251 @@ export const GENESIS_GARDEN: ZoneDef = {
 };
 
 // ═══════════════════════════════════════════════════
+// LIFE CITY — Multiplayer Hub Zone (50×40)
+// ═══════════════════════════════════════════════════
+
+function generateLifeCityTiles(): TileType[][] {
+  const W = 50;
+  const H = 40;
+  const map: TileType[][] = [];
+
+  for (let y = 0; y < H; y++) {
+    const r: TileType[] = [];
+    for (let x = 0; x < W; x++) {
+      // Borders — dark grass
+      if (x === 0 || x === W - 1 || y === 0 || y === H - 1) {
+        r.push('grass_dark');
+        continue;
+      }
+
+      // Grand avenue — east-west central (6 tiles wide)
+      if (y >= 18 && y <= 23 && x >= 2 && x <= 47) {
+        r.push('path_stone');
+        continue;
+      }
+
+      // Main boulevard — north-south central (6 tiles wide)
+      if (x >= 23 && x <= 28 && y >= 2 && y <= 37) {
+        r.push('path_stone');
+        continue;
+      }
+
+      // Central plaza (large open area around fountain)
+      if (x >= 20 && x <= 31 && y >= 16 && y <= 25) {
+        r.push('path_stone');
+        continue;
+      }
+
+      // Fountain pool (center of plaza)
+      if (x >= 24 && x <= 27 && y >= 19 && y <= 22) {
+        r.push('water');
+        continue;
+      }
+
+      // North path to Town Hall
+      if (y >= 5 && y <= 7 && x >= 23 && x <= 28) {
+        r.push('path_stone');
+        continue;
+      }
+
+      // East path to Market Hall
+      if (x >= 38 && x <= 40 && y >= 18 && y <= 23) {
+        r.push('path_stone');
+        continue;
+      }
+
+      // West path to Arena
+      if (x >= 8 && x <= 10 && y >= 18 && y <= 23) {
+        r.push('path_stone');
+        continue;
+      }
+
+      // South path to Guild Hall / Library
+      if (y >= 28 && y <= 30 && x >= 23 && x <= 28) {
+        r.push('path_stone');
+        continue;
+      }
+
+      // NW quadrant path to Arena district
+      if (x >= 5 && x <= 10 && y >= 8 && y <= 10) {
+        r.push('path_dirt');
+        continue;
+      }
+
+      // NE quadrant path to Observatory
+      if (x >= 40 && x <= 45 && y >= 8 && y <= 10) {
+        r.push('path_stone');
+        continue;
+      }
+
+      // SW quadrant path to Tavern
+      if (x >= 5 && x <= 10 && y >= 28 && y <= 30) {
+        r.push('path_dirt');
+        continue;
+      }
+
+      // SE quadrant path to Library / Workshop
+      if (x >= 40 && x <= 45 && y >= 28 && y <= 30) {
+        r.push('path_stone');
+        continue;
+      }
+
+      // Garden patches (decorative)
+      if (x >= 2 && x <= 6 && y >= 12 && y <= 16) {
+        r.push((x + y) % 3 === 0 ? 'grass_flowers' : 'grass');
+        continue;
+      }
+      if (x >= 43 && x <= 47 && y >= 12 && y <= 16) {
+        r.push((x + y) % 3 === 0 ? 'grass_flowers' : 'grass');
+        continue;
+      }
+
+      // Pond / reflecting pool (NE corner)
+      if (x >= 42 && x <= 46 && y >= 4 && y <= 7) {
+        if (x === 42 || x === 46 || y === 4 || y === 7) {
+          r.push('grass');
+        } else {
+          r.push('water');
+        }
+        continue;
+      }
+
+      // Default grass
+      r.push('grass');
+    }
+    map.push(r);
+  }
+
+  return map;
+}
+
+export const LIFE_CITY: ZoneDef = {
+  id: 'life_city',
+  name: 'Life City',
+  description: 'The bustling multiplayer hub. Meet other adventurers, shop, socialize, and take on challenges together.',
+  theme: 'city',
+  width: 50,
+  height: 40,
+  tiles: generateLifeCityTiles(),
+  spawnX: 25,
+  spawnY: 24,
+  buildings: [
+    // North — Town Hall (large building)
+    { id: 'lc_town_hall', type: 'town_hall', tileX: 22, tileY: 2, widthTiles: 8, heightTiles: 5 },
+    // NW — Arena
+    { id: 'lc_arena', type: 'arena', tileX: 3, tileY: 4, widthTiles: 6, heightTiles: 5 },
+    // SW — Tavern
+    { id: 'lc_tavern', type: 'tavern', tileX: 3, tileY: 26, widthTiles: 6, heightTiles: 5 },
+    // East — Market Hall
+    { id: 'lc_market_hall', type: 'market_hall', tileX: 38, tileY: 14, widthTiles: 8, heightTiles: 5 },
+    // South — Guild Hall
+    { id: 'lc_guild_hall', type: 'guild_hall', tileX: 20, tileY: 32, widthTiles: 8, heightTiles: 5 },
+    // SE — Workshop
+    { id: 'lc_workshop', type: 'workshop', tileX: 38, tileY: 26, widthTiles: 6, heightTiles: 5 },
+    // NE — Library
+    { id: 'lc_library', type: 'library', tileX: 38, tileY: 4, widthTiles: 5, heightTiles: 4 },
+    // Far NE — Observatory
+    { id: 'lc_observatory', type: 'observatory', tileX: 44, tileY: 2, widthTiles: 4, heightTiles: 4 },
+  ],
+  npcs: [
+    {
+      id: 'lc_mayor',
+      name: 'Mayor Eleanor',
+      tileX: 25,
+      tileY: 10,
+      spriteType: 'mayor',
+      dialogue: [
+        'Welcome to Life City! This is where adventurers come together.',
+        'Every habit you keep, every goal you reach — it strengthens the city.',
+        'Check the quest board for daily civic duties!',
+      ],
+      appearance: { skinTone: 1, hairColor: 1, bodyColor: '#8B0000', hairStyleIdx: 4, capeIdx: 0, hatIdx: 0 },
+    },
+    {
+      id: 'lc_arena_master',
+      name: 'Arena Master Kael',
+      tileX: 5,
+      tileY: 10,
+      spriteType: 'arena_master',
+      dialogue: [
+        'The Arena awaits, challenger!',
+        'Prove your discipline in streak battles and XP races!',
+        'Only the consistent survive here.',
+      ],
+      appearance: { skinTone: 3, hairColor: 0, bodyColor: '#4A0E0E', hairStyleIdx: 1, weaponIdx: 0, topIdx: 2 },
+    },
+    {
+      id: 'lc_tavern_keeper',
+      name: 'Tavern Keeper Rosa',
+      tileX: 5,
+      tileY: 25,
+      spriteType: 'tavern_keeper',
+      dialogue: [
+        'Come in, warm yourself by the fire!',
+        'Looking for a group? Check the party finder!',
+        'The best stories are told at this tavern.',
+      ],
+      appearance: { skinTone: 2, hairColor: 4, bodyColor: '#8B4513', hairStyleIdx: 6, hatIdx: 2 },
+    },
+    {
+      id: 'lc_librarian',
+      name: 'Librarian Sage Ashwin',
+      tileX: 39,
+      tileY: 9,
+      spriteType: 'librarian',
+      dialogue: [
+        'Shhh... knowledge resides here.',
+        'Browse our guides or exchange tips with fellow adventurers.',
+        'The wise know that sharing wisdom earns XP.',
+      ],
+      appearance: { skinTone: 4, hairColor: 3, bodyColor: '#6B5B8B', hairStyleIdx: 2, hatIdx: 1 },
+    },
+  ],
+  portals: [
+    // North portal → Genesis Garden
+    {
+      tileX: 25, tileY: 1, targetZone: 'genesis_garden', targetX: 9, targetY: 13,
+      label: 'Genesis Garden', icon: '🌱',
+    },
+    // NW portal → Life Town
+    {
+      tileX: 1, tileY: 20, targetZone: 'life_town', targetX: 15, targetY: 27,
+      label: 'Life Town', icon: '🏠',
+    },
+    // NE portal → Wisdom Summit
+    {
+      tileX: 48, tileY: 10, targetZone: 'wisdom_summit', targetX: 14, targetY: 22,
+      label: 'Wisdom Summit', icon: '📚',
+    },
+    // SW portal → Ironworks District
+    {
+      tileX: 1, tileY: 35, targetZone: 'ironworks', targetX: 28, targetY: 12,
+      label: 'Ironworks', icon: '⚒️',
+    },
+    // W portal → Healer's Sanctuary
+    {
+      tileX: 1, tileY: 28, targetZone: 'healers_sanctuary', targetX: 1, targetY: 12,
+      label: "Healer's Sanctuary", icon: '🏥',
+    },
+    // E portal → Market Quarter
+    {
+      tileX: 48, tileY: 20, targetZone: 'market_quarter', targetX: 14, targetY: 22,
+      label: 'Market Quarter', icon: '💰',
+    },
+    // SE portal → Social Square
+    {
+      tileX: 48, tileY: 36, targetZone: 'social_square', targetX: 14, targetY: 22,
+      label: 'Social Square', icon: '🏛️',
+    },
+  ],
+  palette: {
+    skyTop: '#87CEEB',
+    skyBottom: '#E0F0FF',
+    ambient: '#FFD700',
+  },
+};
+
+// ═══════════════════════════════════════════════════
 // ZONE REGISTRY
 // ═══════════════════════════════════════════════════
 
@@ -850,6 +1096,7 @@ export const ZONES: Record<string, ZoneDef> = {
   healers_sanctuary: HEALERS_SANCTUARY,
   market_quarter: MARKET_QUARTER,
   social_square: SOCIAL_SQUARE,
+  life_city: LIFE_CITY,
 };
 
 export function getZone(id: string): ZoneDef | undefined {

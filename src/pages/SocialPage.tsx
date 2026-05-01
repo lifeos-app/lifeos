@@ -2,7 +2,7 @@
 // v4: Fullscreen immersive mode via FullscreenPage
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Users, Search, Globe, MessageCircle, UserCircle, UserPlus, Lock, User, Handshake, Crown, ChevronDown, ChevronUp, Trophy } from 'lucide-react';
+import { Users, Search, Globe, MessageCircle, UserCircle, UserPlus, Lock, User, Handshake, Crown, ChevronDown, ChevronUp, Trophy, Calendar, Target, Sparkles, Swords } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUserStore } from '../stores/useUserStore';
 import { PartnerList } from '../components/social/PartnerList';
@@ -20,20 +20,34 @@ import { getLadder } from '../lib/gamification/ladder';
 import type { LadderKey } from '../lib/gamification/ladder';
 import { FullscreenPage } from '../components/FullscreenPage';
 import { logger } from '../utils/logger';
+import { GuildEvents, guildEventsStyles } from '../features/social/GuildEvents';
+import { GuildAnnouncements, guildAnnouncementsStyles } from '../features/social/GuildAnnouncements';
+import { CollaborativeQuests, collaborativeQuestsStyles } from '../features/social/CollaborativeQuests';
+import { SocialFeedV2, socialFeedV2Styles } from '../features/social/SocialFeedV2';
+import { GuildWars, guildWarsStyles } from '../features/social/GuildWars';
+import { useGuildEvents } from '../features/social/useGuildEvents';
+import { useCollaborativeQuests } from '../features/social/useCollaborativeQuests';
 import '../components/social/social.css';
 
-type Tab = 'friends' | 'find' | 'guilds' | 'leaderboard' | 'kingdom' | 'messages';
+// Guild sub-tab for events/quests/announcements
+import type { GuildEventType, GuildEventStatus, EventRecurrence } from '../features/social/useGuildEvents'; // keep for type inference
+
+type Tab = 'friends' | 'find' | 'guilds' | 'wars' | 'leaderboard' | 'kingdom' | 'messages' | 'feed' | 'events' | 'quests';
 
 const SOCIAL_TABS = [
+  { id: 'feed',     label: 'Feed',     icon: Sparkles,      color: '#A855F7' },
   { id: 'friends',  label: 'Friends',  icon: UserPlus,      color: '#39FF14' },
   { id: 'find',     label: 'Discover', icon: Search,        color: '#00D4FF' },
   { id: 'guilds',   label: 'Guilds',   icon: Globe,         color: '#A855F7' },
+  { id: 'wars',     label: 'Wars',     icon: Swords,        color: '#F97316' },
+  { id: 'events',   label: 'Events',   icon: Calendar,      color: '#F97316' },
+  { id: 'quests',   label: 'Quests',   icon: Target,        color: '#22C55E' },
   { id: 'leaderboard', label: 'Ranks', icon: Trophy,       color: '#FFD700' },
   { id: 'kingdom',  label: 'Kingdom',  icon: Crown,         color: '#FFD700' },
   { id: 'messages', label: 'Messages', icon: MessageCircle, color: '#F97316' },
 ];
 
-const VALID_TABS: Tab[] = ['friends', 'find', 'guilds', 'leaderboard', 'kingdom', 'messages'];
+const VALID_TABS: Tab[] = ['feed', 'friends', 'find', 'guilds', 'wars', 'events', 'quests', 'leaderboard', 'kingdom', 'messages'];
 
 interface ActiveChat {
   partnerId: string;
@@ -183,6 +197,14 @@ export function SocialPage() {
         </div>
       )}
 
+      {/* ── FEED TAB ── */}
+      {activeTab === 'feed' && (
+        <>
+          <SocialFeedV2 userId={userId} guildId={undefined} showWeeklySummary={true} />
+          <style>{socialFeedV2Styles}</style>
+        </>
+      )}
+
       {/* ── FRIENDS TAB ── */}
       {activeTab === 'friends' && (
         <div>
@@ -260,6 +282,25 @@ export function SocialPage() {
 
       {/* ── GUILDS TAB ── */}
       {activeTab === 'guilds' && <GuildsTab userId={userId} onOpenDM={(partnerId) => openChat(partnerId, 'Guild Member', null)} />}
+
+      {/* ── WARS TAB ── */}
+      {activeTab === 'wars' && <WarsSubTab userId={userId} />}
+
+      {/* ── EVENTS TAB ── */}
+      {activeTab === 'events' && (
+        <div>
+          {/* Pick which guild to view events for — default to first user guild */}
+          <GuildEventsSubTab userId={userId} onOpenDM={(partnerId) => openChat(partnerId, 'Guild Member', null)} />
+        </div>
+      )}
+
+      {/* ── QUESTS TAB ── */}
+      {activeTab === 'quests' && (
+        <div>
+          <QuestsSubTab userId={userId} />
+        </div>
+      )}
+
       {activeTab === 'leaderboard' && <LeaderboardTab />}
 
       {/* ── KINGDOM TAB ── */}
@@ -304,3 +345,294 @@ export function SocialPage() {
 }
 
 export default SocialPage;
+
+// ── Guild Events Sub-tab (wraps events + announcements for a guild) ──────
+
+function GuildEventsSubTab({ userId, onOpenDM }: { userId: string; onOpenDM: (partnerId: string) => void }) {
+  const [selectedGuildId, setSelectedGuildId] = useState<string | null>(null);
+  const [userGuilds, setUserGuilds] = useState<Array<{ id: string; name: string }>>([]);
+  const [activeSubView, setActiveSubView] = useState<'events' | 'announcements'>('events');
+
+  useEffect(() => {
+    const loadGuilds = async () => {
+      const { supabase } = await import('../lib/data-access');
+      const { data } = await supabase
+        .from('goal_group_members')
+        .select('group_id, goal_groups(id, name)')
+        .eq('user_id', userId);
+      if (data) {
+        const guilds = data.map((d: any) => ({
+          id: d.goal_groups?.id || d.group_id,
+          name: d.goal_groups?.name || 'Guild',
+        }));
+        setUserGuilds(guilds);
+        if (guilds.length > 0 && !selectedGuildId) {
+          setSelectedGuildId(guilds[0].id);
+        }
+      }
+    };
+    void loadGuilds();
+  }, [userId]);
+
+  return (
+    <div>
+      {/* Guild selector */}
+      {userGuilds.length > 1 && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, overflowX: 'auto' }}>
+          {userGuilds.map(g => (
+            <button
+              key={g.id}
+              onClick={() => setSelectedGuildId(g.id)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 8,
+                border: selectedGuildId === g.id ? '1px solid rgba(249,115,22,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                background: selectedGuildId === g.id ? 'rgba(249,115,22,0.1)' : 'transparent',
+                color: selectedGuildId === g.id ? '#F97316' : '#94A3B8',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {g.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {userGuilds.length === 0 && (
+        <div style={{ textAlign: 'center', padding: 32, color: '#64748B' }}>
+          <div style={{ fontSize: '2rem', marginBottom: 8 }}>🏰</div>
+          <div style={{ fontSize: '0.85rem' }}>Join a guild to see events and announcements!</div>
+          <div style={{ fontSize: '0.8rem', marginTop: 8 }}>Go to the Guilds tab to browse or create one.</div>
+        </div>
+      )}
+
+      {selectedGuildId && (
+        <>
+          {/* Sub-view tabs */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            <button
+              onClick={() => setActiveSubView('events')}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 8,
+                border: activeSubView === 'events' ? '1px solid rgba(249,115,22,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                background: activeSubView === 'events' ? 'rgba(249,115,22,0.1)' : 'transparent',
+                color: activeSubView === 'events' ? '#F97316' : '#94A3B8',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              📅 Events
+            </button>
+            <button
+              onClick={() => setActiveSubView('announcements')}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 8,
+                border: activeSubView === 'announcements' ? '1px solid rgba(245,158,11,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                background: activeSubView === 'announcements' ? 'rgba(245,158,11,0.1)' : 'transparent',
+                color: activeSubView === 'announcements' ? '#F59E0B' : '#94A3B8',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              📢 Announcements
+            </button>
+          </div>
+
+          <GuildEventsSubViewWrapper
+            guildId={selectedGuildId}
+            userId={userId}
+            activeView={activeSubView}
+          />
+        </>
+      )}
+
+      <style>{guildEventsStyles}{guildAnnouncementsStyles}</style>
+    </div>
+  );
+}
+
+// Wrapper that provides hook context for guild events sub-tab
+function GuildEventsSubViewWrapper({ guildId, userId, activeView }: { guildId: string; userId: string; activeView: 'events' | 'announcements' }) {
+  const eventsHook = useGuildEvents(guildId, userId);
+
+  // Determine user role (simplified — default to member)
+  const userRole: 'owner' | 'admin' | 'member' = 'member'; // Could be determined from guild membership
+
+  if (activeView === 'events') {
+    return (
+      <GuildEvents guildId={guildId} userId={userId} userRole={userRole} />
+    );
+  }
+
+  return (
+    <GuildAnnouncements
+      guildId={guildId}
+      userId={userId}
+      userRole={userRole}
+      announcements={eventsHook.announcements}
+      onCreateAnnouncement={eventsHook.createAnnouncement}
+      onUpdateAnnouncement={eventsHook.updateAnnouncement}
+      onDeleteAnnouncement={eventsHook.deleteAnnouncement}
+      onToggleReaction={eventsHook.toggleAnnounceReaction}
+      onTogglePin={eventsHook.toggleAnnouncePin}
+      onVotePoll={eventsHook.votePoll}
+      loading={eventsHook.loadingAnnouncements}
+    />
+  );
+}
+
+// ── Quests Sub-tab ────────────────────────────────────────────────
+
+function QuestsSubTab({ userId }: { userId: string }) {
+  const [selectedGuildId, setSelectedGuildId] = useState<string | null>(null);
+  const [userGuilds, setUserGuilds] = useState<Array<{ id: string; name: string }>>([]);
+
+  useEffect(() => {
+    const loadGuilds = async () => {
+      const { supabase } = await import('../lib/data-access');
+      const { data } = await supabase
+        .from('goal_group_members')
+        .select('group_id, goal_groups(id, name)')
+        .eq('user_id', userId);
+      if (data) {
+        const guilds = data.map((d: any) => ({
+          id: d.goal_groups?.id || d.group_id,
+          name: d.goal_groups?.name || 'Guild',
+        }));
+        setUserGuilds(guilds);
+        if (guilds.length > 0 && !selectedGuildId) {
+          setSelectedGuildId(guilds[0].id);
+        }
+      }
+    };
+    void loadGuilds();
+  }, [userId]);
+
+  return (
+    <div>
+      {/* Guild selector */}
+      {userGuilds.length > 1 && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, overflowX: 'auto' }}>
+          {userGuilds.map(g => (
+            <button
+              key={g.id}
+              onClick={() => setSelectedGuildId(g.id)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 8,
+                border: selectedGuildId === g.id ? '1px solid rgba(34,197,94,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                background: selectedGuildId === g.id ? 'rgba(34,197,94,0.1)' : 'transparent',
+                color: selectedGuildId === g.id ? '#22C55E' : '#94A3B8',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {g.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {userGuilds.length === 0 && (
+        <div style={{ textAlign: 'center', padding: 32, color: '#64748B' }}>
+          <div style={{ fontSize: '2rem', marginBottom: 8 }}>🎯</div>
+          <div style={{ fontSize: '0.85rem' }}>Join a guild to take on collaborative quests!</div>
+          <div style={{ fontSize: '0.8rem', marginTop: 8 }}>Go to the Guilds tab to get started.</div>
+        </div>
+      )}
+
+      {selectedGuildId && (
+        <CollaborativeQuests guildId={selectedGuildId} userId={userId} userRole="member" />
+      )}
+
+      <style>{collaborativeQuestsStyles}</style>
+    </div>
+  );
+}
+
+// ── Wars Sub-tab (guild wars with guild selector) ──────────────────────────
+
+function WarsSubTab({ userId }: { userId: string }) {
+  const [selectedGuildId, setSelectedGuildId] = useState<string | null>(null);
+  const [userGuilds, setUserGuilds] = useState<Array<{ id: string; name: string }>>([]);
+
+  useEffect(() => {
+    const loadGuilds = async () => {
+      const { supabase } = await import('../lib/data-access');
+      const { data } = await supabase
+        .from('goal_group_members')
+        .select('group_id, goal_groups(id, name)')
+        .eq('user_id', userId);
+      if (data) {
+        const guilds = data.map((d: any) => ({
+          id: d.goal_groups?.id || d.group_id,
+          name: d.goal_groups?.name || 'Guild',
+        }));
+        setUserGuilds(guilds);
+        if (guilds.length > 0 && !selectedGuildId) {
+          setSelectedGuildId(guilds[0].id);
+        }
+      }
+    };
+    void loadGuilds();
+  }, [userId]);
+
+  const selectedGuild = userGuilds.find(g => g.id === selectedGuildId);
+
+  return (
+    <div>
+      {/* Guild selector */}
+      {userGuilds.length > 1 && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, overflowX: 'auto' }}>
+          {userGuilds.map(g => (
+            <button
+              key={g.id}
+              onClick={() => setSelectedGuildId(g.id)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 8,
+                border: selectedGuildId === g.id ? '1px solid rgba(249,115,22,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                background: selectedGuildId === g.id ? 'rgba(249,115,22,0.1)' : 'transparent',
+                color: selectedGuildId === g.id ? '#F97316' : '#94A3B8',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {g.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {userGuilds.length === 0 && (
+        <div style={{ textAlign: 'center', padding: 32, color: '#64748B' }}>
+          <div style={{ fontSize: '2rem', marginBottom: 8 }}>⚔️</div>
+          <div style={{ fontSize: '0.85rem' }}>Join a guild to participate in guild wars!</div>
+          <div style={{ fontSize: '0.8rem', marginTop: 8 }}>Go to the Guilds tab to browse or create one.</div>
+        </div>
+      )}
+
+      {selectedGuildId && (
+        <GuildWars
+          guildId={selectedGuildId}
+          userId={userId}
+          userRole="member"
+          guildName={selectedGuild?.name}
+        />
+      )}
+
+      <style>{guildWarsStyles}</style>
+    </div>
+  );
+}

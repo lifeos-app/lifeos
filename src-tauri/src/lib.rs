@@ -1794,9 +1794,9 @@ async fn ai_chat(
 
     let client = reqwest::Client::new();
     let result = client
-        .post("http://localhost:11435/v1/chat/completions")
+        .post("http://localhost:11434/v1/chat/completions")
         .json(&json!({
-            "model": "sentient-teddy",
+            "model": "glm-5.1:cloud",
             "messages": [
                 {"role": "user", "content": message}
             ],

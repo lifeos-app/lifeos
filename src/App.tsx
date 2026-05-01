@@ -191,9 +191,75 @@ const temporalPlaybackLoader = () => import('./components/TemporalPlayback');
 registerPreload('/temporal-playback', temporalPlaybackLoader);
 const TemporalPlayback = lazyRetry(temporalPlaybackLoader);
 
+const timelineLoader = () => import('./features/life-timeline/LifeTimeline').then(m => ({ default: m.LifeTimeline }));
+registerPreload('/timeline', timelineLoader);
+const LifeTimeline = lazyRetry(timelineLoader);
+
+const digitalTwinLoader = () => import('./features/digital-twin/DigitalTwin').then(m => ({ default: m.DigitalTwin }));
+registerPreload('/twin', digitalTwinLoader);
+const DigitalTwin = lazyRetry(digitalTwinLoader);
+
+const voiceFirstLoader = () => import('./features/voice-first/VoiceFirstMode').then(m => ({ default: m.VoiceFirstMode }));
+registerPreload('/voice', voiceFirstLoader);
+const VoiceFirstMode = lazyRetry(voiceFirstLoader);
+
+const contractIntelLoader = () => import('./features/contract-intelligence/ContractIntelligence').then(m => ({ default: m.ContractIntelligence }));
+registerPreload('/contract-intel', contractIntelLoader);
+const ContractIntelligence = lazyRetry(contractIntelLoader);
+
+const marketplaceLoader = () => import('./features/plugin-marketplace/PluginMarketplace').then(m => ({ default: m.PluginMarketplace }));
+registerPreload('/marketplace', marketplaceLoader);
+const PluginMarketplace = lazyRetry(marketplaceLoader);
+
+const telegramBotLoader = () => import('./features/telegram-bot/TelegramBot').then(m => ({ default: m.TelegramBot }));
+registerPreload('/telegram', telegramBotLoader);
+const TelegramBot = lazyRetry(telegramBotLoader);
+
+const housingLoader = () => import('./features/housing/PlayerHousing').then(m => ({ default: m.PlayerHousing }));
+registerPreload('/housing', housingLoader);
+const PlayerHousing = lazyRetry(housingLoader);
+
+const marketLoader = () => import('./features/market/Market').then(m => ({ default: m.Market }));
+registerPreload('/market', marketLoader);
+const Market = lazyRetry(marketLoader);
+
+const mentorshipLoader = () => import('./features/mentorship/Mentorship').then(m => ({ default: m.Mentorship }));
+registerPreload('/mentorship', mentorshipLoader);
+const Mentorship = lazyRetry(mentorshipLoader);
+
+const miniGamesLoader = () => import('./features/mini-games/MiniGames').then(m => ({ default: m.MiniGames }));
+registerPreload('/mini-games', miniGamesLoader);
+const MiniGames = lazyRetry(miniGamesLoader);
+
+const audioRoomsLoader = () => import('./features/audio-rooms/AudioRooms').then(m => ({ default: m.AudioRooms }));
+registerPreload('/audio-rooms', audioRoomsLoader);
+const AudioRooms = lazyRetry(audioRoomsLoader);
+
+const dreamJournalLoader = () => import('./features/dream-journal/DreamJournal').then(m => ({ default: m.DreamJournal }));
+registerPreload('/dreams', dreamJournalLoader);
+const DreamJournal = lazyRetry(dreamJournalLoader);
+
+const lifeSimulatorLoader = () => import('./features/life-simulator/LifeSimulator').then(m => ({ default: m.LifeSimulator }));
+registerPreload('/simulator', lifeSimulatorLoader);
+const LifeSimulator = lazyRetry(lifeSimulatorLoader);
+
+const familyCirclesLoader = () => import('./features/family-circles/FamilyCircles').then(m => ({ default: m.FamilyCircles }));
+registerPreload('/family', familyCirclesLoader);
+const FamilyCircles = lazyRetry(familyCirclesLoader);
+
+const locationContextLoader = () => import('./features/location-context/LocationContext').then(m => ({ default: m.LocationContext }));
+registerPreload('/location', locationContextLoader);
+const LocationContext = lazyRetry(locationContextLoader);
+
+const publicApiSettingsLoader = () => import('./features/public-api/PublicApiSettings').then(m => ({ default: m.PublicApiSettings }));
+registerPreload('/api-settings', publicApiSettingsLoader);
+const PublicApiSettings = lazyRetry(publicApiSettingsLoader);
+
 const LazyFeedbackButton = lazyRetry(() => import('./components/FeedbackButton').then(m => ({ default: m.FeedbackButton })));
 const LazyFlipperCheckin = lazyRetry(() => import('./components/FlipperCheckin').then(m => ({ default: m.FlipperCheckin })));
 const LazyLifePulseModal = lazyRetry(() => import('./components/LifePulseModal').then(m => ({ default: m.LifePulseModal })));
+
+const LazyVoiceFloatingButton = lazyRetry(() => import('./features/voice-first/VoiceFloatingButton').then(m => ({ default: m.VoiceFloatingButton })));
 
 // Retry wrapper for lazy imports — retries up to 3 times on chunk load failure
 function lazyRetry<T extends React.ComponentType<any>>(
@@ -517,6 +583,22 @@ function AppRoutes() {
             <Route path="/work/*" element={<PageErrorBoundary pageName="Work"><Suspense fallback={<WorkSkeleton />}><WorkPage /></Suspense></PageErrorBoundary>} />
             <Route path="/social" element={<PageErrorBoundary pageName="Social"><Suspense fallback={<SocialSkeleton />}><SocialPage /></Suspense></PageErrorBoundary>} />
             <Route path="/social/profile" element={<PageErrorBoundary pageName="ProfileSetup"><ProfileSetupPage /></PageErrorBoundary>} />
+            <Route path="/timeline" element={<PageErrorBoundary pageName="Timeline"><Suspense fallback={<PageSkeleton />}><LifeTimeline /></Suspense></PageErrorBoundary>} />
+            <Route path="/twin" element={<PageErrorBoundary pageName="DigitalTwin"><Suspense fallback={<PageSkeleton />}><DigitalTwin /></Suspense></PageErrorBoundary>} />
+            <Route path="/voice" element={<PageErrorBoundary pageName="Voice"><Suspense fallback={<PageSkeleton />}><VoiceFirstMode /></Suspense></PageErrorBoundary>} />
+            <Route path="/contract-intel" element={<PageErrorBoundary pageName="ContractIntel"><Suspense fallback={<PageSkeleton />}><ContractIntelligence /></Suspense></PageErrorBoundary>} />
+            <Route path="/marketplace" element={<PageErrorBoundary pageName="Marketplace"><Suspense fallback={<PageSkeleton />}><PluginMarketplace /></Suspense></PageErrorBoundary>} />
+            <Route path="/telegram" element={<PageErrorBoundary pageName="TelegramBot"><Suspense fallback={<PageSkeleton />}><TelegramBot /></Suspense></PageErrorBoundary>} />
+            <Route path="/housing" element={<PageErrorBoundary pageName="Housing"><Suspense fallback={<PageSkeleton />}><PlayerHousing /></Suspense></PageErrorBoundary>} />
+            <Route path="/market" element={<PageErrorBoundary pageName="Market"><Suspense fallback={<PageSkeleton />}><Market /></Suspense></PageErrorBoundary>} />
+            <Route path="/mentorship" element={<PageErrorBoundary pageName="Mentorship"><Suspense fallback={<PageSkeleton />}><Mentorship /></Suspense></PageErrorBoundary>} />
+            <Route path="/mini-games" element={<PageErrorBoundary pageName="MiniGames"><Suspense fallback={<PageSkeleton />}><MiniGames /></Suspense></PageErrorBoundary>} />
+            <Route path="/audio-rooms" element={<PageErrorBoundary pageName="AudioRooms"><Suspense fallback={<PageSkeleton />}><AudioRooms /></Suspense></PageErrorBoundary>} />
+            <Route path="/dreams" element={<PageErrorBoundary pageName="DreamJournal"><Suspense fallback={<PageSkeleton />}><DreamJournal /></Suspense></PageErrorBoundary>} />
+            <Route path="/simulator" element={<PageErrorBoundary pageName="LifeSimulator"><Suspense fallback={<PageSkeleton />}><LifeSimulator /></Suspense></PageErrorBoundary>} />
+            <Route path="/family" element={<PageErrorBoundary pageName="FamilyCircles"><Suspense fallback={<PageSkeleton />}><FamilyCircles /></Suspense></PageErrorBoundary>} />
+            <Route path="/location" element={<PageErrorBoundary pageName="LocationContext"><Suspense fallback={<PageSkeleton />}><LocationContext /></Suspense></PageErrorBoundary>} />
+            <Route path="/api-settings" element={<PageErrorBoundary pageName="PublicApiSettings"><Suspense fallback={<PageSkeleton />}><PublicApiSettings /></Suspense></PageErrorBoundary>} />
           </Route>
           {/* Setup routes — accessible from dashboard phase tracker */}
           <Route path="/setup" element={<SetupHub />} />
@@ -530,6 +612,7 @@ function AppRoutes() {
       <Suspense fallback={null}><LazyFeedbackButton /></Suspense>
       <Suspense fallback={null}><LazyFlipperCheckin /></Suspense>
       <Suspense fallback={null}><LazyLifePulseModal /></Suspense>
+      <Suspense fallback={null}><LazyVoiceFloatingButton /></Suspense>
     </ErrorBoundary>
   );
 }

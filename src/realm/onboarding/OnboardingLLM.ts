@@ -257,11 +257,10 @@ export async function askSage(
 
   const callOptions = {
     format: 'json' as const,
-    timeoutMs: 25000,
-    provider: 'openrouter',
-    model: 'google/gemini-2.0-flash-001',
-    // Users always have a Supabase session after OAuth signup.
-    // skipAuth was removed — it caused 401s because the proxy requires auth.
+    timeoutMs: 60000,
+    provider: 'ollama',
+    model: 'glm-5.1:cloud',
+    // Ollama runs locally — no auth needed. OpenRouter fallback requires auth.
   };
 
   // Attempt with one internal retry (callLLMProxy already retries on non-timeout errors,

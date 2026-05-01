@@ -384,10 +384,10 @@ export function SetupDialogue({ phase, onComplete, initialData }: SetupDialogueP
       ];
 
       const llmResponse = await callLLMProxy(proxyMessages, {
-        timeoutMs: 15000,
+        timeoutMs: 60000,
         format: 'json',
-        provider: 'openrouter',
-        model: 'google/gemini-2.0-flash-001',
+        provider: 'ollama',
+        model: 'glm-5.1:cloud',
       });
 
       let parsed: Record<string, unknown>;

@@ -38,7 +38,7 @@ CORS(app, origins=[
 
 DB_PATH = os.path.join(os.path.expanduser('~'), '.lifeos', 'data.db')
 DEFAULT_USER_ID = 'local-user-001'
-AI_BRIDGE_URL = os.environ.get('AI_BRIDGE_URL', 'http://localhost:11435')
+AI_BRIDGE_URL = os.environ.get('AI_BRIDGE_URL', 'http://localhost:11434')
 
 # ═══════════════════════════════════════════════════════════════
 # Database Helpers
@@ -1369,12 +1369,12 @@ def finance_summary():
 
 
 # ═══════════════════════════════════════════════════════════════
-# AI Chat — Proxy to SentientTeddy Bridge
+# AI Chat — Proxy to Ollama AI Bridge
 # ═══════════════════════════════════════════════════════════════
 
 @app.route('/api/ai/chat', methods=['POST'])
 def ai_chat():
-    """Proxy chat to local AI bridge (SentientTeddy at localhost:11435)."""
+    """Proxy chat to local AI bridge (Ollama at localhost:11434)."""
     body = request.get_json(force=True, silent=True) or {}
     message = body.get('message', '')
     context = body.get('context', {})
@@ -1393,7 +1393,7 @@ def ai_chat():
         resp = http_requests.post(
             f"{AI_BRIDGE_URL}/v1/chat/completions",
             json={
-                "model": "sentient-teddy",
+                "model": "glm-5.1:cloud",
                 "messages": [
                     *[{"role": m.get("role", "user"), "content": m.get("content", "")} for m in history[-10:]],
                     {"role": "user", "content": message}
@@ -1408,7 +1408,7 @@ def ai_chat():
         else:
             reply = f"AI bridge returned {resp.status_code}: {resp.text[:200]}"
     except http_requests.ConnectionError:
-        reply = "AI bridge not available. Start it with: python sentient_teddy_bridge.py"
+        reply = "AI bridge not available. Make sure Ollama is running: ollama serve"
     except Exception as e:
         reply = f"AI error: {str(e)}"
 
@@ -1576,6 +1576,878 @@ def life_context():
 
 # Note: Static file serving is handled by serve.py's patch_app_for_static().
 # When running app.py directly (dev mode), only API endpoints are available.
+
+
+# ═══════════════════════════════════════════════════════════════
+# Telegram Bot Webhook
+# ═══════════════════════════════════════════════════════════════
+
+TELEGRAM_CONFIG_PATH = os.path.join(os.path.expanduser('~'), '.lifeos', 'telegram_bot.json')
+
+def get_telegram_config():
+    """Load telegram bot config from file."""
+    if os.path.exists(TELEGRAM_CONFIG_PATH):
+        try:
+            with open(TELEGRAM_CONFIG_PATH, 'r') as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {
+        "bot_token": "",
+        "webhook_url": "",
+        "enabled": False,
+        "authorized_users": [],
+        "daily_brief_enabled": True,
+        "daily_brief_time": "07:00",
+        "habit_reminders": True,
+        "streak_alerts": True,
+    }
+
+def save_telegram_config(config):
+    """Save telegram bot config to file."""
+    os.makedirs(os.path.dirname(TELEGRAM_CONFIG_PATH), exist_ok=True)
+    with open(TELEGRAM_CONFIG_PATH, 'w') as f:
+        json.dump(config, f, indent=2)
+
+# Simple rate limiter for Telegram webhook
+_telegram_rate_limits = {}  # user_id -> list of timestamps
+
+def _telegram_rate_check(user_id, max_requests=30, window_sec=60):
+    """Rate limit Telegram requests per user. Returns True if allowed."""
+    import time as _time
+    now = _time.time()
+    if user_id not in _telegram_rate_limits:
+        _telegram_rate_limits[user_id] = []
+    # Remove old timestamps
+    _telegram_rate_limits[user_id] = [t for t in _telegram_rate_limits[user_id] if now - t < window_sec]
+    if len(_telegram_rate_limits[user_id]) >= max_requests:
+        return False
+    _telegram_rate_limits[user_id].append(now)
+    return True
+
+def _telegram_send_message(bot_token, chat_id, text, reply_markup=None):
+    """Send a message via the Telegram Bot API."""
+    payload = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": "Markdown",
+    }
+    if reply_markup:
+        payload["reply_markup"] = reply_markup
+    try:
+        resp = http_requests.post(
+            f"https://api.telegram.org/bot{bot_token}/sendMessage",
+            json=payload,
+            timeout=10
+        )
+        return resp.ok
+    except Exception:
+        return False
+
+def _telegram_process_command(text, user_id, username, chat_id, bot_token, config, db):
+    """Process a Telegram command and return the response text."""
+    today = date.today().isoformat()
+    
+    # Parse command
+    command = text.strip()
+    cmd_parts = command.split(None, 1)
+    cmd = cmd_parts[0].lower() if cmd_parts else ''
+    args = cmd_parts[1] if len(cmd_parts) > 1 else ''
+    
+    # Remove @botname suffix
+    if '@' in cmd:
+        cmd = cmd.split('@')[0]
+    
+    # /start — welcome
+    if cmd == '/start':
+        return (
+            f"👋 *Welcome to LifeOS Bot, {username}!*\\n\\n"
+            "I can help you track habits, log activities, check your stats, and more.\\n\\n"
+            "*Quick Start:*\\n"
+            "/log — Log anything\\n"
+            "/habit — Track a habit\\n"
+            "/mood — Log your mood\\n"
+            "/brief — Daily brief\\n"
+            "/help — All commands\\n\\n"
+            f"💡 _Your Telegram ID: {user_id}_\\n"
+            "_Add this to authorized users in LifeOS settings._"
+        )
+    
+    # /help — command list
+    if cmd == '/help':
+        return (
+            "🤖 *LifeOS Bot Commands*\\n\\n"
+            "  /start          — Welcome & account linking\\n"
+            "  /log            — Quick log anything\\n"
+            "  /habit          — Log habit completion\\n"
+            "  /mood           — Log mood (1-10)\\n"
+            "  /health         — Log health metrics\\n"
+            "  /expense        — Log an expense\\n"
+            "  /income         — Log income\\n"
+            "  /balance        — Check financial balance\\n"
+            "  /schedule       — View today's schedule\\n"
+            "  /goals           — Goal progress overview\\n"
+            "  /streak         — View habit streaks\\n"
+            "  /brief           — Daily brief summary\\n"
+            "  /stats           — Weekly/monthly statistics\\n"
+            "  /journal          — Quick journal entry\\n"
+            "  /help            — This message\\n\\n"
+            "💡 _Natural language also works!_\\n"
+            '_Type "3 hours work at Sonder" or "mood 8 feeling great"_'
+        )
+    
+    # /brief — daily brief
+    if cmd == '/brief':
+        # Build context
+        active_goals = db.execute(
+            "SELECT COUNT(*) as c FROM goals WHERE user_id=? AND status IN ('active','in_progress') AND is_deleted=0",
+            (DEFAULT_USER_ID,)
+        ).fetchone()['c']
+        completed_goals = db.execute(
+            "SELECT COUNT(*) as c FROM goals WHERE user_id=? AND status IN ('completed','done') AND is_deleted=0",
+            (DEFAULT_USER_ID,)
+        ).fetchone()['c']
+        today_tasks = db.execute(
+            "SELECT COUNT(*) as c FROM tasks WHERE user_id=? AND (due_date=? OR scheduled_date=?) AND is_deleted=0",
+            (DEFAULT_USER_ID, today, today)
+        ).fetchone()['c']
+        overdue = db.execute(
+            "SELECT COUNT(*) as c FROM tasks WHERE user_id=? AND due_date<? AND status!='done' AND is_deleted=0",
+            (DEFAULT_USER_ID, today)
+        ).fetchone()['c']
+        total_habits = db.execute(
+            "SELECT COUNT(*) as c FROM habits WHERE user_id=? AND is_active=1 AND is_deleted=0",
+            (DEFAULT_USER_ID,)
+        ).fetchone()['c']
+        done_today = db.execute(
+            "SELECT COUNT(DISTINCT habit_id) as c FROM habit_logs WHERE user_id=? AND date=?",
+            (DEFAULT_USER_ID, today)
+        ).fetchone()['c']
+        health = db.execute(
+            "SELECT * FROM health_metrics WHERE user_id=? AND date=?",
+            (DEFAULT_USER_ID, today)
+        ).fetchone()
+        today_events = db.execute(
+            "SELECT COUNT(*) as c FROM schedule_events WHERE user_id=? AND date=? AND (is_deleted=0 OR is_deleted IS NULL)",
+            (DEFAULT_USER_ID, today)
+        ).fetchone()['c']
+        
+        lines = [f"🌅 *Daily Brief — {today}*\\n"]
+        lines.append(f"📋 *Tasks:* {today_tasks} today, {overdue} overdue")
+        lines.append(f"🔥 *Habits:* {done_today}/{total_habits} done")
+        if health:
+            lines.append(f"💪 *Health:* Mood {health['mood_score'] or '?'}/10 · Energy {health['energy_score'] or '?'}/10 · Sleep {health['sleep_hours'] or '?'}h")
+        lines.append(f"🎯 *Goals:* {active_goals} active, {completed_goals} completed")
+        lines.append(f"📅 *Events:* {today_events} today")
+        return "\\n".join(lines)
+    
+    # /streak — habit streaks
+    if cmd == '/streak':
+        habits = db.execute(
+            "SELECT title, streak_current, streak_best FROM habits WHERE user_id=? AND is_active=1 AND is_deleted=0 ORDER BY streak_current DESC LIMIT 15",
+            (DEFAULT_USER_ID,)
+        ).fetchall()
+        if not habits:
+            return "No active habits yet. Add some in LifeOS!"
+        lines = ["🔥 *Habit Streaks*\\n"]
+        for h in habits:
+            streak = h['streak_current'] or 0
+            fire = '🔥' if streak >= 7 else '✨' if streak >= 3 else '→'
+            lines.append(f"  {fire} {h['title']}: {streak} day{'s' if streak != 1 else ''}")
+        return "\\n".join(lines)
+    
+    # /balance — financial summary
+    if cmd == '/balance':
+        income = db.execute(
+            "SELECT COALESCE(SUM(amount),0) as total FROM income WHERE user_id=? AND is_deleted=0",
+            (DEFAULT_USER_ID,)
+        ).fetchone()['total']
+        expenses = db.execute(
+            "SELECT COALESCE(SUM(amount),0) as total FROM expenses WHERE user_id=? AND is_deleted=0",
+            (DEFAULT_USER_ID,)
+        ).fetchone()['total']
+        net = income - expenses
+        lines = [
+            f"💰 *Financial Summary*\\n",
+            f"Income: ${income:,.2f}",
+            f"Expenses: ${expenses:,.2f}",
+            f"Net: ${net:,.2f}"
+        ]
+        return "\\n".join(lines)
+    
+    # /schedule — today's events
+    if cmd == '/schedule':
+        events = db.execute(
+            """SELECT title, start_time, end_time, event_type, location
+            FROM schedule_events 
+            WHERE user_id=? AND date(start_time)=? AND (is_deleted=0 OR is_deleted IS NULL)
+            ORDER BY start_time ASC LIMIT 15""",
+            (DEFAULT_USER_ID, today)
+        ).fetchall()
+        if not events:
+            return f"📅 No events scheduled for today. Enjoy the free time! 🌊"
+        lines = ["📅 *Today's Schedule*\\n"]
+        for e in events:
+            time = e['start_time'][-8:-3] if e['start_time'] else 'All day'
+            icon = '💼' if e['event_type'] == 'work' else '💪' if e['event_type'] == 'health' else '📌'
+            loc = f" @ {e['location']}" if e['location'] else ''
+            lines.append(f"  {time} {icon} {e['title']}{loc}")
+        return "\\n".join(lines)
+    
+    # /goals — active goals
+    if cmd == '/goals':
+        goals = db.execute(
+            """SELECT title, progress, status FROM goals 
+            WHERE user_id=? AND status='active' AND is_deleted=0 
+            ORDER BY priority DESC LIMIT 10""",
+            (DEFAULT_USER_ID,)
+        ).fetchall()
+        if not goals:
+            return "🎯 No active goals. Time to set some!"
+        lines = ["🎯 *Active Goals*\\n"]
+        for g in goals:
+            progress = int(g['progress'] or 0)
+            bar = '█' * (progress // 10) + '░' * (10 - progress // 10)
+            lines.append(f"  {g['title']} [{bar}] {progress}%")
+        return "\\n".join(lines)
+    
+    # /stats — overview stats
+    if cmd == '/stats':
+        active_goals = db.execute(
+            "SELECT COUNT(*) as c FROM goals WHERE user_id=? AND status IN ('active','in_progress') AND is_deleted=0",
+            (DEFAULT_USER_ID,)
+        ).fetchone()['c']
+        completed_goals = db.execute(
+            "SELECT COUNT(*) as c FROM goals WHERE user_id=? AND status IN ('completed','done') AND is_deleted=0",
+            (DEFAULT_USER_ID,)
+        ).fetchone()['c']
+        today_tasks = db.execute(
+            "SELECT COUNT(*) as c FROM tasks WHERE user_id=? AND (due_date=? OR scheduled_date=?) AND is_deleted=0",
+            (DEFAULT_USER_ID, today, today)
+        ).fetchone()['c']
+        overdue = db.execute(
+            "SELECT COUNT(*) as c FROM tasks WHERE user_id=? AND due_date<? AND status!='done' AND is_deleted=0",
+            (DEFAULT_USER_ID, today)
+        ).fetchone()['c']
+        total_habits = db.execute(
+            "SELECT COUNT(*) as c FROM habits WHERE user_id=? AND is_active=1 AND is_deleted=0",
+            (DEFAULT_USER_ID,)
+        ).fetchone()['c']
+        done_today = db.execute(
+            "SELECT COUNT(DISTINCT habit_id) as c FROM habit_logs WHERE user_id=? AND date=?",
+            (DEFAULT_USER_ID, today)
+        ).fetchone()['c']
+        health = db.execute(
+            "SELECT * FROM health_metrics WHERE user_id=? AND date=?",
+            (DEFAULT_USER_ID, today)
+        ).fetchone()
+        
+        lines = ["📊 *Your LifeOS Stats*\\n"]
+        lines.append(f"🎯 Goals: {active_goals} active, {completed_goals} completed")
+        lines.append(f"📋 Tasks: {today_tasks} today, {overdue} overdue")
+        lines.append(f"🔥 Habits: {done_today}/{total_habits} done today")
+        if health and health['mood_score']:
+            lines.append(f"💪 Mood: {health['mood_score']}/10 · Energy: {health['energy_score'] or '?'}/10")
+        return "\\n".join(lines)
+
+    # /habit — log habit
+    if cmd == '/habit':
+        habit_name = args.strip()
+        if not habit_name:
+            # Show habit list with inline keyboard option
+            habits = db.execute(
+                "SELECT id, title FROM habits WHERE user_id=? AND is_active=1 AND is_deleted=0 ORDER BY title",
+                (DEFAULT_USER_ID,)
+            ).fetchall()
+            if not habits:
+                return "No active habits. Add some in LifeOS first!"
+            lines = ["🔥 *Which habit did you complete?*\\n"]
+            for h in habits:
+                lines.append(f"  • {h['title']}")
+            lines.append("\\n_Send: /habit <name>_")
+            return "\\n".join(lines)
+        
+        # Try to find matching habit (fuzzy match)
+        habit = db.execute(
+            "SELECT id, title FROM habits WHERE user_id=? AND is_active=1 AND is_deleted=0 AND title LIKE ? LIMIT 1",
+            (DEFAULT_USER_ID, f'%{habit_name}%')
+        ).fetchone()
+        if not habit:
+            return f"❌ No habit found matching '{habit_name}'. Check the name and try again."
+        
+        # Log it
+        log_id = new_id()
+        db.execute(
+            "INSERT INTO habit_logs (id, user_id, habit_id, date, count, completed, created_at) VALUES (?,?,?,?,?,1,?)",
+            (log_id, DEFAULT_USER_ID, habit['id'], today, now_iso())
+        )
+        db.commit()
+        return f"✅ *{habit['title']}* logged! Great job! 🔥"
+    
+    # /mood — log mood
+    if cmd == '/mood':
+        mood_text = args.strip()
+        # Extract mood score (1-10)
+        import re
+        mood_match = re.match(r'(\d+(?:\.\d+)?)', mood_text)
+        if not mood_match:
+            return "Please include a mood score (1-10). Example: /mood 8 feeling great"
+        mood_score = float(mood_match.group(1))
+        mood_score = max(1, min(10, mood_score))
+        notes = mood_text[mood_match.end():].strip() or None
+        
+        # Check if today's health entry exists
+        existing = db.execute(
+            "SELECT id FROM health_metrics WHERE user_id=? AND date=?",
+            (DEFAULT_USER_ID, today)
+        ).fetchone()
+        
+        if existing:
+            db.execute(
+                "UPDATE health_metrics SET mood_score=?, notes=COALESCE(?,notes), updated_at=? WHERE id=?",
+                (mood_score, notes, now_iso(), existing['id'])
+            )
+        else:
+            db.execute(
+                "INSERT INTO health_metrics (id, user_id, date, mood_score, notes, created_at, updated_at) VALUES (?,?,?,?,?,?,?)",
+                (new_id(), DEFAULT_USER_ID, today, mood_score, notes, now_iso(), now_iso())
+            )
+        db.commit()
+        
+        mood_emoji = '😊' if mood_score >= 7 else '😐' if mood_score >= 4 else '😟'
+        return f"{mood_emoji} Mood logged: *{mood_score}/10*" + (f" — _{notes}_" if notes else "")
+    
+    # /expense — log expense
+    if cmd == '/expense':
+        expense_text = args.strip()
+        if not expense_text:
+            return "Please provide expense details. Example: /expense $45 groceries"
+        # Try to extract amount
+        import re
+        amount_match = re.search(r'\$?(\d+(?:\.\d+)?)', expense_text)
+        if not amount_match:
+            return "Please include an amount. Example: /expense $45 groceries"
+        amount = float(amount_match.group(1))
+        description = expense_text.replace(amount_match.group(0), '').strip() or 'Expense'
+        
+        db.execute(
+            "INSERT INTO expenses (id, user_id, amount, description, date, created_at, updated_at) VALUES (?,?,?,?,?,?,?)",
+            (new_id(), DEFAULT_USER_ID, amount, description, today, now_iso(), now_iso())
+        )
+        db.commit()
+        return f"💸 Expense logged: *${amount:.2f}* — {description}"
+    
+    # /income — log income
+    if cmd == '/income':
+        income_text = args.strip()
+        if not income_text:
+            return "Please provide income details. Example: /income $2000 client payment"
+        import re
+        amount_match = re.search(r'\$?(\d+(?:\.\d+)?)', income_text)
+        if not amount_match:
+            return "Please include an amount. Example: /income $2000 client payment"
+        amount = float(amount_match.group(1))
+        description = income_text.replace(amount_match.group(0), '').strip() or 'Income'
+        
+        source = None
+        if 'from' in description.lower():
+            source = description.split('from', 1)[1].strip()
+        
+        db.execute(
+            "INSERT INTO income (id, user_id, amount, description, source, date, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?)",
+            (new_id(), DEFAULT_USER_ID, amount, description, source, today, now_iso(), now_iso())
+        )
+        db.commit()
+        return f"💰 Income logged: *${amount:.2f}*" + (f" — {description}" if description else "")
+    
+    # /health — log health metrics
+    if cmd == '/health':
+        health_text = args.strip()
+        if not health_text:
+            return "Please provide health data. Example: /health sleep 7.5h water 6"
+        import re
+        # Parse health metrics from text
+        sleep = None
+        water = None
+        weight = None
+        exercise = None
+        
+        sleep_match = re.search(r'sleep\s+(\d+\.?\d*)\s*h', health_text, re.I)
+        if sleep_match:
+            sleep = float(sleep_match.group(1))
+        water_match = re.search(r'water\s+(\d+)', health_text, re.I)
+        if water_match:
+            water = int(water_match.group(1))
+        weight_match = re.search(r'weight\s+(\d+\.?\d*)', health_text, re.I)
+        if weight_match:
+            weight = float(weight_match.group(1))
+        exercise_match = re.search(r'exercise\s+(\d+)\s*m', health_text, re.I)
+        if exercise_match:
+            exercise = int(exercise_match.group(1))
+        
+        if not any([sleep, water, weight, exercise]):
+            return "Could not parse any health metrics. Try: /health sleep 7.5h water 6 glasses"
+        
+        existing = db.execute(
+            "SELECT id FROM health_metrics WHERE user_id=? AND date=?",
+            (DEFAULT_USER_ID, today)
+        ).fetchone()
+        
+        if existing:
+            updates = []
+            params = []
+            if sleep is not None:
+                updates.append("sleep_hours=?")
+                params.append(sleep)
+            if water is not None:
+                updates.append("water_glasses=?")
+                params.append(water)
+            if weight is not None:
+                updates.append("weight_kg=?")
+                params.append(weight)
+            if exercise is not None:
+                updates.append("exercise_minutes=?")
+                params.append(exercise)
+            params.append(now_iso())
+            params.append(existing['id'])
+            db.execute(f"UPDATE health_metrics SET {', '.join(updates)}, updated_at=? WHERE id=?", params)
+        else:
+            db.execute(
+                "INSERT INTO health_metrics (id, user_id, date, sleep_hours, water_glasses, weight_kg, exercise_minutes, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?)",
+                (new_id(), DEFAULT_USER_ID, today, sleep, water, weight, exercise, now_iso(), now_iso())
+            )
+        db.commit()
+        
+        parts = []
+        if sleep: parts.append(f"💤 Sleep: {sleep}h")
+        if water: parts.append(f"💧 Water: {water} glasses")
+        if weight: parts.append(f"⚖️ Weight: {weight}kg")
+        if exercise: parts.append(f"🏃 Exercise: {exercise}min")
+        return "💪 Health logged:\\n" + " · ".join(parts)
+    
+    # /journal — quick journal entry
+    if cmd == '/journal':
+        content = args.strip()
+        if not content:
+            return "Please provide journal content. Example: /journal Had a productive day!"
+        db.execute(
+            "INSERT INTO journal_entries (id, user_id, date, content, created_at, updated_at) VALUES (?,?,?,?,?,?)",
+            (new_id(), DEFAULT_USER_ID, today, content, now_iso(), now_iso())
+        )
+        db.commit()
+        return f"📖 Journal entry logged for *{today}*"
+    
+    # /log — generic logger (shorthand)
+    if cmd == '/log':
+        log_text = args.strip()
+        if not log_text:
+            return "What would you like to log? Example: /log 3 hours work at Sonder"
+        # Try to route to intent engine
+        try:
+            resp = http_requests.post(
+                f"{AI_BRIDGE_URL}/v1/chat/completions",
+                json={
+                    "model": "glm-5.1:cloud",
+                    "messages": [
+                        {"role": "system", "content": "You are LifeOS assistant. Parse the user's quick log and respond briefly."},
+                        {"role": "user", "content": log_text}
+                    ],
+                    "stream": False,
+                },
+                timeout=10
+            )
+            if resp.ok:
+                data = resp.json()
+                reply = data.get('choices', [{}])[0].get('message', {}).get('content', '')
+                if reply:
+                    return f"📝 {reply}"
+        except Exception:
+            pass
+        # Fallback: just acknowledge
+        return f"📝 Logged: _{log_text}_\n(Note: Intent Engine unavailable for detailed parsing. Try specific commands like /habit, /mood, /expense)"
+    
+    # Unknown command or natural language
+    # Try intent engine
+    try:
+        resp = http_requests.post(
+            f"{AI_BRIDGE_URL}/v1/chat/completions",
+            json={
+                "model": "glm-5.1:cloud",
+                "messages": [
+                    {"role": "system", "content": f"You are LifeOS Telegram bot assistant. Today is {today}. Respond concisely in Markdown format."},
+                    {"role": "user", "content": text}
+                ],
+                "stream": False,
+            },
+            timeout=15
+        )
+        if resp.ok:
+            data = resp.json()
+            reply = data.get('choices', [{}])[0].get('message', {}).get('content', '')
+            if reply:
+                return reply[:4000]  # Telegram message limit
+    except Exception:
+        pass
+    
+    return f"🤖 I didn't understand that. Type /help to see available commands."
+
+
+@app.route('/api/telegram/webhook', methods=['POST'])
+def telegram_webhook():
+    """Receive and process Telegram webhook updates.
+    
+    This endpoint receives incoming messages from the Telegram Bot API,
+    processes commands or natural language, and sends responses back
+    via the Telegram Bot API.
+    """
+    body = request.get_json(force=True, silent=True) or {}
+    config = get_telegram_config()
+    
+    # Verify bot is enabled
+    if not config.get('enabled', False):
+        return jsonify({"ok": False, "error": "Bot is disabled"}), 403
+    
+    # Extract message
+    message = body.get('message') or body.get('callback_query', {}).get('message')
+    callback_query = body.get('callback_query')
+    
+    if not message:
+        return jsonify({"ok": True, "message": "No message to process"})
+    
+    chat_id = message.get('chat', {}).get('id')
+    user_id = str(message.get('from', {}).get('id', ''))
+    username = message.get('from', {}).get('username', '') or message.get('from', {}).get('first_name', 'Unknown')
+    text = message.get('text', '')
+    
+    # Handle callback queries (inline keyboard)
+    if callback_query:
+        callback_data = callback_query.get('data', '')
+        callback_chat_id = callback_query.get('message', {}).get('chat', {}).get('id', chat_id)
+        callback_user_id = str(callback_query.get('from', {}).get('id', ''))
+        
+        # Process callback
+        if callback_data.startswith('confirm:'):
+            response_text = "✅ Action confirmed and executed!"
+        elif callback_data.startswith('cancel:'):
+            response_text = "❌ Action cancelled."
+        elif callback_data.startswith('habit:'):
+            habit_id = callback_data.split(':')[1]
+            db = get_db()
+            # Log habit completion
+            habit = db.execute("SELECT title FROM habits WHERE id=?", (habit_id,)).fetchone()
+            if habit:
+                log_id = new_id()
+                today = date.today().isoformat()
+                db.execute(
+                    "INSERT OR IGNORE INTO habit_logs (id, user_id, habit_id, date, count, completed, created_at) VALUES (?,?,?,?,?,1,?)",
+                    (log_id, DEFAULT_USER_ID, habit_id, today, now_iso())
+                )
+                db.commit()
+                response_text = f"✅ *{habit['title']}* logged! Great job! 🔥"
+            else:
+                response_text = "❌ Habit not found."
+        else:
+            response_text = "Unknown action."
+        
+        # Send callback response
+        _telegram_send_message(config['bot_token'], callback_chat_id, response_text)
+        
+        # Answer callback query
+        try:
+            http_requests.post(
+                f"https://api.telegram.org/bot{config['bot_token']}/answerCallbackQuery",
+                json={"callback_query_id": callback_query.get('id', '')},
+                timeout=5
+            )
+        except Exception:
+            pass
+        
+        # Log activity
+        db = get_db()
+        db.execute(
+            "INSERT INTO telegram_activity (id, user_id, username, command, input_text, response_text, status, created_at) VALUES (?,?,?,?,?,?,?,?)",
+            (new_id(), callback_user_id, username, 'callback', callback_data, response_text, 'success', now_iso())
+        )
+        db.commit()
+        
+        return jsonify({"ok": True})
+    
+    # Handle regular message
+    if not text:
+        return jsonify({"ok": True, "message": "No text content"})
+    
+    # Rate limiting
+    if not _telegram_rate_check(user_id):
+        _telegram_send_message(config['bot_token'], chat_id, "⚠️ Rate limit reached. Please wait a moment.")
+        return jsonify({"ok": True, "message": "Rate limited"})
+    
+    # Authorization check
+    authorized_users = config.get('authorized_users', [])
+    if authorized_users and user_id not in [str(u) for u in authorized_users]:
+        _telegram_send_message(
+            config['bot_token'], chat_id,
+            "🔒 You are not authorized to use this bot. Link your account in LifeOS Settings."
+        )
+        return jsonify({"ok": True, "message": "Unauthorized user"})
+    
+    bot_token = config.get('bot_token', '')
+    db = get_db()
+    
+    start_time = datetime.utcnow()
+    try:
+        response_text = _telegram_process_command(text, user_id, username, chat_id, bot_token, config, db)
+        status = 'success'
+    except Exception as e:
+        response_text = f"❌ Something went wrong. Please try again.\\n\\n_Error: {str(e)[:100]}_"
+        status = 'error'
+    
+    duration_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
+    
+    # Send response
+    _telegram_send_message(bot_token, chat_id, response_text)
+    
+    # Log activity
+    try:
+        db.execute(
+            """CREATE TABLE IF NOT EXISTS telegram_activity (
+                id TEXT PRIMARY KEY,
+                user_id TEXT,
+                username TEXT,
+                command TEXT,
+                input_text TEXT,
+                response_text TEXT,
+                status TEXT DEFAULT 'success',
+                duration_ms INTEGER,
+                created_at TEXT
+            )""",
+            ()
+        )
+        db.execute(
+            "INSERT INTO telegram_activity (id, user_id, username, command, input_text, response_text, status, duration_ms, created_at) VALUES (?,?,?,?,?,?,?,?,?)",
+            (new_id(), user_id, username, text.split()[0] if text.split() else '', text, response_text, status, duration_ms, now_iso())
+        )
+        db.commit()
+    except Exception:
+        pass
+    
+    return jsonify({"ok": True})
+
+
+@app.route('/api/telegram/config', methods=['GET', 'PUT'])
+def telegram_config_endpoint():
+    """Get or update Telegram bot configuration."""
+    if request.method == 'GET':
+        config = get_telegram_config()
+        # Don't expose full bot token
+        safe_config = {**config}
+        if safe_config.get('bot_token'):
+            token = safe_config['bot_token']
+            safe_config['bot_token_preview'] = f"{token[:8]}...{token[-4:]}" if len(token) > 12 else '***'
+        else:
+            safe_config['bot_token_preview'] = ''
+        del safe_config['bot_token']
+        return supabase_response(safe_config)
+    
+    # PUT — update config
+    body = request.get_json(force=True, silent=True) or {}
+    config = get_telegram_config()
+    
+    # Updatable fields
+    for field in ('webhook_url', 'enabled', 'authorized_users', 'daily_brief_enabled',
+                  'daily_brief_time', 'habit_reminders', 'streak_alerts', 'smart_suggestions',
+                  'voice_input', 'command_prefix'):
+        if field in body:
+            config[field] = body[field]
+    
+    # Bot token update (separate for security)
+    if 'bot_token' in body and body['bot_token']:
+        config['bot_token'] = body['bot_token']
+    
+    save_telegram_config(config)
+    return supabase_response(config)
+
+
+@app.route('/api/telegram/test', methods=['POST'])
+def telegram_test_connection():
+    """Test Telegram bot connection by calling getMe API."""
+    config = get_telegram_config()
+    bot_token = config.get('bot_token', '')
+    if not bot_token:
+        return supabase_response(error={"message": "No bot token configured"}), 400
+    
+    try:
+        resp = http_requests.get(
+            f"https://api.telegram.org/bot{bot_token}/getMe",
+            timeout=10
+        )
+        data = resp.json()
+        if data.get('ok'):
+            return supabase_response({
+                "ok": True,
+                "bot_name": data.get('result', {}).get('first_name', 'Unknown'),
+                "bot_username": data.get('result', {}).get('username', ''),
+            })
+        else:
+            return supabase_response(error={"message": data.get('description', 'Unknown error')}), 400
+    except Exception as e:
+        return supabase_response(error={"message": str(e)}), 500
+
+
+@app.route('/api/telegram/set-webhook', methods=['POST'])
+def telegram_set_webhook():
+    """Set the Telegram webhook URL."""
+    config = get_telegram_config()
+    bot_token = config.get('bot_token', '')
+    if not bot_token:
+        return supabase_response(error={"message": "No bot token configured"}), 400
+    
+    body = request.get_json(force=True, silent=True) or {}
+    webhook_url = body.get('webhook_url', config.get('webhook_url', ''))
+    
+    if not webhook_url:
+        return supabase_response(error={"message": "No webhook URL provided"}), 400
+    
+    try:
+        resp = http_requests.post(
+            f"https://api.telegram.org/bot{bot_token}/setWebhook",
+            json={
+                "url": webhook_url,
+                "allowed_updates": ["message", "callback_query"]
+            },
+            timeout=10
+        )
+        data = resp.json()
+        if data.get('ok'):
+            config['webhook_url'] = webhook_url
+            save_telegram_config(config)
+            return supabase_response({
+                "ok": True,
+                "description": data.get('description', 'Webhook set successfully')
+            })
+        else:
+            return supabase_response(error={"message": data.get('description', 'Unknown error')}), 400
+    except Exception as e:
+        return supabase_response(error={"message": str(e)}), 500
+
+
+@app.route('/api/telegram/webhook-info', methods=['GET'])
+def telegram_webhook_info():
+    """Get current Telegram webhook info."""
+    config = get_telegram_config()
+    bot_token = config.get('bot_token', '')
+    if not bot_token:
+        return supabase_response(error={"message": "No bot token configured"}), 400
+    
+    try:
+        resp = http_requests.get(
+            f"https://api.telegram.org/bot{bot_token}/getWebhookInfo",
+            timeout=10
+        )
+        data = resp.json()
+        if data.get('ok'):
+            return supabase_response(data.get('result', {}))
+        else:
+            return supabase_response(error={"message": data.get('description', 'Unknown error')}), 400
+    except Exception as e:
+        return supabase_response(error={"message": str(e)}), 500
+
+
+@app.route('/api/telegram/bridge', methods=['POST'])
+def telegram_intent_bridge():
+    """Bridge endpoint for LifeOS frontend to send messages through the Intent Engine.
+    
+    Receives a message + intent mapping, processes it through the local context
+    and AI bridge, and returns the result for the Telegram bot to relay.
+    """
+    body = request.get_json(force=True, silent=True) or {}
+    message = body.get('message', '')
+    intent_action = body.get('intentAction', 'shorthand.parse')
+    user_id = body.get('userId', DEFAULT_USER_ID)
+    
+    if not message:
+        return supabase_response(error={"message": "No message provided"}), 400
+    
+    db = get_db()
+    today = date.today().isoformat()
+    
+    # Build context for intent engine
+    context_parts = []
+    context_parts.append(f"Today is {today}.")
+    
+    # Try AI bridge
+    try:
+        resp = http_requests.post(
+            f"{AI_BRIDGE_URL}/v1/chat/completions",
+            json={
+                "model": "glm-5.1:cloud",
+                "messages": [
+                    {"role": "system", "content": f"You are LifeOS assistant. Parse the user's input and respond concisely in Markdown. Today is {today}. Intent action: {intent_action}"},
+                    {"role": "user", "content": message}
+                ],
+                "stream": False,
+            },
+            timeout=15
+        )
+        if resp.ok:
+            data = resp.json()
+            reply = data.get('choices', [{}])[0].get('message', {}).get('content', '')
+            return supabase_response({
+                "reply": reply,
+                "action": intent_action,
+                "processed": True
+            })
+    except Exception:
+        pass
+    
+    return supabase_response({
+        "reply": f"Received: {message}",
+        "action": intent_action,
+        "processed": False,
+        "message": "Intent Engine unavailable — relayed raw input"
+    })
+
+
+@app.route('/api/telegram/activity', methods=['GET'])
+def telegram_activity_log():
+    """Get recent Telegram bot activity."""
+    limit = min(int(request.args.get('limit', 50)), 500)
+    offset = int(request.args.get('offset', 0))
+    command_filter = request.args.get('command', '')
+    status_filter = request.args.get('status', '')
+    
+    db = get_db()
+    
+    # Ensure table exists
+    db.execute("""CREATE TABLE IF NOT EXISTS telegram_activity (
+        id TEXT PRIMARY KEY,
+        user_id TEXT,
+        username TEXT,
+        command TEXT,
+        input_text TEXT,
+        response_text TEXT,
+        status TEXT DEFAULT 'success',
+        duration_ms INTEGER,
+        created_at TEXT
+    )""")
+    
+    where_clauses = []
+    params = []
+    if command_filter:
+        where_clauses.append("command=?")
+        params.append(command_filter)
+    if status_filter:
+        where_clauses.append("status=?")
+        params.append(status_filter)
+    
+    where = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+    params.extend([limit, offset])
+    
+    rows = db.execute(
+        f"SELECT * FROM telegram_activity {where} ORDER BY created_at DESC LIMIT ? OFFSET ?",
+        params
+    ).fetchall()
+    
+    return supabase_response([row_to_dict(r) for r in rows])
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -2027,6 +2899,14 @@ def pendo_dashboard():
 
     from flask import Response
     return Response(html, mimetype='text/html')
+
+
+# ═══════════════════════════════════════════════════════════════
+# Public API Blueprint — External integrations
+# ═══════════════════════════════════════════════════════════════
+
+from api import register_api_blueprint
+register_api_blueprint(app)
 
 
 if __name__ == '__main__':

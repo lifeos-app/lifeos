@@ -29,7 +29,7 @@ export { parseShorthand, parseTimeToToday } from './shorthand-parser';
 export { executeActions, executeIntent, sanitizeData, searchDatabase } from './action-executor';
 
 // ─── Settings ────────────────────────────────────────────────────
-export { getAISettings, saveAISettings } from './settings';
+export { getAISettings, saveAISettings, PROVIDER_DEFAULTS, ALLOWED_PROVIDERS } from './settings';
 
 // ─── Engine (main orchestrator) ──────────────────────────────────
 export { callIntentEngine } from './engine';

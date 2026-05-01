@@ -4,8 +4,9 @@
  * callIntentEngine() sends the user message through:
  * 1. Quick classifier patterns (no LLM)
  * 2. Shorthand parser (no LLM)
- * 3. Unified Intent API (server-side)
- * 4. Legacy direct-LLM proxy (fallback)
+ * 3. Direct Ollama call (when provider is 'ollama')
+ * 4. Unified Intent API (server-side, for cloud providers)
+ * 5. Legacy direct-LLM proxy (fallback)
  */
 
 import { useUserStore } from '../../stores/useUserStore';
@@ -26,17 +27,119 @@ interface ProxyConfig {
 }
 
 const DEFAULT_PROXY_CONFIG: ProxyConfig = {
-  provider: 'openrouter',
-  model: 'google/gemini-2.0-flash-001',
-  proxyUrl: '/api/intent-proxy.php',  // Unified Intent API (shared with Telegram bot)
+  provider: 'ollama',
+  model: 'glm-5.1:cloud',
+  proxyUrl: 'http://localhost:11434/v1',  // Direct Ollama (no PHP proxy)
 };
 
-// Legacy config for fallback
+// Legacy config for fallback (PHP proxy — only works on cloud deployments)
 const LEGACY_PROXY_CONFIG: ProxyConfig = {
   provider: 'openrouter',
   model: 'google/gemini-2.0-flash-001',
   proxyUrl: '/api/llm-proxy.php',
 };
+
+// ─── Ollama Direct Call ──────────────────────────────────────────
+
+const OLLAMA_BASE_URL = 'http://localhost:11434';
+
+/**
+ * Call Ollama directly for intent processing (non-streaming).
+ * Returns raw text content from Ollama.
+ */
+async function callOllamaForIntent(
+  messages: { role: string; content: string }[],
+  model: string,
+  signal?: AbortSignal,
+): Promise<string> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60_000);
+  if (signal) {
+    signal.addEventListener('abort', () => controller.abort());
+  }
+
+  try {
+    const res = await fetch(`${OLLAMA_BASE_URL}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: 0.3,  // Lower temp for structured intent output
+        stream: false,
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => res.statusText);
+      // Try reading as SSE stream (Ollama sometimes returns streaming even when stream: false)
+      // If it's not JSON, try reading the stream
+      try {
+        const data = JSON.parse(errText);
+        throw new Error(data.error?.message || data.error || `Ollama error ${res.status}`);
+      } catch {
+        // Not JSON — might be streaming response
+      }
+      throw new Error(`Ollama error (${res.status}): ${errText.slice(0, 200)}`);
+    }
+
+    // Try to read as non-streaming first
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('text/event-stream') || contentType.includes('application/json')) {
+      // Might be streaming — read as stream
+      const reader = res.body?.getReader();
+      if (reader) {
+        const decoder = new TextDecoder();
+        let fullText = '';
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || !trimmed.startsWith('data: ')) continue;
+            const data = trimmed.slice(6);
+            if (data === '[DONE]') break;
+            try {
+              const chunk = JSON.parse(data);
+              const delta = chunk.choices?.[0]?.delta;
+              if (delta?.content) {
+                fullText += delta.content;
+              }
+              // Also check for non-streaming format
+              const msg = chunk.choices?.[0]?.message;
+              if (msg?.content) {
+                fullText = msg.content;
+              }
+            } catch {
+              // Skip malformed chunks
+            }
+          }
+        }
+        return fullText;
+      }
+    }
+
+    // Standard non-streaming response
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || '';
+  } catch (err: unknown) {
+    clearTimeout(timeout);
+    if (err instanceof Error && (err.name === 'AbortError' || err.message === 'LLM request timed out')) {
+      throw new Error('Intent engine timed out');
+    }
+    throw err;
+  }
+}
 
 // ─── Main Entry Point ───────────────────────────────────────────
 
@@ -58,8 +161,8 @@ export async function callIntentEngine(
   const cfg = { ...DEFAULT_PROXY_CONFIG, ...config };
   const intentStartTime = Date.now();
 
-  // 30-second timeout to prevent indefinite hangs on proxy failure
-  const INTENT_TIMEOUT_MS = 30_000;
+  // 60-second timeout to prevent indefinite hangs on proxy failure
+  const INTENT_TIMEOUT_MS = 60_000;
   const timeoutController = new AbortController();
   const timeoutId = setTimeout(() => timeoutController.abort(), INTENT_TIMEOUT_MS);
   if (abortSignal) {
@@ -69,7 +172,22 @@ export async function callIntentEngine(
 
   try {
 
-  // Get auth token
+  // ─── Direct Ollama Path ────────────────────────────────────
+  if (cfg.provider === 'ollama') {
+    const systemPrompt = buildSystemPrompt(context);
+    const messages = [
+      { role: 'system' as const, content: systemPrompt },
+      ...history.map(h => ({ role: h.role as 'user' | 'assistant', content: h.content })),
+      { role: 'user' as const, content: userMessage },
+    ];
+
+    const content = await callOllamaForIntent(messages, cfg.model || 'glm-5.1:cloud', effectiveSignal);
+
+    // Parse the JSON response — handle models that wrap JSON in conversational text
+    return parseIntentResponse(content, messages, cfg, context, effectiveSignal);
+  }
+
+  // ─── Cloud Provider Paths (require auth) ───────────────────
   const { data: { session } } = await useUserStore.getState().getSessionCached();
   if (!session?.access_token) {
     throw new Error('Not authenticated');
@@ -168,6 +286,27 @@ export async function callIntentEngine(
     });
   } catch { /* tracking failure must not break intent engine */ }
 
+  return parseIntentResponse(content, messages, cfg, context, effectiveSignal, rateLimitData);
+
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+// ─── Intent Response Parser ─────────────────────────────────────
+
+/**
+ * Parse LLM response content into an IntentResult.
+ * Handles JSON extraction from conversational text and search-then-act flows.
+ */
+async function parseIntentResponse(
+  content: string,
+  messages: { role: string; content: string }[],
+  cfg: ProxyConfig,
+  context: IntentContext,
+  signal: AbortSignal,
+  rateLimitData?: RateLimitInfo,
+): Promise<IntentResult> {
   // Parse the JSON response — handle models that wrap JSON in conversational text
   let jsonContent = content;
 
@@ -217,47 +356,53 @@ export async function callIntentEngine(
         { role: 'user' as const, content: searchContext },
       ];
 
-      const retryRes = await fetch(cfg.proxyUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          messages: retryMessages,
-          provider: cfg.provider,
-          model: cfg.model,
-        }),
-        signal: effectiveSignal,
-      });
+      // For Ollama, call directly; for others, use the proxy
+      let retryContent: string;
+      if (cfg.provider === 'ollama') {
+        retryContent = await callOllamaForIntent(retryMessages, cfg.model || 'glm-5.1:cloud', signal);
+      } else {
+        const retryRes = await fetch(cfg.proxyUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: retryMessages,
+            provider: cfg.provider,
+            model: cfg.model,
+          }),
+          signal,
+        });
 
-      if (retryRes.ok) {
-        const retryLlm = await retryRes.json();
-        const retryContent = retryLlm.content || '';
-        try {
-          // Try direct parse first, then extract from mixed content
-          let retryJson = retryContent;
-          if (!retryContent.trim().startsWith('{')) {
-            const fm = retryContent.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
-            const rm = retryContent.match(/(\{[\s\S]*"actions"\s*:\s*\[[\s\S]*"reply"\s*:\s*"[\s\S]*\})\s*$/);
-            if (fm) retryJson = fm[1];
-            else if (rm) retryJson = rm[1];
-          }
-          const retryParsed = JSON.parse(retryJson);
-          return {
-            actions: retryParsed.actions || [],
-            reply: retryParsed.reply || 'Done.',
-            needs_confirmation: retryParsed.needs_confirmation ?? true,
-            follow_up: retryParsed.follow_up || undefined,
-          };
-        } catch {
-          // Strip JSON artifacts from display
-          const clean = retryContent
-            .replace(/```(?:json)?\s*\{[\s\S]*?\}\s*```/g, '')
-            .replace(/\{[\s\S]*"actions"\s*:[\s\S]*\}\s*$/g, '')
-            .trim();
-          return { actions: [], reply: clean || retryContent, needs_confirmation: false };
+        if (retryRes.ok) {
+          const retryLlm = await retryRes.json();
+          retryContent = retryLlm.content || '';
+        } else {
+          // Retry failed, return original result
+          return validateIntentResult(result);
         }
+      }
+
+      try {
+        let retryJson = retryContent;
+        if (!retryContent.trim().startsWith('{')) {
+          const fm = retryContent.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
+          const rm = retryContent.match(/(\{[\s\S]*"actions"\s*:\s*\[[\s\S]*"reply"\s*:\s*"[\s\S]*\})\s*$/);
+          if (fm) retryJson = fm[1];
+          else if (rm) retryJson = rm[1];
+        }
+        const retryParsed = JSON.parse(retryJson);
+        return {
+          actions: retryParsed.actions || [],
+          reply: retryParsed.reply || 'Done.',
+          needs_confirmation: retryParsed.needs_confirmation ?? true,
+          follow_up: retryParsed.follow_up || undefined,
+        };
+      } catch {
+        // Strip JSON artifacts from display
+        const clean = retryContent
+          .replace(/```(?:json)?\s*\{[\s\S]*?\}\s*```/g, '')
+          .replace(/\{[\s\S]*"actions"\s*:[\s\S]*\}\s*$/g, '')
+          .trim();
+        return { actions: [], reply: clean || retryContent, needs_confirmation: false };
       }
     }
 
@@ -296,9 +441,5 @@ export async function callIntentEngine(
       reply: cleanContent || content,
       needs_confirmation: false,
     };
-  }
-
-  } finally {
-    clearTimeout(timeoutId);
   }
 }
