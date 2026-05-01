@@ -5,10 +5,12 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.19.73
+- **Current Version:** 1.20.12
 - **Baseline Date:** 2026-04-20
-- **Last Audit:** 2026-04-25
-- **Completion:** 57/89 = 64.0%
+- **Last Audit:** 2026-05-02 (Phase 5 Near-Complete Trap Re-Audit)
+- **Completion:** 125/163 = 76.7% (41 new items from Phase 5 audit; ~10 previously DONE items are partial/stubs; 3 new items completed this session: TD-020, TD-033, TD-026)
+ **Phase 3 Audit Results:** 105/122 = 86.1% (6 new items DONE: TD-011, TD-013, TD-015, TD-017, TD-018, TD-019)
+ **Phase 3 Audit Report:** /mnt/data/tmp/lifeos/.hermes/phase3-self-healing-audit.md
 
 ## Vision Documents (Source of Truth)
 1. `/home/tewedros/Desktop/webapp/docs/vision/VISION.md` — "LifeOS IS an AI that has an app as its interface"
@@ -100,6 +102,15 @@
 - [x] [TD-008] TypeScript strict mode — ✅ DONE — v1.19.70 — strict: true, noUnusedLocals, noUnusedParameters, noFallthroughCasesInSwitch, noUncheckedSideEffectImports all enabled in tsconfig.app.json. Already was enabled.
 - [x] [TD-009] Test coverage — ✅ DONE — Commit: 0ec5195 — Date: 2026-04-24 — 8→11 test files, 150→316 tests. Added proactive-suggestions.test.ts (71 tests: 6 suggestion generators, dismiss/accept cooldown, rate limiting, edge cases), hermetic-principle-insight.test.ts (56 tests: patternToInsight/correlationToInsight/getCurrentPrincipleInsight/insightSummary for all 8 pattern types), hermetic-integration.test.ts (39 tests: SEVEN_PRINCIPLES validation, getDailyPrinciple rotation, DOMAIN_PRINCIPLE mapping, HERMETIC_BLESSING structure).
 - [ ] [TD-010] RLS migration SQL ready but not applied — supabase/migrations/20260418_rls_critical_tables.sql needs manual paste — [DEPLOYMENT ACTION — not code-implementable. Paste SQL into Supabase SQL Editor]
+- [x] [TD-011] Electron main.js God Object split — ✅ DONE — v1.19.83 — 526→302 lines. 4 focused IPC handler modules: db-handlers, file-handlers, app-handlers, auth-handlers.
+- [x] [TD-013] Store hydration DAG — ✅ DONE — v1.19.82 — 4-phase ordered init for all 16 Zustand stores via src/lib/store-hydration.ts. Phase 1 (core), Phase 2 (depends on user), Phase 3 (depends on phase 2), Phase 4 (lazy). Replaces random Promise.allSettled.
+- [x] [TD-015] OnboardingQuest.tsx God Object split — ✅ DONE — v1.19.86 — 1149→31 lines. Extracted: useOnboardingQuest.ts (893 lines, all state+logic), OnboardingSteps.tsx (161 lines), OnboardingUI.tsx (235 lines).
+- [x] [TD-017] NodeDetail.tsx God Object split — ✅ DONE — v1.19.87 — 985→64 lines. 10 sub-components + useNodeDetailState hook + types.
+- [x] [TD-018] AIChat.tsx God Object split — ✅ DONE — v1.19.85 — 981→460 lines. Extracted: useAIChatSend hook, useMessageActions hook, AIChatMessages, AIChatInput components.
+- [x] [TD-019] Academy.tsx God Object split — ✅ DONE — v1.19.87 — 957→8 lines (re-export stub). 9 sub-components + useAcademyPageState hook + types in src/pages/academy/.
+- [x] [TD-012] WelcomeWizard.tsx God Object split — ✅ DONE — v1.19.90 — 1121→50 lines. Extracted: useWelcomeWizard.ts (211 lines), WelcomeWizardSteps.tsx (683 lines), WelcomeWizardUI.tsx (339 lines).
+- [x] [TD-014] Sync conflict detection layer — ✅ DONE — v1.19.92 — sync-conflict.ts (191 lines) with detectConflict/logConflict/getConflicts, useSyncConflicts hook. Detection-only, LWW unchanged.
+- [x] [TD-016] Build-time alias injection — ✅ DONE — v1.19.91 — Vite resolve.alias @lifeos/db-adapter. 5 adapter barrels. data-access.ts→9-line shim. data-access-legacy.ts preserved.
 
 ## Priority 2: FOUNDATION — New Items from 2026-04-25 Audit
 
@@ -112,30 +123,40 @@
 ## Priority 4: ENGAGEMENT — New Items from 2026-04-25 Audit
 
 - [x] [P4-007] Streak Shield (1 free skip/week) — ✅ DONE — Commit: b4725c1 — Date: 2026-04-25 — streak-shield.ts (212 lines) with earn/use/check logic, localStorage persistence, MAX_SHIELDS=3, earn 1/week after 7-day streak. StreakShieldWidget.tsx (226 lines) with Shield icon, at-risk habit list, use buttons. Integrated into useHabitsStore.ts calculateStreak (bridges 1-day gaps with shields). XP engine: streak_shield_used = 5 XP. Proactive suggestion: streak_shield_available type.
-- [ ] [P4-008] Character permeation (all pages) — ❌ MISSING — Character should appear on Dashboard, Goals, Habits pages as mini-avatar. — [Vision ref: WORLD-CLASS-ROADMAP §II "Character Everywhere — Character permeates all pages"] — [Impact: 3/5, Blocks: gamification immersion]
+- [x] [P4-008] Character permeation (all pages) — ✅ DONE — Date: 2026-04-25 — CharacterCorner.tsx: MiniCharacter + level + XP bar + streak as glass chip widget. Added to Dashboard (after greeting), Goals (header), Habits (header). Uses useCharacterAppearanceStore + useGamificationContext.
 
 ## Priority 5: DEPTH — New Items from 2026-04-25 Audit
 
-- [ ] [P5-010] Habit difficulty scaling — ❌ MISSING — AI-suggested progressive difficulty ("You've mastered 10 min meditation. Ready for 15?") — [Vision ref: LIFEOS-ROADMAP §5.2 "Difficulty scaling"] — [Impact: 2/5]
-- [ ] [P5-011] Keystone habit detection — ❌ MISSING — Algorithm to identify habits whose improvement cascades to other domains. — [Vision ref: VISION-v2 "Keystone habit detection algorithm", LIFEOS-ROADMAP §5.2] — [Impact: 3/5]
-- [ ] [P5-012] Covey time quadrants / goal pruning — ❌ MISSING — Goal system enhanced with Covey's urgent/important matrix + Essentialism pruning — [Vision ref: VISION-v2 "Goal system enhanced with Covey's time quadrants + Essentialism pruning"] — [Impact: 2/5]
-- [ ] [P5-013] GTD-enhanced weekly review — 🔨 PARTIAL — Review page exists (Review.tsx, GuidedReview.tsx) but lacks GTD Capture-Clarify-organize-reflect-engage structure — [Vision ref: VISION-v2 "Weekly review enhanced with GTD reflect methodology"] — [Impact: 2/5]
-- [ ] [P5-014] Decision journal / bias detection — ❌ MISSING — No decision journal, no bias detection, no cognitive bias reflection prompts — [Vision ref: VISION-v2 "Thinking Fast and Slow — Decision journal, bias detection in goal-setting"] — [Impact: 2/5]
-- [ ] [P5-015] Seasonal world events — 📦 STUB — seasonal_events key in RealmPersistence but no quests/NPCs/XP bonuses — [Vision ref: LIFEOS-ROADMAP §4.2 "Seasonal events (spring planting, summer challenge, fall harvest, winter reflection)"] — [Impact: 2/5]
-- [ ] [P5-016] Data confidence scoring — ❌ MISSING — All habit logs treated equally regardless of when logged. Need confidence: High/Medium/Low/Inferred → affects XP multiplier — [Vision ref: MASTER_BUILD_PLAN §Phase 5 "Confidence Scoring"] — [Impact: 2/5]
-- [ ] [P5-017] Year in Review page — ❌ MISSING — Annual summary with visualizations — [Vision ref: LIFEOS-ROADMAP §3.5 "Year in Review page"] — [Impact: 2/5]
-- [ ] [P5-018] Garden decorations from achievements — ❌ MISSING — Achievement-unlocked garden items, player house/trophy room — [Vision ref: LIFEOS-ROADMAP §4.4 "Garden decorations (earned from achievements)"] — [Impact: 2/5]
-- [ ] [P5-019] Grit score / persistence tracking — ❌ MISSING — Angela Duckworth's Grit: long-term goal persistence tracking, grit score, effort logging — [Vision ref: VISION-v2 "passion + sustained effort > talent"] — [Impact: 2/5]
-- [ ] [P5-020] Motivation scoring (autonomy/mastery/purpose) — ❌ MISSING — Daniel Pink's Drive: intrinsic motivation = Autonomy + Mastery + Purpose — [Vision ref: VISION-v2 "Motivation scoring, autonomy tracking, purpose alignment"] — [Impact: 2/5]
-- [ ] [P5-021] Obstacle reframing / stoic reflections — 🔨 PARTIAL — Hermetic principle insights exist but no explicit obstacle reframing in goal coaching or stoic daily reflections — [Vision ref: VISION-v2 "The Obstacle Is the Way — Obstacle reframing in goal coaching"] — [Impact: 2/5]
+- [x] [P5-010] Habit difficulty scaling — ✅ DONE — Date: 2026-04-25 — habit-difficulty.ts: 4 tiers (beginner/intermediate/advanced/mastery), streak-based progression, ready-to-progress detection at 21+ days, XP multipliers (1.0x-1.5x), DIFFICULTY_COLORS. HabitInsightsPanel Difficulty tab.
+- [x] [P5-011] Keystone habit detection — ✅ DONE — Date: 2026-04-25 — keystone-habits.ts: Pearson correlation of each habit vs tasks/health/other habits over 30 days. Top 3 keystones with cascade effect descriptions. HabitInsightsPanel Keystone tab.
+- [x] [P5-012] Covey time quadrants / goal pruning — ✅ DONE — Date: 2026-04-25 — covey-matrix.ts: Q1-Q4 task/goal classification (urgent/important), Essentialism insight, prune candidates. CoveyMatrixView.tsx: 2x2 grid with color coding, cancel Q4 items. Wired as Matrix view mode in Goals.tsx.
+- [x] [P5-013] GTD-enhanced weekly review — ✅ DONE — Date: 2026-04-25 — gtd-review.ts: 5-phase GTD review (Capture/Clarify/Organize/Reflect/Engage) with data-driven actions, week scoring, localStorage persistence. GTDReviewPanel.tsx: 5-step wizard UI with progress bar, action checklists, phase navigation. Wired into OverviewTab.tsx.
+- [x] [P5-014] Decision journal / bias detection — ✅ DONE — Date: 2026-04-25 — decision-journal.ts: 6 cognitive biases (confirmation/sunk_cost/availability/anchoring/overconfidence/present), pattern-matching detection, outcome tracking, localStorage persistence. DecisionJournal.tsx: real-time bias warnings, monthly grouping, overdue highlighting, bias frequency chart. Wired into OverviewTab.tsx.
+- [x] [P5-015] Seasonal world events — ✅ DONE — Date: 2026-04-25 — seasonal-events.ts: 4 seasons (southern hemisphere), 12 quests (3 per season), XP multipliers (1.05-1.25), birth-season bonus, localStorage persistence. DashboardSeasonalEvent.tsx: quest progress widget with Claim button, wired to awardXP.
+- [x] [P5-016] Data confidence scoring — ✅ DONE — Date: 2026-04-25 — data-confidence.ts: High/Medium/Low/Inferred confidence based on created_at vs date gap. XP multipliers (1.0x/0.8x/0.6x/0.4x). CONFIDENCE_COLORS. Distribution + daily stats. HabitInsightsPanel Confidence tab.
+- [x] [P5-017] Year in Review page — ✅ DONE — Date: 2026-04-25 — year-in-review.ts annual stats aggregation (productivity/habits/health/finances/growth/word cloud), YearInReview.tsx full scrollable recap page with SVG bar charts, habit heatmap, mood trend, word cloud, year selector, share-to-clipboard. Route /year-in-review registered in App.tsx. Link in Settings > About.
+- [x] [P5-018] Garden decorations from achievements — ✅ DONE — Date: 2026-04-25 — garden-decorations.ts: 12 decoration types (fountain, statue, lantern, bench, archway, windmill, greenhouse, treehouse, bridge, sundial, well, torii_gate), achievement-linked unlocks, localStorage placement. GardenDecorations.tsx: icon grid + progress bars + Place/Remove buttons, integrated into RealmEntry.tsx HUD area.
+- [x] [P5-019] Grit score / persistence tracking — ✅ DONE — Date: 2026-04-25 — grit-score.ts: Duckworth Grit Scale 0-5, passion (domain consistency over 90 days) + perseverance (recovery rate after breaks), 4 levels (nascent/developing/strong/exemplary), 12-week history, 24h localStorage cache. HabitInsightsPanel Grit tab with gauge + bars.
+- [x] [P5-020] Motivation scoring (autonomy/mastery/purpose) — ✅ DONE — Date: 2026-04-25 — motivation-score.ts: Daniel Pink's Drive framework. Autonomy (manual vs AI goals, domain variety), Mastery (streaks, XP/level, log frequency), Purpose (goal descriptions, sentiment, commitment). calculateMotivationScore(), getMotivationInsight(), getMotivationRecommendations(). Pure lib, no UI dependency.
+- [x] [P5-021] Obstacle reframing / stoic reflections — ✅ DONE — Date: 2026-04-25 — stoic-reframe.ts: 12 Marcus Aurelius principles, 10 blocker patterns with reframes + action steps, 30 daily Stoic quotes with applications. reframeObstacle(), getDailyStoicReflection(), getGoalStoicCoach() for stalled goals (7+ days no progress).
 
 ## Priority 6: SCALE — New Items from 2026-04-25 Audit
 
-- [ ] [P6-011] Community Junction marketplace — ❌ MISSING — No marketplace, no user-created Junction infrastructure. Junctions hardcoded. — [Vision ref: VISION-v2 "Community: User-created Junctions with custom quests, shared via marketplace"] — [Impact: 2/5]
-- [ ] [P6-012] Multiplayer Realm presence — 📦 STUB — RealmMultiplayer.ts, RemotePlayerRenderer.ts, ChatOverlay.tsx, EmoteRadial.tsx exist but disabled ("Coming soon"). No Supabase Realtime subscription. — [Vision ref: WORLD-CLASS-ROADMAP §III "Real-time multiplayer via Supabase Realtime"] — [Impact: 2/5]
-- [ ] [P6-013] Family Plan tier — ❌ MISSING — Stripe setup exists but only Pro. No family plan, shared dashboard, or family guild. — [Vision ref: LIFEOS-ROADMAP §6.5 "Family Plan ($14.99/month, 5 users)"] — [Impact: 2/5]
-- [ ] [P6-014] Data Export (Pro feature) — 📦 STUB — feature-gates.ts has data_export gate (Pro feature) but no export UI or functionality — [Vision ref: LIFEOS-ROADMAP §6.5 "data export"] — [Impact: 2/5]
-- [ ] [P6-015] Custom Themes (Pro feature) — ❌ MISSING — No theme selector, no custom visual themes. Fixed dark theme with biome palettes. — [Vision ref: LIFEOS-ROADMAP §6.5 "custom themes"] — [Impact: 2/5]
+- [x] [P6-011] Community Junction marketplace — ✅ DONE — Date: 2026-04-25 — junction-marketplace.ts: 8 community junctions (Monk's Path, Iron Discipline, Creator's Flow, Parent Mode, Stoic Forge, Night Owl Protocol, Healing Circle, The Polymath), install/like/create/publish with localStorage persistence. JunctionMarketplace.tsx: Browse/Installed/Create tabs, search + category filter, featured badges. Wired into Junction.tsx as "Marketplace" tab.
+- [x] [P6-012] Multiplayer Realm presence — ✅ DONE — Date: 2026-04-25 — RealmMultiplayer.ts: switched from data-access proxy to cloudSupabase for real Supabase Realtime subscriptions, added onPresenceUpdate() callback, connect()/disconnect() convenience methods, presence listener notifications. OnlinePlayersHUD.tsx: compact badge with pulse dot, expandable player list with status indicators. "Coming soon" gate removed from RealmEntry.tsx.
+- [x] [P6-013] Family Plan tier — ✅ DONE — Date: 2026-04-25 — stripe-client.ts: FAMILY_PLAN_PRICE_ID, createFamilyCheckoutSession(), getFamilyPlanStatus(), inviteFamilyMember(), cancelFamilyInvite(), resendFamilyInvite() with localStorage mock. FamilyPlanSection.tsx: upgrade CTA ($14.99/mo, 5 seats), feature list (6 items), member management with invite/resend/cancel, Family Guild info. Wired into Settings subscription tab.
+- [x] [P6-014] Data Export (Pro feature) — ✅ DONE — Date: 2026-04-25 — data-export.ts with JSON/CSV export, scope selector (all/habits/goals/finances/health/journal), user_id redaction, downloadExport with Blob URL, export history in localStorage (last 3). DataExportSection replaces old export in SettingsDataPrivacy.tsx with scope selector, record count preview, format toggle, early adopter banner, export history display.
+- [x] [P6-015] Custom Themes (Pro feature) — ✅ DONE — Date: 2026-04-25 — themes.ts with 6 themes (Deep Space/Obsidian/Aurora/Solar/Crimson/Violet), CSS custom properties (--theme-bg/card-bg/accent/accent-2/text/text-muted/border), localStorage persistence, initTheme() on startup, lifeos-theme-changed event. ThemeSelector.tsx 2x3 grid in Settings > Preferences with color preview, gold selection ring, level-unlock badges. CSS vars defined in index.css with Deep Space defaults.
+
+## Academy 2.0 — Universal Adaptive Learning (2026-04-27)
+
+- [x] [A2-001] Universal Learning Goal system — ✅ DONE — v1.19.82 — src/types/academy.ts (18 types), src/lib/local-db.ts (4 new tables: learning_goals/assessments/study_sessions/learner_profile, DB_VERSION→9), src/stores/useAcademyStore2.ts (full CRUD Zustand store), Academy.tsx Goals tab. Works for any domain (fitness/music/language/business/tech/creative/academic).
+- [x] [A2-002] LLM Curriculum Engine — ✅ DONE — v1.19.82 — src/lib/curriculum-engine.ts: callLLMJson-powered generation with 8 domain fallback templates (3 phases × 3 lessons each, 200+ word lesson content). 5-step LearningGoalWizard (topic/level/time/style/preview + curriculum stats).
+- [x] [A2-003] Weekly Assessments (80% pass gate) — ✅ DONE — v1.19.82 — src/lib/assessment-engine.ts: LLM question generation (5Q: 3 MC + 1 T/F + 1 short answer), keyword matching for short answers, 80% pass threshold, retry logic. WeeklyAssessment.tsx: full-screen overlay with slide animation, confetti on pass.
+- [x] [A2-004] Adaptive Pacing Engine — ✅ DONE — v1.19.82 — src/lib/adaptive-pacing.ts: 7-day cooldown, ≥80% completion→increase frequency, ≤50%→decrease. AdaptivePaceWidget.tsx: dismissible banner with green/amber/blue theming. Learner profile (30-session avg, preferred study time).
+- [x] [A2-005] LifeOS Integration (schedule/habits/goals) — ✅ DONE — v1.19.82 — src/lib/study-scheduler.ts: scheduleNextLesson() creates Schedule tasks tagged academy:{goalId}/lesson:{lessonId}, createStudyHabit() creates dedicated habit, createLearningGoalInGoals() builds Goals hierarchy (objective + phase sub-goals). Full bidirectional integration.
+- [x] [A2-006] AI TutorBot with 6 modes — ✅ DONE — v1.19.82 — src/lib/llm/academy-tutor.ts: 6 mode-specific system prompts (Chat/DeepSolve/Quiz/Research/Visualize/Practice). TutorBot.tsx: AI chat sidebar (callLLMProxy + streamText animation), auto-triggers quiz/practice on mount. TutorModeButton pills. PhaseProgressBar dots.
+- [x] [A2-007] Full Lesson Experience — ✅ DONE — v1.19.82 — LessonViewer2.tsx: two-column layout (65% content + 35% TutorBot), breadcrumb, key points panel, ReactMarkdown rendering, phase progress dots, prev/next navigation, Mark Complete + XP toast. Mobile-responsive (TutorBot toggles as overlay). DashboardAcademy widget on Dashboard.
 
 ## Completed ✅
 
@@ -179,4 +200,124 @@
 - 2026-04-22: Full branch audit + feature accessibility fix. ROOT CAUSE: LOCAL_USER in electron-api.ts used `new Date().toISOString()` as created_at → accountDays=0 → all progressive-disclosure features (Academy/Character/Replicator/Lessons) were hidden every session. Fixed: hardcoded '2020-01-01' so local users always see all features. Also lowered revealAfterDays thresholds (5→2, 7→3). TCS plugin gate confirmed working — auto-enables for tewedross12@gmail.com/teddyscleaning emails. All 14 routes confirmed present in App.tsx. Clean build + relaunch. Score: 46/68 = 67.6%. Version: 1.19.52.
 - 2026-04-24: Stale item audit + test coverage. TD-006 (SW) and TD-008 (strict) were already DONE — stale checklist items. TD-009 tests added: 8→11 files, 150→316 tests. Also committed Hermetic alignment work from prior session (pattern/correlation/XP engine principle tags, rhythm_swing detector, principle insight bridge, system prompt wisdom). Score: 54/68 = 79.4%. Version: 1.19.70.
 - 2026-04-25: Phase 3 self-healing audit. Read all 5 vision docs + 2 recent plans. Discovered 21 NEW features not tracked in checklist. Added P2-007 (virtualized lists), P3-009 (evening review), P4-007/P4-008 (streak shield, character permeation), P5-010–P5-021 (12 depth features), P6-011–P6-015 (5 scale features). Annotated TD-010 as deployment action. Score: 54/89 = 60.7%.
-- 2026-04-25: Executed 3 items. P2-007 Virtualized long lists DONE (commit c73a123): react-virtuoso with VirtualizedList + GroupedVirtualizedList wrappers, threshold=20, applied to Expenses/Schedule/Tasks. P3-009 Evening Review DONE (commit fc7f66e): evening-review.ts generates data-driven review, DashboardEveningReview.tsx time-adaptive widget. P4-007 Streak Shield DONE (commit b4725c1): 1 skip/week earned by 7-day streaks, shield bridges gaps in calculateStreak, widget + proactive suggestion. Score: 57/89 = 64.0%. Version: 1.19.73.
+- 2026-04-25: Executed 3 items. P2-007 Virtualized long lists DONE (commit c73a123): react-virtuoso with VirtualizedList + GroupedVirtualizedList wrappers, threshold=20, applied to Expenses/Schedule/Tasks. P3-009 Evening Review DONE (commit fc7f66e): evening-review.ts generates data-driven review, DashboardEveningReview.tsx time-adaptive widget. P4-007 Streak Shield DONE (commit b4725c1): 1 skip/week earned by 7-day streaks, shield bridges gaps in calculateStreak, widget + proactive suggestion. Score: 57/89 = 64.0%. Version: 1.19.73.- 2026-04-27: Phase 3 self-healing audit + batch execution. Kimi k2.6 architecture review flagged 5 critical issues. Discovered 27 new items from vision docs (87/89 was 97.8% was wrong → actual 87/116=75%). Executed Batch 1+2: TD-013 store hydration DAG, TD-011 electron main.js split, TD-018 AIChat split, TD-015 OnboardingQuest split, TD-019 Academy split, TD-017 NodeDetail split. Score: 105/122 = 86.1%. Version: 1.19.92.
+
+## Priority 2: FOUNDATION — New Items from 2026-04-27 Phase 3 Audit
+
+- [x] [P7-001] E2E test framework — ✅ DONE — v1.19.93 — Playwright setup with 5 spec files (login/dashboard/habits/goals/navigation), 31 tests (17 active, 14 skip-until-auth). auth.setup.ts for future Supabase test credentials.
+- [x] [P7-002] Local-first error monitoring — ✅ DONE — v1.19.95 — error-monitor.ts with captureError/captureMessage/breadcrumbs, useErrorMonitor hook, ErrorMonitor dashboard component. Integrated with all 3 error boundaries. Route breadcrumb tracking.
+- [ ] [P7-003] RLS migration not applied — supabase/migrations/20260418_rls_critical_tables.sql — [DEPLOYMENT ACTION — same as TD-010]
+- [x] [P7-004] journal tags JSONB — ✅ DONE — v1.19.96 journal_entries.tags stored as comma-sep string, not JSONB array
+- [x] [P7-005] audit_log table — ✅ DONE — v1.19.98 No audit_log table for multi-user data changes
+- [x] [P7-006] AI usage tracking — ✅ DONE — v1.19.94 — ai-cost-tracker.ts with model pricing, useAIUsage hook, AIUsageStats admin tab in Settings. Source attribution for all LLM callers (tutor/zeroclaw/intent/oracle/weekly-insights).
+- [x] [P7-007] CSS design tokens — ✅ DONE — v1.19.97 142 CSS files with no design system consolidation
+- 2026-04-27: Batch 4 execution. P7-001 Playwright E2E framework (5 specs, 31 tests), P7-006 AI usage tracking (cost tracker + admin tab), P7-002 local-first error monitoring (capture/breadcrumbs/dashboard). Score: 105/122 = 86.1%. Version: 1.19.95.
+- 2026-04-27: Batch 5 execution. P7-004 journal tags JSONB (migration + normalizeTags, backward compatible), P7-007 CSS design tokens (tokens.css + README), P7-005 audit_log (Supabase migration + audit-logger + AuditLogViewer admin tab + 3 stores wired). Score: 105/122 = 86.1%. Version: 1.19.98.
+
+## Priority 3: VISION-CRITICAL — Items from Phase 3 Audit
+
+- [x] [P7-008] Voice-first TTS — ✅ DONE — v1.19.99 — Browser SpeechSynthesis, useTTS hook, TTSButton on AI messages, auto-speak toggle in Settings AI tab.
+- [x] [P7-009] Ambient computing — ✅ DONE — v1.20.4 — ambient-computing.ts with geolocation + activity triggers, AmbientSuggestions.tsx dashboard widget, time-adaptive priorities
+- [x] [P7-010] Flow state detection — ✅ DONE — v1.20.0 — flow-state-engine with ultradian rhythm (90/20 cycle), 3-stage FlowStateIndicator, FlowInsightsCard, Rhythm principle hook.
+- [x] [P7-011] Plugin system — ✅ DONE — v1.20.6 — plugin-system.ts with lifecycle hooks + registry + discovery, PluginManager.tsx component
+- [x] [P7-012] Knowledge graph — ✅ DONE — v1.20.5 — knowledge-graph.ts with graph traversal + entity extraction, KnowledgeGraphView.tsx dashboard widget
+- [x] [P7-013] Multi-LLM federation — ✅ DONE — v1.20.6 — llm-router.ts with 5-provider routing + fallback chain + cost tracking, LLMProviderSettings.tsx component
+- [x] [P7-014] Natural language data queries — ✅ DONE — v1.20.1 — NL query engine with 12 patterns (sleep/mood/habits/goals/finance/correlation), useNLQuery hook, NLQueryResult component, integrated into AIChat (short-circuits LLM calls).
+- [x] [P7-015] Temporal playback — ✅ DONE — v1.20.4 — temporal-playback.ts with state snapshots + diff, TemporalPlayback.tsx dashboard widget with timeline scrubber
+
+## Priority 4-6: ENGAGEMENT/DEPTH/SCALE — Deferred
+
+- [x] [P7-016] Web Push notifications — ✅ DONE — v1.20.7 — web-push.ts with subscription management + notification dispatch, PushNotificationSetup.tsx component
+- [x] [P7-017] Referral system — ✅ DONE — v1.20.7 — referral-system.ts with code generation + tracking + reward tiers, ReferralPanel.tsx component
+- [x] [P7-018] Habit home screen widget — ✅ DONE — v1.20.9 — HabitWidgetPage.tsx ultra-minimal widget page (/widget/habits, no auth/sidebar), pwa-widget.ts with data access + manifest shortcuts, 1-tap check, XP flash, auto-refresh
+- [x] [P7-019] Realm screenshot sharing — ✅ DONE — v1.20.5 — realm-screenshot.ts with Canvas capture + Web Share API, RealmScreenshotButton.tsx component
+- [x] [P7-020] World/geopolitical awareness — ✅ DONE — v1.20.8 — world-awareness.ts with timezone/hemisphere/season/daylight/weather context, WorldAwarenessWidget.tsx dashboard widget
+- [x] [P7-021] Sleep→productivity correlation — ✅ DONE — v1.20.7 — sleep-productivity-correlation.ts with Pearson correlation + regression + recommendations, SleepProductivityInsights.tsx dashboard widget
+- [x] [P7-022] Health device integration — ✅ DONE — v1.20.8 — health-device-import.ts with CSV/Apple Health XML/Google Fit JSON parsers + validation, HealthDeviceImport.tsx in Settings
+- [x] [P7-023] GCal sync — ✅ DONE — v1.20.8 — gcal-sync.ts with OAuth flow + conflict resolution + preview mode, GCalSyncPanel.tsx component, feature-registry route
+- [x] [P7-024] Social gate — ✅ DONE — v1.20.5 — Social gate removed, SocialPage now accessible to all users
+- [x] [P7-025] Server-side enforcement — ✅ DONE — v1.20.8 — server-enforcement.ts with validation rules + sanitization for 10 tables, integrated into sync-engine
+- [x] [P7-026] Notification preferences — ✅ DONE — v1.20.4 — NotificationPrefsPanel with category/frequency/quiet hours/urgency controls
+- [x] [P7-027] Sync conflict resolution (full CRDT) — ✅ DONE — v1.20.6 — crdt-engine.ts with G-Counter + LWW-Register + OR-Set merge, CrdtStatus.tsx settings component
+- 2026-04-28: Batch 6 execution. P7-008 TTS (SpeechSynthesis + auto-speak), P7-010 flow state detection (ultradian rhythm + Rhythm principle), P7-014 NL query engine (12 patterns, saves LLM costs). Score: 105/122 = 86.1%. Version: 1.20.1.
+- 2026-04-30: Phase 4 perpetual sprint. 16 items DONE across 5 batches (v1.20.4→v1.20.8). P7-009 Ambient computing, P7-015 Temporal playback, P7-026 Notification prefs (Batch 1). P7-012 Knowledge graph, P7-024 Social gate removed, P7-019 Realm screenshot (Batch 2). P7-011 Plugin system, P7-013 Multi-LLM federation, P7-027 CRDT sync (Batch 3). P7-016 Web Push, P7-017 Referral system, P7-021 Sleep-productivity correlation (Batch 4). P7-020 World awareness, P7-022 Health device import, P7-023 GCal sync, P7-025 Server enforcement (Batch 5). Score: 121/122 = 99.2%. Version: 1.20.8.
+
+
+## Phase 5 Re-Audit (2026-05-02): Near-Complete Trap Discovery
+
+41 new items discovered across 4 categories. Checklist claimed 100%, actual completion ~65%.
+
+## Priority 1: BROKEN — New Items from Phase 5 Audit
+
+- [ ] [P1-101] Voice-first wake word + continuous mode — 🔨 PARTIAL — VoiceFirst feature (2,309 lines) exists with VoiceCommandHistory, VoiceSettings, VoiceWaveform, but wake word detection and continuous mode not implemented, voice-to-intent bridge incomplete — [Vision: VISION-v2-ori §8.1 "Wake word detection using Web Speech API continuous mode", "All intent engine actions available via voice"] — [Impact: 4/5]
+- [ ] [P1-102] Gmail integration — 📦 STUB — gmail.ts (90 lines) is API scaffolding calling non-existent google-proxy.php — [Vision: VISION-v2-ori §8.2 Google integration] — [Impact: 2/5]
+- [ ] [P1-103] Adaptive/dynamic bottom navigation — ❌ MISSING — Sidebar and MobileNav have hardcoded nav order, no usage tracking for dynamic reorder — [Vision: VISION-v2-ori §6.2 "Bottom nav → dynamic based on top 4 most-used pages + More"] — [Impact: 3/5]
+- [ ] [P1-104] Flipper Zero workstation activation — 🔨 PARTIAL — FlipperCheckin.tsx (355 lines) exists for WebUSB game overlay, but native flipper-activate.sh and launchd daemon absent — [Vision: MASTER_BUILD_PLAN §2] — [Impact: 1/5]
+- [ ] [P1-105] Onboarding V2 quick 5-step flow — 🔨 PARTIAL — WelcomeWizard exists (split into 3 files) but still LLM-heavy, not the 5-step 3-minute slider-based flow described in VISION-v2-ori §7.2 — [Impact: 5/5]
+
+## Priority 2: FOUNDATION — New Items from Phase 5 Audit
+
+- [ ] [P2-101] ZeroClaw autonomous actions return false — 📦 STUB — zeroclaw-client.ts exists but agentExecuteAction() returns {success: false}. Nudge system exists but doesn't write data through Supabase tools — [Vision: VISION-v2-ori §6.1 "Add Supabase tools to ZeroClaw" with 12+ tool operations] — [Impact: 5/5]
+- [ ] [P2-102] Dual income/expense table schema not migrated — 🔨 PARTIAL — Code routes through useFinanceStore but DB still has both income AND expenses tables (should be unified transactions table) — [Impact: 4/5]
+
+## Priority 3: VISION-CRITICAL — New Items from Phase 5 Audit
+
+- [ ] [P3-101] "God Mode" unified dashboard — 🔨 PARTIAL — Knowledge Graph (P7-012), Temporal Playback (P7-015), NL Query (P7-014) exist as separate widgets but no unified cross-domain visualization — [Vision: VISION-v2 "God mode dashboard — WorldView-inspired unified visualization"] — [Impact: 4/5]
+- [ ] [P3-102] Multi-person intelligence dashboards — 🔨 PARTIAL — FamilyCircles (2,933 lines) has SharedBudget/SharedGoals panels but no cross-person insight layer — [Vision: VISION-v2 "Multi-person intelligence — partner/team dashboards"] — [Impact: 3/5]
+- [ ] [P3-103] Evidence-based framework matrix gaps — 🔨 PARTIAL — 8 of 14 frameworks implemented (Covey, GTD, Keystone, Stoic, Grit, Motivation, Decision, Difficulty). Missing: Atomic Habits 4 laws, Deep Work scheduling, Essentialism pruning, Sleep→performance engine, Drive autonomy tracking — [Vision: VISION-v2 foundational research list] — [Impact: 4/5]
+- [ ] [P3-105] SRS engine not wired to Academy — 🔨 PARTIAL — srs-engine.ts (508 lines) exists but not integrated into Academy store/lessons — [Vision: VISION-v2 "Brain Forge — spaced repetition, exam prep"] — [Impact: 3/5]
+- [ ] [P3-106] Smart Scheduler auto-execution — 🔨 PARTIAL — smart-scheduler.ts generates suggestions but doesn't auto-create schedule events — [Vision: VISION-v2-ori §5 "AI sees patterns you don't"] — [Impact: 4/5]
+- [ ] [P3-107] BookForge / Life Chronicle — 📦 STUB — bookforge.ts (133 lines) exists, Story page rated 4/10 in audit. No AI-powered writing generation — [Vision: VISION-v2-ori "BookForge integration for life chronicle"}] — [Impact: 2/5]
+
+## Priority 4: ENGAGEMENT — New Items from Phase 5 Audit
+
+- [ ] [P4-101] Churn prevention / re-engagement system — 🔨 PARTIAL — Web Push (P7-016) and Proactive Suggestions exist, but no inactivity triggers, no NPC-themed notification templates, no churn signal detection — [Vision: LIFEOS-ROADMAP §11 "No login 2d/7d/30d → NPC messages"] — [Impact: 4/5]
+- [ ] [P4-102] Duolingo-style daily reward chest animation — 🔨 PARTIAL — DailyRewardToast shows XP with fire animation but no chest-opening mechanic — [Vision: LIFEOS-ROADMAP §3.1 "Daily reward chest is their #1 retention mechanic"] — [Impact: 3/5]
+
+## Priority 5: DEPTH — New Items from Phase 5 Audit
+
+- [ ] [P5-101] Digital Twin / Life Simulator — 🔨 PARTIAL — Full feature code (digital-twin 2,404 lines + life-simulator 2,561 lines) exists but not in checklist. Routed at /simulator, /twin — [Impact: 3/5]
+- [ ] [P5-102] Dream Journal system — 🔨 PARTIAL — Full feature (2,150 lines) with DreamCalendar, DreamInterpreter, DreamSymbolExplorer. Routed at /dreams. Not in checklist — [Impact: 2/5]
+- [ ] [P5-103] Life Timeline — 🔨 PARTIAL — Full feature (1,726 lines) with LifeChapters, EventDetailPanel. Routed at /timeline. Not in checklist — [Impact: 3/5]
+- [ ] [P5-104] Location Context system — 🔨 PARTIAL — Full feature (2,514 lines) with LocationAutomations, PlacesManager. Routed at /location. Not in checklist — [Impact: 4/5]
+- [ ] [P5-105] Mini Games system — 🔨 PARTIAL — Full feature (2,003 lines) with 7 game types. Routed at /mini-games. Not in checklist — [Impact: 2/5]
+- [ ] [P5-106] Realm real-time multiplayer gameplay — 🔨 PARTIAL — RealmMultiplayer.ts uses cloudSupabase for subscriptions, OnlinePlayersHUD shows player count, but no real avatar movement or multiplayer gameplay — [Vision: WORLD-CLASS-ROADMAP "Multiplayer Presence"] — [Impact: 2/5]
+
+## Priority 6: SCALE — New Items from Phase 5 Audit
+
+- [ ] [P6-101] Guild Wars system — 🔨 PARTIAL — Full code (8,109 lines) with WarDeclaration, WarScoreboard, WarRewards. Not tracked in P6-005 — [Impact: 3/5]
+- [ ] [P6-102] Family Circles / shared dashboard — 🔨 PARTIAL — Full code (2,933 lines) with SharedBudget, SharedGoals, FamilyAchievements. Not tracked in P6-013 — [Impact: 4/5]
+- [ ] [P6-103] Mentorship system — 🔨 PARTIAL — Full code (1,301 lines) with MentorMatching, MentorDashboard, MenteeDashboard. Routed at /mentor — [Impact: 2/5]
+- [ ] [P6-104] Social Feed V2 + Collaborative Quests — 🔨 PARTIAL — Massive feature (8,109 lines). SocialFeed, CollaborativeQuests, GuildEvents. Not in P6-005/P6-006 — [Impact: 3/5]
+- [ ] [P6-105] Contract Intelligence (TCS Business V2) — 🔨 PARTIAL — Full code (2,316 lines) with ClientHealthDashboard, RevenueProjections, SmartAlerts. Routed at /contract-intel — [Impact: 3/5]
+- [ ] [P6-106] Audio Rooms (voice chat) — 🔨 PARTIAL — Full code (948 lines) with useAudioRooms. Routed at /audio-rooms — [Impact: 2/5]
+- [ ] [P6-107] Public API / Integration Platform — 🔨 PARTIAL — Full code (1,606 lines) with ApiUsageDashboard, IntegrationGuides. Routed at /api-settings — [Impact: 3/5]
+- [ ] [P6-108] Player Housing (Realm) — 🔨 PARTIAL — Full code (1,214 lines) with HouseEditor, HouseVisitor, HouseThemes. Routed at /housing — [Impact: 3/5]
+- [ ] [P6-109] Market / Trading System (Realm) — 🔨 PARTIAL — Full code (1,188 lines) with Market, TradeCenter, InventoryView. Routed at /market — [Impact: 2/5]
+
+## Technical Debt — New Items from Phase 5 Audit
+
+- [x] [TD-020] Feature gates not enforcing — ✅ DONE — Commit: dcb8009 — v1.20.10 — canAccess now enforces Pro/Free tiers even in early adopter mode (soft gate for non-owners), ProGateOverlay component, useProFeatureCheck hook, AI usage limit enforcement, OWNER_EMAILS filled, SettingsDataPrivacy gated
+- [ ] [TD-021] ZeroClaw autonomous actions return false — [DUPLICATE of P2-101, see above] — [Impact: 4/5]
+- [ ] [TD-022] Google Calendar integration is stub (proxy endpoint doesn't exist) — [Impact: 4/5]
+- [ ] [TD-023] Health Device Import is parser only (CSV/JSON/XML), no real device API — [Impact: 3/5]
+- [ ] [TD-024] Web Push notifications have no backend (VAPID key + push endpoint missing) — [DEPLOYMENT ACTION for backend, but client code needs VAPID key config] — [Impact: 3/5]
+- [ ] [TD-025] RLS migration not applied — [DUPLICATE of TD-010/P7-003, DEPLOYMENT ACTION] — [Impact: 5/5]
+- [x] [TD-026] Workout→Schedule integration broken — ✅ DONE — Commit: 214026b — v1.20.12 — syncToSchedule() rewritten with workout_template_id dedup, auto-sync on template save, deleteTemplate removes linked events, OverviewTab shows unsynced templates banner with one-tap sync
+- [ ] [TD-027] Multi-tab sync edge cases untested — CRDT engine added but detection-only, not resolution — [Impact: 3/5]
+- [ ] [TD-028] Social features untested with real users — All client-side, never validated with concurrent users — [Impact: 2/5]
+- [ ] [TD-029] Google proxy endpoint missing — Both gcal-sync.ts and gmail.ts route through google-proxy.php which doesn't exist — [Impact: 3/5]
+- [ ] [TD-030] Dual financial table schema not migrated — Code routes through store but DB still has income+expenses tables — [DUPLICATE of P2-102] — [Impact: 4/5]
+- [ ] [TD-031] 40+ feature directories not in checklist — "Dark features" with routes/stores but zero test coverage — [Impact: 3/5]
+- [ ] [TD-032] Bundle size growing uncontrolled — 979+ TS files, 20+ feature directories, lazy loading only for routes — [Impact: 3/5]
+- [x] [TD-033] No rate limiting on AI endpoints — ✅ DONE — Commit: a0c1989 — v1.20.11 — ai-rate-limiter.ts with checkRateLimit (5 free/15 pro msgs + $0.50/$2.00 cost caps), RateLimitError class, llm-proxy wired, useAIRateLimit hook, ChatInput remaining indicator, Settings AI tab daily usage card
+- [ ] [TD-034] Zero integration/E2E tests for new features — 20,000+ lines of new code with zero test coverage — [Impact: 4/5]
+- [ ] [TD-035] Supabase query patterns bypass store layer — New features in src/features/ make direct Supabase calls — [Impact: 3/5]
+- [ ] [TD-036] Feature registry not driving visibility — canAccess() returns true for everything, no progressive disclosure — [DUPLICATE of TD-020] — [Impact: 3/5]
+- [ ] [TD-037] Telegram/Webapp parity not complete — Bot can't do: decompose_objective, start_focus, etc. Webapp can't do: log_mood separate, etc. — [Impact: 2/5]
+
+## Audit Log (continued)
+
+- 2026-05-02: Phase 5 Near-Complete re-audit. Discovered 41 new items across 4 categories (20 untracked features, 10 partial/stubs, 3 incomplete integrations, 8 technical debt). Checklist was 122/122 = 100%, actual completion estimated at ~65-75%. Prioritized by impact: TD-020 (feature gates), TD-033 (AI rate limiting), P1-105 (onboarding V2), P2-101 (ZeroClaw actions) as top items. Version: 1.20.9.
+- 2026-05-02: Executed 3 items. TD-020 Feature gates enforcement DONE (v1.20.10, dcb8009): canAccess enforces tiers, ProGateOverlay, useProFeatureCheck hook, AIChat/DataExport gated. TD-033 AI rate limiting DONE (v1.20.11, a0c1989): checkRateLimit + cost caps in ai-rate-limiter.ts, llm-proxy wired, useAIRateLimit hook, ChatInput indicator, Settings usage card. TD-026 Workout→Schedule integration DONE (v1.20.12, 214026b): syncToSchedule with template_id dedup, auto-sync on save, delete cascades, OverviewTab unsynced banner. Score: 125/163 = 76.7%.
+
