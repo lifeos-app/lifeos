@@ -214,7 +214,7 @@ export default defineConfig(({ mode }) => {
       brotliSize: true,
     }),
   ],
-  base: isDesktop ? './' : '/',
+  base: isDesktop ? './' : (process.env.VITE_BASE_PATH || '/'),
   server: {
     // Serve academy content files for dev mode
     fs: {
