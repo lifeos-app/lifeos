@@ -5,10 +5,10 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.20.12
+- **Current Version:** 1.19.81
 - **Baseline Date:** 2026-04-20
-- **Last Audit:** 2026-05-02 (Phase 5 Near-Complete Trap Re-Audit)
-- **Completion:** 125/163 = 76.7% (41 new items from Phase 5 audit; ~10 previously DONE items are partial/stubs; 3 new items completed this session: TD-020, TD-033, TD-026)
+- **Last Audit:** 2026-05-03 (P1-105/P1-103/P4-101 completed)
+- **Completion:** 128/163 = 78.5% (125 prior + 3 new: P1-105, P1-103, P4-101)
  **Phase 3 Audit Results:** 105/122 = 86.1% (6 new items DONE: TD-011, TD-013, TD-015, TD-017, TD-018, TD-019)
  **Phase 3 Audit Report:** /mnt/data/tmp/lifeos/.hermes/phase3-self-healing-audit.md
 
@@ -251,9 +251,9 @@
 
 - [ ] [P1-101] Voice-first wake word + continuous mode — 🔨 PARTIAL — VoiceFirst feature (2,309 lines) exists with VoiceCommandHistory, VoiceSettings, VoiceWaveform, but wake word detection and continuous mode not implemented, voice-to-intent bridge incomplete — [Vision: VISION-v2-ori §8.1 "Wake word detection using Web Speech API continuous mode", "All intent engine actions available via voice"] — [Impact: 4/5]
 - [ ] [P1-102] Gmail integration — 📦 STUB — gmail.ts (90 lines) is API scaffolding calling non-existent google-proxy.php — [Vision: VISION-v2-ori §8.2 Google integration] — [Impact: 2/5]
-- [ ] [P1-103] Adaptive/dynamic bottom navigation — ❌ MISSING — Sidebar and MobileNav have hardcoded nav order, no usage tracking for dynamic reorder — [Vision: VISION-v2-ori §6.2 "Bottom nav → dynamic based on top 4 most-used pages + More"] — [Impact: 3/5]
+- [x] [P1-103] Adaptive/dynamic bottom navigation — ✅ DONE — Commit: 591d2ef — v1.19.80 — usePageVisitTracker.ts (168 lines) + useAdaptiveNav.ts (353 lines) with visit-based reorder after 7+ days, Most Used labels, dashboard always pinned first. MobileNav + Sidebar both consume adaptive nav. FeatureModule.visitCount added.
 - [ ] [P1-104] Flipper Zero workstation activation — 🔨 PARTIAL — FlipperCheckin.tsx (355 lines) exists for WebUSB game overlay, but native flipper-activate.sh and launchd daemon absent — [Vision: MASTER_BUILD_PLAN §2] — [Impact: 1/5]
-- [ ] [P1-105] Onboarding V2 quick 5-step flow — 🔨 PARTIAL — WelcomeWizard exists (split into 3 files) but still LLM-heavy, not the 5-step 3-minute slider-based flow described in VISION-v2-ori §7.2 — [Impact: 5/5]
+- [x] [P1-105] Onboarding V2 quick 5-step flow — ✅ DONE — Commit: 515ef80 — v1.19.79 — Replaced Modules/Habit/Goal steps with LifeSnapshotStep (6 area sliders + radar chart), TopGoalsStep (3 goal inputs), DailyRhythmStep (wake time + 5 day templates). 5-step flow completable in 3 minutes. No LLM required. Life snapshot saved to preferences, 3 goals created, day template stored.
 
 ## Priority 2: FOUNDATION — New Items from Phase 5 Audit
 
@@ -271,7 +271,7 @@
 
 ## Priority 4: ENGAGEMENT — New Items from Phase 5 Audit
 
-- [ ] [P4-101] Churn prevention / re-engagement system — 🔨 PARTIAL — Web Push (P7-016) and Proactive Suggestions exist, but no inactivity triggers, no NPC-themed notification templates, no churn signal detection — [Vision: LIFEOS-ROADMAP §11 "No login 2d/7d/30d → NPC messages"] — [Impact: 4/5]
+- [x] [P4-101] Churn prevention / re-engagement system — ✅ DONE — Commit: dc20838 — v1.19.81 — churn-prevention.ts (345 lines) with 3-level churn detection (2d/7d/30d), NPC-themed messages, useChurnPrevention.ts hook, ReengagementModal.tsx (405 lines) with warm amber/red/emerald theme, auto-dismiss 15s, CTA buttons. 'churn_warning' added to ProactiveSuggestion types. Layout.tsx wired.
 - [ ] [P4-102] Duolingo-style daily reward chest animation — 🔨 PARTIAL — DailyRewardToast shows XP with fire animation but no chest-opening mechanic — [Vision: LIFEOS-ROADMAP §3.1 "Daily reward chest is their #1 retention mechanic"] — [Impact: 3/5]
 
 ## Priority 5: DEPTH — New Items from Phase 5 Audit
@@ -320,4 +320,5 @@
 
 - 2026-05-02: Phase 5 Near-Complete re-audit. Discovered 41 new items across 4 categories (20 untracked features, 10 partial/stubs, 3 incomplete integrations, 8 technical debt). Checklist was 122/122 = 100%, actual completion estimated at ~65-75%. Prioritized by impact: TD-020 (feature gates), TD-033 (AI rate limiting), P1-105 (onboarding V2), P2-101 (ZeroClaw actions) as top items. Version: 1.20.9.
 - 2026-05-02: Executed 3 items. TD-020 Feature gates enforcement DONE (v1.20.10, dcb8009): canAccess enforces tiers, ProGateOverlay, useProFeatureCheck hook, AIChat/DataExport gated. TD-033 AI rate limiting DONE (v1.20.11, a0c1989): checkRateLimit + cost caps in ai-rate-limiter.ts, llm-proxy wired, useAIRateLimit hook, ChatInput indicator, Settings usage card. TD-026 Workout→Schedule integration DONE (v1.20.12, 214026b): syncToSchedule with template_id dedup, auto-sync on save, delete cascades, OverviewTab unsynced banner. Score: 125/163 = 76.7%.
+- 2026-05-03: Executed 3 items. P1-105 WelcomeWizard V2 DONE (v1.19.79, 515ef80): Life Snapshot step with 6 area sliders + radar chart, Top Goals step with 3 goal inputs, Daily Rhythm step with wake time + 5 day templates. Replaced old Modules/Habit/Goal steps. 5-step flow completable in 3 minutes. P1-103 Adaptive Navigation DONE (v1.19.80, 591d2ef): usePageVisitTracker + useAdaptiveNav hooks, sidebar + mobile nav reorder by most-used pages after 7+ days, Most Used labels, dashboard always first. P4-101 Churn Prevention DONE (v1.19.81, dc20838): 3-level churn detection (2d/7d/30d), NPC-themed re-engagement messages, ReengagementModal with auto-dismiss, Layout wired. Score: 128/163 = 78.5%.
 
