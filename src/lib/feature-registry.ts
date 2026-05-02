@@ -24,9 +24,14 @@ export interface FeatureModule {
    * 0 = always visible (default), 1 = show after onboarding, 3+ = delayed.
    */
   revealAfterDays?: number;
+  /**
+   * Visit count populated at runtime by useAdaptiveNav.
+   * Not stored in FEATURES array — merged from localStorage visit tracking.
+   */
+  visitCount?: number;
 }
 
-const FEATURES: FeatureModule[] = [
+export const FEATURES: FeatureModule[] = [
   {
     id: 'dashboard',
     name: 'Today',

@@ -8,7 +8,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { SpaceAge } from './SpaceAge';
-import { getMobileMainTabs, getMobileMoreGroups } from '../lib/feature-registry';
+import { useAdaptiveNav } from '../hooks/useAdaptiveNav';
+import { usePageVisitTracker } from '../hooks/usePageVisitTracker';
 import './MobileNav.css';
 
 /** Map icon name strings from the feature registry to Lucide components. */
@@ -22,6 +23,7 @@ interface Tab {
   icon: React.ElementType;
   label: string;
   color: string;
+  isMostUsed?: boolean;
 }
 
 interface TabWithBadge extends Tab {
@@ -47,43 +49,45 @@ export function MobileNav() {
   const signOut = useUserStore(s => s.signOut);
   const createdAt = useUserStore(s => s.session?.user?.created_at);
 
-  // Progressive disclosure: compute account age to filter nav items
+  // Track page visits for adaptive nav
+  usePageVisitTracker();
+
+  // Adaptive navigation: reorders by visit frequency after 7+ days
+  const adaptiveNav = useAdaptiveNav(getAccountAgeDays(createdAt));
+
   const mainTabs = useMemo(() => {
-    const accountDays = getAccountAgeDays(createdAt);
-    return getMobileMainTabs(accountDays).map(f => ({
+    return adaptiveNav.mainTabs.map(f => ({
       to: f.route,
       icon: ICON_MAP[f.icon] || LayoutDashboard,
       label: f.id === 'dashboard' ? 'Home' : f.name,
       color: f.color,
+      isMostUsed: f.isMostUsed,
     }));
-  }, [createdAt]);
-
-  const moreGroups = useMemo(() => {
-    const accountDays = getAccountAgeDays(createdAt);
-    return getMobileMoreGroups(accountDays);
-  }, [createdAt]);
+  }, [adaptiveNav.mainTabs]);
 
   const MORE_GROUPS: MoreGroup[] = useMemo(() => [
     {
       label: 'Life',
-      items: moreGroups.life.map(f => ({
+      items: adaptiveNav.moreGroups.life.map(f => ({
         to: f.route,
         icon: ICON_MAP[f.icon] || LayoutDashboard,
         label: f.name,
         color: f.color,
+        isMostUsed: f.isMostUsed,
         ...(f.id === 'social' ? { badgeKey: 'social' } : {}),
       })),
     },
     {
       label: 'Growth',
-      items: moreGroups.growth.map(f => ({
+      items: adaptiveNav.moreGroups.growth.map(f => ({
         to: f.route,
         icon: ICON_MAP[f.icon] || LayoutDashboard,
         label: f.name,
         color: f.color,
+        isMostUsed: f.isMostUsed,
       })),
     },
-  ], [moreGroups]);
+  ], [adaptiveNav.moreGroups.life, adaptiveNav.moreGroups.growth]);
 
   // Flat list for isActive checks
   const ALL_MORE_ITEMS: TabWithBadge[] = useMemo(() => [
@@ -197,6 +201,9 @@ export function MobileNav() {
             >
               <Icon size={20} strokeWidth={active ? 2.2 : 1.5} />
               <span className="mn-label">{tab.label}</span>
+              {tab.isMostUsed && (
+                <span style={{ fontSize: 8, color: '#8BA4BE', marginLeft: 2, fontWeight: 500, lineHeight: '10px' }}>Most Used</span>
+              )}
               {active && <div className="mn-dot" />}
             </button>
           );
@@ -260,6 +267,9 @@ export function MobileNav() {
                             )}
                           </div>
                           <span>{item.label}</span>
+                          {item.isMostUsed && (
+                            <span style={{ fontSize: 10, color: '#8BA4BE', marginLeft: 4, fontWeight: 500 }}>Most Used</span>
+                          )}
                         </button>
                       );
                     })}

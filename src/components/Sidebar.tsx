@@ -26,7 +26,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { getUnreadCount } from '../lib/social/messaging';
-import { getNavFeatures } from '../lib/feature-registry';
+import { useAdaptiveNav } from '../hooks/useAdaptiveNav';
+import { usePageVisitTracker } from '../hooks/usePageVisitTracker';
 import './Sidebar.css';
 
 /** Map icon name strings from the feature registry to Lucide components. */
@@ -56,16 +57,21 @@ export const Sidebar = React.memo(function Sidebar({ expanded = true, onToggle, 
   const userId = useUserStore(s => s.session?.user?.id);
   const createdAt = useUserStore(s => s.session?.user?.created_at);
 
-  // Progressive disclosure: compute account age to filter nav items
+  // Track page visits for adaptive nav
+  usePageVisitTracker();
+
+  // Adaptive navigation: reorders by visit frequency after 7+ days
+  const adaptiveNav = useAdaptiveNav(getAccountAgeDays(createdAt));
+
   const navItems = useMemo(() => {
-    const accountDays = getAccountAgeDays(createdAt);
-    return getNavFeatures('sidebar', accountDays).map(f => ({
+    return adaptiveNav.navItems.map(f => ({
       to: f.route,
       icon: ICON_MAP[f.icon] || LayoutDashboard,
       label: f.name,
       color: f.color,
+      isMostUsed: f.isMostUsed,
     }));
-  }, [createdAt]);
+  }, [adaptiveNav.navItems]);
   const [upgrading, setUpgrading] = useState(false);
   const [tutorialListOpen, setTutorialListOpen] = useState(false);
   const [setupListOpen, setSetupListOpen] = useState(false);
@@ -155,6 +161,9 @@ export const Sidebar = React.memo(function Sidebar({ expanded = true, onToggle, 
                 <Icon size={18} />
               </div>
               <span className="sb-label">{item.label}</span>
+              {item.isMostUsed && (
+                <span style={{ fontSize: 10, color: '#8BA4BE', fontWeight: 500, marginLeft: 2 }}>Most Used</span>
+              )}
               {item.to === '/social' && socialUnread > 0 && (
                 <span className="sb-badge" style={{
                   marginLeft: 'auto', background: '#00D4FF', color: '#0A2540',
