@@ -3,13 +3,14 @@
  *
  * Manages: currentStep, WizardData, step validation, navigation
  * with Hermetic transitions, supabase submit, and skip handling.
+ *
+ * V2: Life Snapshot sliders, Top 3 Goals, Daily Rhythm
  */
 
 import { useState, useCallback } from 'react';
 import { supabase } from '../../lib/data-access';
 import { useUserStore } from '../../stores/useUserStore';
 import type { UserProfile } from '../../stores/useUserStore';
-import { useHabitsStore } from '../../stores/useHabitsStore';
 import { useGoalsStore, type GoalNode } from '../../stores/useGoalsStore';
 
 // ─── Types ───────────────────────────────────────────────────────
@@ -17,6 +18,12 @@ import { useGoalsStore, type GoalNode } from '../../stores/useGoalsStore';
 export interface WizardData {
   displayName: string;
   timezone: string;
+  // V2 fields
+  lifeSnapshot: Record<string, number>; // keys: health, career, finance, relationships, growth, wellbeing — values 1-10
+  topGoals: string[];  // up to 3 goal strings
+  wakeTime: string;    // e.g. '06:30'
+  dayTemplate: 'student' | '9-5' | 'shift' | 'freelancer' | 'parent' | 'custom';
+  // Legacy fields kept for backward compat / migration
   selectedModules: string[];
   habitTitle: string;
   habitFrequency: 'daily' | 'weekly' | 'monthly';
@@ -34,6 +41,15 @@ export const TOTAL_STEPS = 5;
 
 export const GOAL_COLORS = ['#00D4FF', '#8B5CF6', '#39FF14', '#F43F5E', '#F59E0B', '#10B981'];
 
+export const LIFE_AREAS = [
+  { key: 'health', label: 'Health', color: '#10B981' },
+  { key: 'career', label: 'Career', color: '#00D4FF' },
+  { key: 'finance', label: 'Finance', color: '#F59E0B' },
+  { key: 'relationships', label: 'Relationships', color: '#F43F5E' },
+  { key: 'growth', label: 'Growth', color: '#8B5CF6' },
+  { key: 'wellbeing', label: 'Wellbeing', color: '#39FF14' },
+] as const;
+
 // ─── Hook ───────────────────────────────────────────────────────
 
 export function useWelcomeWizard(userId: string, onComplete: () => void, onSkip?: () => void) {
@@ -49,15 +65,21 @@ export function useWelcomeWizard(userId: string, onComplete: () => void, onSkip?
   const [data, setData] = useState<WizardData>({
     displayName: profile?.display_name || '',
     timezone: profile?.timezone || 'Australia/Melbourne',
+    // V2 fields
+    lifeSnapshot: { health: 5, career: 5, finance: 5, relationships: 5, growth: 5, wellbeing: 5 },
+    topGoals: ['', '', ''],
+    wakeTime: '06:30',
+    dayTemplate: 'custom',
+    // Legacy fields
     selectedModules: [],
     habitTitle: '',
     habitFrequency: 'daily',
     habitCategory: '',
-    habitIcon: '⚡',
+    habitIcon: 'zap',
     goalTitle: '',
     goalDescription: '',
     goalTargetDate: '',
-    goalIcon: '🎯',
+    goalIcon: 'target',
   });
 
   const updateData = useCallback(<K extends keyof WizardData>(key: K, value: WizardData[K]) => {
@@ -109,7 +131,7 @@ export function useWelcomeWizard(userId: string, onComplete: () => void, onSkip?
     setError('');
 
     try {
-      // 1. Update profile: onboarding_complete, display_name, preferences.selected_modules
+      // 1. Update profile: onboarding_complete, display_name, preferences with V2 data
       const existingPrefs = (profile?.preferences || {}) as Record<string, unknown>;
       const profilePayload: Partial<UserProfile> & Record<string, unknown> = {
         onboarding_complete: true,
@@ -118,6 +140,9 @@ export function useWelcomeWizard(userId: string, onComplete: () => void, onSkip?
           ...existingPrefs,
           selected_modules: data.selectedModules,
           timezone: data.timezone,
+          life_snapshot: data.lifeSnapshot,
+          day_template: data.dayTemplate,
+          wake_time: data.wakeTime,
         },
       };
 
@@ -130,49 +155,35 @@ export function useWelcomeWizard(userId: string, onComplete: () => void, onSkip?
         console.warn('[WelcomeWizard] Profile update error:', profileErr);
       }
 
-      // 2. Create first habit (if user filled it in)
-      if (data.habitTitle.trim()) {
-        const habitCreated = await useHabitsStore.getState().createHabit(userId, {
-          title: data.habitTitle.trim(),
-          frequency: data.habitFrequency,
-          category: data.habitCategory || undefined,
-          icon: data.habitIcon,
-          is_active: true,
-          is_deleted: false,
-          source: 'manual',
-          user_id: userId,
-        });
-        if (!habitCreated) {
-          console.warn('[WelcomeWizard] Failed to create first habit');
+      // 2. Create goals from topGoals (up to 3)
+      const validGoals = data.topGoals.filter(g => g.trim().length > 0);
+      for (let i = 0; i < validGoals.length; i++) {
+        const goalText = validGoals[i].trim();
+        const goalColor = GOAL_COLORS[i % GOAL_COLORS.length];
+        try {
+          await useGoalsStore.getState().createGoal({
+            title: goalText,
+            description: '',
+            status: 'active',
+            domain: 'goals',
+            target_date: null,
+            icon: 'target',
+            color: goalColor,
+            sort_order: i,
+            priority: i === 0 ? 'high' : 'medium',
+            is_deleted: false,
+            source: 'manual',
+            user_id: userId,
+          } as Partial<GoalNode>);
+        } catch (err) {
+          console.warn('[WelcomeWizard] Failed to create goal:', goalText, err);
         }
       }
 
-      // 3. Create first goal (if user filled it in)
-      if (data.goalTitle.trim()) {
-        const randomColor = GOAL_COLORS[Math.floor(Math.random() * GOAL_COLORS.length)];
-        const goalId = await useGoalsStore.getState().createGoal({
-          title: data.goalTitle.trim(),
-          description: data.goalDescription.trim() || undefined,
-          status: 'active',
-          domain: data.selectedModules[0] || 'goals',
-          target_date: data.goalTargetDate || null,
-          icon: data.goalIcon,
-          color: randomColor,
-          sort_order: 0,
-          priority: 'medium',
-          is_deleted: false,
-          source: 'manual',
-          user_id: userId,
-        } as Partial<GoalNode>);
-        if (!goalId) {
-          console.warn('[WelcomeWizard] Failed to create first goal');
-        }
-      }
-
-      // 4. Refresh profile in store
+      // 3. Refresh profile in store
       await useUserStore.getState().fetchProfile();
 
-      // 5. Callback
+      // 4. Callback
       onComplete();
     } catch (err) {
       console.error('[WelcomeWizard] Completion error:', err);
@@ -185,9 +196,9 @@ export function useWelcomeWizard(userId: string, onComplete: () => void, onSkip?
   const canProceed = (): boolean => {
     switch (step) {
       case 0: return data.displayName.trim().length > 0;
-      case 1: return data.selectedModules.length >= 2;
-      case 2: return data.habitTitle.trim().length > 0;
-      case 3: return data.goalTitle.trim().length > 0;
+      case 1: return Object.values(data.lifeSnapshot).some(v => v !== 5); // at least one slider moved
+      case 2: return data.topGoals.filter(g => g.trim().length > 0).length >= 1; // at least 1 goal
+      case 3: return data.wakeTime.trim().length > 0; // wake time is set
       case 4: return true;
       default: return false;
     }

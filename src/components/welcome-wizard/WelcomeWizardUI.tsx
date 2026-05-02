@@ -4,17 +4,19 @@
  * Renders: gradient mesh background, star particles, HermeticTransition,
  * StepIndicator, step content with slide animation, nav buttons.
  * All state comes via props from useWelcomeWizard.
+ *
+ * V2: Life Snapshot, Top 3 Goals, Daily Rhythm steps
  */
 
-import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { TOTAL_STEPS } from './useWelcomeWizard';
 import type { WizardData } from './useWelcomeWizard';
 import {
   ProfileStep,
-  ModulesStep,
-  HabitStep,
-  GoalStep,
+  LifeSnapshotStep,
+  TopGoalsStep,
+  DailyRhythmStep,
   SummaryStep,
   btnStyle,
 } from './WelcomeWizardSteps';
@@ -207,9 +209,9 @@ export function WelcomeWizardUI({
 
   const stepRenderers = [
     () => <ProfileStep {...stepProps} />,
-    () => <ModulesStep {...stepProps} />,
-    () => <HabitStep {...stepProps} />,
-    () => <GoalStep {...stepProps} />,
+    () => <LifeSnapshotStep {...stepProps} />,
+    () => <TopGoalsStep {...stepProps} />,
+    () => <DailyRhythmStep {...stepProps} />,
     () => <SummaryStep {...stepProps} submitting={submitting} error={error} onComplete={handleComplete} />,
   ];
 
@@ -244,7 +246,7 @@ export function WelcomeWizardUI({
       <div
         className="login-card"
         style={{
-          maxWidth: step === 1 ? '540px' : '420px', // Wider for module grid
+          maxWidth: step === 1 ? '540px' : step === 3 ? '500px' : '420px',
           transition: 'max-width 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
@@ -255,7 +257,7 @@ export function WelcomeWizardUI({
         <div style={{
           position: 'relative',
           overflow: 'hidden',
-          minHeight: step === 1 ? '340px' : step === 4 ? '380px' : 'auto',
+          minHeight: step === 1 ? '400px' : step === 3 ? '340px' : step === 4 ? '380px' : 'auto',
         }}>
           <div style={{
             transition: transitioning
@@ -333,6 +335,38 @@ export function WelcomeWizardUI({
         @keyframes wizardFadeIn {
           from { opacity: 0; transform: translateY(8px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        /* Range slider styling */
+        input[type="range"]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          background: #00D4FF;
+          cursor: pointer;
+          border: 3px solid #050E1A;
+          box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+          margin-top: -8px;
+        }
+        input[type="range"]::-moz-range-thumb {
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          background: #00D4FF;
+          cursor: pointer;
+          border: 3px solid #050E1A;
+          box-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+          height: 6px;
+          border-radius: 3px;
+          border: none;
+        }
+        input[type="range"]::-moz-range-track {
+          height: 6px;
+          border-radius: 3px;
+          border: none;
         }
       `}</style>
     </div>

@@ -1,16 +1,18 @@
 /**
  * WelcomeWizardSteps — Individual step rendering components
  *
- * Steps: ProfileStep, ModulesStep, HabitStep, GoalStep, SummaryStep
+ * V2 Steps: ProfileStep, LifeSnapshotStep, TopGoalsStep, DailyRhythmStep, SummaryStep
  * All receive wizard data + updateData via props so they stay stateless.
  */
 
 import { type ReactNode } from 'react';
 import {
-  Zap, Target, Heart, DollarSign, Calendar, BookOpen,
-  Sparkles, Check,
+  Zap, Target, Heart, TrendingUp, Sun, Clock,
+  Sparkles, Check, GraduationCap, Briefcase, Shuffle,
+  Paintbrush, Baby, Activity, DollarSign, Users, Leaf,
 } from 'lucide-react';
 import type { WizardData } from './useWelcomeWizard';
+import { LIFE_AREAS } from './useWelcomeWizard';
 
 // ─── Constants ──────────────────────────────────────────────────
 
@@ -41,45 +43,34 @@ const TIMEZONES = [
   'Pacific/Honolulu',
 ];
 
-interface ModuleOption {
-  id: string;
+const LIFE_AREA_ICONS: Record<string, ReactNode> = {
+  health: <Activity size={18} />,
+  career: <Briefcase size={18} />,
+  finance: <DollarSign size={18} />,
+  relationships: <Users size={18} />,
+  growth: <TrendingUp size={18} />,
+  wellbeing: <Leaf size={18} />,
+};
+
+interface DayTemplateOption {
+  id: 'student' | '9-5' | 'shift' | 'freelancer' | 'parent';
   icon: ReactNode;
   title: string;
   description: string;
 }
 
-const MODULES: ModuleOption[] = [
-  { id: 'habits', icon: <Zap size={24} />, title: 'Habits', description: 'Build consistent daily routines' },
-  { id: 'goals', icon: <Target size={24} />, title: 'Goals', description: 'Track and achieve your objectives' },
-  { id: 'health', icon: <Heart size={24} />, title: 'Health', description: 'Monitor wellness and vitals' },
-  { id: 'finances', icon: <DollarSign size={24} />, title: 'Finances', description: 'Manage income, expenses & budgets' },
-  { id: 'schedule', icon: <Calendar size={24} />, title: 'Schedule', description: 'Plan your time with precision' },
-  { id: 'journal', icon: <BookOpen size={24} />, title: 'Journal', description: 'Reflect, write, and grow' },
+const DAY_TEMPLATES: DayTemplateOption[] = [
+  { id: 'student', icon: <GraduationCap size={24} />, title: 'Student', description: 'Classes, study sessions, campus life' },
+  { id: '9-5', icon: <Briefcase size={24} />, title: '9-5 Worker', description: 'Morning commute, office hours, evening wind-down' },
+  { id: 'shift', icon: <Shuffle size={24} />, title: 'Shift Worker', description: 'Rotating shifts, irregular schedule' },
+  { id: 'freelancer', icon: <Paintbrush size={24} />, title: 'Freelancer', description: 'Flexible hours, project-based work' },
+  { id: 'parent', icon: <Baby size={24} />, title: 'Parent', description: 'School runs, family meals, kid activities' },
 ];
 
-const HABIT_QUICK_ADDS = [
-  { label: '🧘 Morning Meditation', title: 'Morning Meditation', icon: '🧘', category: 'mindfulness' },
-  { label: '💪 Exercise', title: 'Exercise', icon: '💪', category: 'fitness' },
-  { label: '📖 Read 30 min', title: 'Read 30 min', icon: '📖', category: 'learning' },
-];
-
-const GOAL_QUICK_ADDS = [
-  { label: '🏋️ Get fit', title: 'Get fit', icon: '🏋️', description: 'Build a consistent fitness routine and improve physical health' },
-  { label: '💰 Save $1000', title: 'Save $1000', icon: '💰', description: 'Build an emergency fund or savings buffer' },
-  { label: '📚 Read 12 books', title: 'Read 12 books', icon: '📚', description: 'Read one book per month for a year' },
-];
-
-const HABIT_CATEGORIES = [
-  { value: '', label: 'Select category' },
-  { value: 'mindfulness', label: '🧘 Mindfulness' },
-  { value: 'fitness', label: '💪 Fitness' },
-  { value: 'learning', label: '📖 Learning' },
-  { value: 'productivity', label: '⚡ Productivity' },
-  { value: 'health', label: '❤️ Health' },
-  { value: 'social', label: '🤝 Social' },
-  { value: 'creativity', label: '🎨 Creativity' },
-  { value: 'finance', label: '💵 Finance' },
-  { value: 'other', label: '✨ Other' },
+const GOAL_PLACEHOLDERS = [
+  'e.g. Get fit and exercise 3x/week',
+  'e.g. Save $5000 emergency fund',
+  'e.g. Learn a new skill or language',
 ];
 
 // ─── Shared Styles ───────────────────────────────────────────────
@@ -230,37 +221,290 @@ export function ProfileStep({ data, updateData, inputFocus, setInputFocus }: Ste
   );
 }
 
-export function ModulesStep({ data, updateData }: StepProps) {
+// ─── Step 1: Life Snapshot (replaces ModulesStep) ───────────────
+
+export function LifeSnapshotStep({ data, updateData }: StepProps) {
+  const handleSliderChange = (key: string, value: number) => {
+    updateData('lifeSnapshot', { ...data.lifeSnapshot, [key]: value });
+  };
+
+  // Build radar chart SVG
+  const cx = 90, cy = 90, r = 70;
+  const numAreas = LIFE_AREAS.length;
+  const angleStep = (2 * Math.PI) / numAreas;
+  const startAngle = -Math.PI / 2; // start from top
+
+  const getPoint = (index: number, value: number) => {
+    const angle = startAngle + index * angleStep;
+    const ratio = value / 10;
+    return {
+      x: cx + r * ratio * Math.cos(angle),
+      y: cy + r * ratio * Math.sin(angle),
+    };
+  };
+
+  const radarPoints = LIFE_AREAS.map((area, i) => {
+    const pt = getPoint(i, data.lifeSnapshot[area.key] ?? 5);
+    return `${pt.x},${pt.y}`;
+  }).join(' ');
+
+  const gridPoints = LIFE_AREAS.map((_, i) => {
+    const pt = getPoint(i, 10);
+    return `${pt.x},${pt.y}`;
+  }).join(' ');
+
+  const axisLines = LIFE_AREAS.map((_, i) => {
+    const endPt = getPoint(i, 10);
+    return `M${cx},${cy} L${endPt.x},${endPt.y}`;
+  }).join(' ');
+
   return (
     <div style={stepContentStyle}>
-      <h1 style={titleStyle}>Your Focus</h1>
-      <p style={subStyle}>Select at least 2 modules to power your LifeOS</p>
+      <h1 style={titleStyle}>Life Snapshot</h1>
+      <p style={subStyle}>Rate each area of your life right now</p>
+
+      {/* Radar chart preview */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        marginBottom: '16px',
+      }}>
+        <svg width="180" height="180" viewBox="0 0 180 180" style={{ overflow: 'visible' }}>
+          {/* Axis lines */}
+          <path d={axisLines} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+          {/* Outer grid polygon */}
+          <polygon points={gridPoints} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+          {/* Inner rings at 33% and 66% */}
+          {[3.3, 6.6].map(ringVal => {
+            const ringPts = LIFE_AREAS.map((_, i) => {
+              const pt = getPoint(i, ringVal);
+              return `${pt.x},${pt.y}`;
+            }).join(' ');
+            return <polygon key={ringVal} points={ringPts} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.5" />;
+          })}
+          {/* Data polygon */}
+          <polygon
+            points={radarPoints}
+            fill="rgba(0, 212, 255, 0.12)"
+            stroke="#00D4FF"
+            strokeWidth="2"
+          />
+          {/* Data points */}
+          {LIFE_AREAS.map((area, i) => {
+            const pt = getPoint(i, data.lifeSnapshot[area.key] ?? 5);
+            return (
+              <circle key={area.key} cx={pt.x} cy={pt.y} r="3.5" fill={area.color} stroke="#050E1A" strokeWidth="1.5" />
+            );
+          })}
+          {/* Area labels */}
+          {LIFE_AREAS.map((area, i) => {
+            const labelR = r + 18;
+            const angle = startAngle + i * angleStep;
+            const lx = cx + labelR * Math.cos(angle);
+            const ly = cy + labelR * Math.sin(angle);
+            return (
+              <text key={area.key} x={lx} y={ly} textAnchor="middle" dominantBaseline="middle"
+                fill={area.color} style={{ fontFamily: 'Poppins, sans-serif', fontSize: '9px', fontWeight: 600 }}>
+                {area.label}
+              </text>
+            );
+          })}
+        </svg>
+      </div>
+
+      {/* Sliders */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {LIFE_AREAS.map((area) => {
+          const value = data.lifeSnapshot[area.key] ?? 5;
+          const percentage = ((value - 1) / 9) * 100;
+          return (
+            <div key={area.key} style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+            }}>
+              <span style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '28px',
+                height: '28px',
+                borderRadius: '8px',
+                background: `${area.color}15`,
+                color: area.color,
+                flexShrink: 0,
+              }}>
+                {LIFE_AREA_ICONS[area.key]}
+              </span>
+              <span style={{
+                fontFamily: 'Poppins, sans-serif',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#8BA4BE',
+                width: '72px',
+                flexShrink: 0,
+              }}>
+                {area.label}
+              </span>
+              <div style={{ flex: 1, position: 'relative' }}>
+                <input
+                  type="range"
+                  min={1}
+                  max={10}
+                  value={value}
+                  onChange={e => handleSliderChange(area.key, Number(e.target.value))}
+                  style={{
+                    width: '100%',
+                    height: '6px',
+                    appearance: 'none' as const,
+                    WebkitAppearance: 'none' as const,
+                    background: `linear-gradient(to right, ${area.color} 0%, ${area.color} ${percentage}%, rgba(255,255,255,0.08) ${percentage}%, rgba(255,255,255,0.08) 100%)`,
+                    borderRadius: '3px',
+                    outline: 'none',
+                    cursor: 'pointer',
+                  }}
+                />
+              </div>
+              <span style={{
+                fontFamily: 'Poppins, sans-serif',
+                fontSize: '14px',
+                fontWeight: 700,
+                color: area.color,
+                width: '24px',
+                textAlign: 'center' as const,
+                flexShrink: 0,
+              }}>
+                {value}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Step 2: Top 3 Goals (replaces HabitStep) ───────────────────
+
+export function TopGoalsStep({ data, updateData, inputFocus, setInputFocus }: StepProps) {
+  const updateGoal = (index: number, value: string) => {
+    const newGoals = [...data.topGoals];
+    newGoals[index] = value;
+    updateData('topGoals', newGoals);
+  };
+
+  const goalIcons = [<Target size={18} color="#00D4FF" />, <Heart size={18} color="#8B5CF6" />, <Zap size={18} color="#39FF14" />];
+
+  return (
+    <div style={stepContentStyle}>
+      <h1 style={titleStyle}>Top 3 Goals</h1>
+      <p style={subStyle}>What do you most want to improve?</p>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '8px' }}>
+        {[0, 1, 2].map((i) => (
+          <div key={i} style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+          }}>
+            <span style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              flexShrink: 0,
+            }}>
+              {goalIcons[i]}
+            </span>
+            <input
+              type="text"
+              placeholder={GOAL_PLACEHOLDERS[i]}
+              value={data.topGoals[i] || ''}
+              onChange={e => updateGoal(i, e.target.value)}
+              onFocus={() => setInputFocus(prev => ({ ...prev, [`goal${i}`]: true }))}
+              onBlur={() => setInputFocus(prev => ({ ...prev, [`goal${i}`]: false }))}
+              style={{
+                ...inputStyle,
+                borderColor: inputFocus[`goal${i}`] ? 'rgba(0, 212, 255, 0.4)' : 'rgba(255, 255, 255, 0.08)',
+                boxShadow: inputFocus[`goal${i}`] ? '0 0 0 3px rgba(0, 212, 255, 0.1)' : 'none',
+                background: inputFocus[`goal${i}`] ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.04)',
+              }}
+              autoFocus={i === 0}
+            />
+          </div>
+        ))}
+      </div>
+
+      <p style={{
+        fontSize: '11px',
+        color: 'rgba(139, 164, 190, 0.6)',
+        textAlign: 'center',
+        marginTop: '12px',
+        fontFamily: 'Poppins, system-ui, sans-serif',
+      }}>
+        AI will enhance these into structured goals after setup
+      </p>
+    </div>
+  );
+}
+
+// ─── Step 3: Daily Rhythm (replaces GoalStep) ───────────────────
+
+export function DailyRhythmStep({ data, updateData }: StepProps) {
+  const handleTemplateSelect = (templateId: 'student' | '9-5' | 'shift' | 'freelancer' | 'parent' | 'custom') => {
+    updateData('dayTemplate', templateId);
+  };
+
+  return (
+    <div style={stepContentStyle}>
+      <h1 style={titleStyle}>Daily Rhythm</h1>
+      <p style={subStyle}>When do you start your day?</p>
+
+      <label style={labelStyle} htmlFor="wiz-waketime">Wake Time</label>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        marginBottom: '20px',
+      }}>
+        <Sun size={18} color="#F59E0B" style={{ flexShrink: 0 }} />
+        <input
+          id="wiz-waketime"
+          type="time"
+          value={data.wakeTime}
+          onChange={e => updateData('wakeTime', e.target.value)}
+          style={{
+            ...inputStyle,
+            colorScheme: 'dark',
+            flex: 1,
+          }}
+        />
+      </div>
+
+      <p style={{ ...subStyle, marginBottom: '12px' }}>What does a typical day look like?</p>
 
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-        gap: '12px',
-        marginTop: '20px',
-        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
       }}>
-        {MODULES.map(mod => {
-          const selected = data.selectedModules.includes(mod.id);
+        {DAY_TEMPLATES.map((template) => {
+          const selected = data.dayTemplate === template.id;
           return (
             <button
-              key={mod.id}
-              onClick={() => {
-                const modules = selected
-                  ? data.selectedModules.filter(m => m !== mod.id)
-                  : [...data.selectedModules, mod.id];
-                updateData('selectedModules', modules);
-              }}
+              key={template.id}
+              type="button"
+              onClick={() => handleTemplateSelect(template.id)}
               style={{
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
-                gap: '8px',
-                padding: '20px 12px',
-                borderRadius: '14px',
+                gap: '12px',
+                padding: '12px 14px',
+                borderRadius: '12px',
                 border: selected
                   ? '1.5px solid rgba(0, 212, 255, 0.5)'
                   : '1px solid rgba(255, 255, 255, 0.08)',
@@ -269,13 +513,10 @@ export function ModulesStep({ data, updateData }: StepProps) {
                   : 'rgba(255, 255, 255, 0.03)',
                 cursor: 'pointer',
                 transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                transform: selected ? 'scale(1.02)' : 'scale(1)',
-                boxShadow: selected
-                  ? '0 0 24px rgba(0, 212, 255, 0.12), 0 0 8px rgba(0, 212, 255, 0.08)'
-                  : 'none',
                 position: 'relative' as const,
+                minWidth: '44px',
+                minHeight: '44px',
               }}
-              type="button"
             >
               {selected && (
                 <div style={{
@@ -295,31 +536,39 @@ export function ModulesStep({ data, updateData }: StepProps) {
                 </div>
               )}
               <span style={{
-                color: selected ? '#00D4FF' : '#8BA4BE',
-                transition: 'color 0.25s',
                 display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                background: selected ? 'rgba(0, 212, 255, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                color: selected ? '#00D4FF' : '#8BA4BE',
+                flexShrink: 0,
+                transition: 'all 0.25s',
               }}>
-                {mod.icon}
+                {template.icon}
               </span>
-              <span style={{
-                fontFamily: 'Poppins, system-ui, sans-serif',
-                fontSize: '13px',
-                fontWeight: 600,
-                color: selected ? '#fff' : '#8BA4BE',
-                transition: 'color 0.25s',
-              }}>
-                {mod.title}
-              </span>
-              <span style={{
-                fontFamily: 'Poppins, system-ui, sans-serif',
-                fontSize: '10px',
-                color: '#8BA4BE',
-                textAlign: 'center',
-                lineHeight: 1.3,
-                opacity: 0.7,
-              }}>
-                {mod.description}
-              </span>
+              <div style={{ textAlign: 'left' }}>
+                <span style={{
+                  fontFamily: 'Poppins, system-ui, sans-serif',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: selected ? '#fff' : '#8BA4BE',
+                  display: 'block',
+                  transition: 'color 0.25s',
+                }}>
+                  {template.title}
+                </span>
+                <span style={{
+                  fontFamily: 'Poppins, system-ui, sans-serif',
+                  fontSize: '10px',
+                  color: '#8BA4BE',
+                  opacity: 0.7,
+                }}>
+                  {template.description}
+                </span>
+              </div>
             </button>
           );
         })}
@@ -328,191 +577,7 @@ export function ModulesStep({ data, updateData }: StepProps) {
   );
 }
 
-export function HabitStep({ data, updateData, inputFocus, setInputFocus }: StepProps) {
-  return (
-    <div style={stepContentStyle}>
-      <h1 style={titleStyle}>First Habit</h1>
-      <p style={subStyle}>Start building momentum with one daily practice</p>
-
-      {/* Quick-add buttons */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
-        {HABIT_QUICK_ADDS.map(ha => (
-          <button
-            key={ha.title}
-            type="button"
-            onClick={() => {
-              updateData('habitTitle', ha.title);
-              updateData('habitCategory', ha.category);
-              updateData('habitIcon', ha.icon);
-            }}
-            style={{
-              padding: '8px 14px',
-              borderRadius: '10px',
-              border: data.habitTitle === ha.title
-                ? '1px solid rgba(0, 212, 255, 0.5)'
-                : '1px solid rgba(255, 255, 255, 0.08)',
-              background: data.habitTitle === ha.title
-                ? 'rgba(0, 212, 255, 0.1)'
-                : 'rgba(255, 255, 255, 0.03)',
-              color: data.habitTitle === ha.title ? '#00D4FF' : '#8BA4BE',
-              fontFamily: 'Poppins, system-ui, sans-serif',
-              fontSize: '12px',
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              whiteSpace: 'nowrap' as const,
-            }}
-          >
-            {ha.label}
-          </button>
-        ))}
-      </div>
-
-      <label style={labelStyle} htmlFor="wiz-habit-title">Habit Title</label>
-      <input
-        id="wiz-habit-title"
-        type="text"
-        placeholder="e.g. Morning walk, Journal, Meditate..."
-        value={data.habitTitle}
-        onChange={e => updateData('habitTitle', e.target.value)}
-        onFocus={() => setInputFocus(prev => ({ ...prev, habit: true }))}
-        onBlur={() => setInputFocus(prev => ({ ...prev, habit: false }))}
-        style={{
-          ...inputStyle,
-          borderColor: inputFocus.habit ? 'rgba(0, 212, 255, 0.4)' : 'rgba(255, 255, 255, 0.08)',
-          boxShadow: inputFocus.habit ? '0 0 0 3px rgba(0, 212, 255, 0.1)' : 'none',
-          background: inputFocus.habit ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.04)',
-        }}
-        autoFocus
-      />
-
-      <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-        <div style={{ flex: 1 }}>
-          <label style={labelStyle} htmlFor="wiz-habit-freq">Frequency</label>
-          <select
-            id="wiz-habit-freq"
-            value={data.habitFrequency}
-            onChange={e => updateData('habitFrequency', e.target.value as WizardData['habitFrequency'])}
-            style={selectStyle}
-          >
-            <option value="daily" style={{ background: '#111827', color: '#fff' }}>Daily</option>
-            <option value="weekly" style={{ background: '#111827', color: '#fff' }}>Weekly</option>
-            <option value="monthly" style={{ background: '#111827', color: '#fff' }}>Monthly</option>
-          </select>
-        </div>
-        <div style={{ flex: 1 }}>
-          <label style={labelStyle} htmlFor="wiz-habit-cat">Category</label>
-          <select
-            id="wiz-habit-cat"
-            value={data.habitCategory}
-            onChange={e => updateData('habitCategory', e.target.value)}
-            style={selectStyle}
-          >
-            {HABIT_CATEGORIES.map(cat => (
-              <option key={cat.value} value={cat.value} style={{ background: '#111827', color: '#fff' }}>
-                {cat.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function GoalStep({ data, updateData, inputFocus, setInputFocus }: StepProps) {
-  // Default target date: 90 days from now
-  const defaultDate = new Date();
-  defaultDate.setDate(defaultDate.getDate() + 90);
-
-  return (
-    <div style={stepContentStyle}>
-      <h1 style={titleStyle}>First Goal</h1>
-      <p style={subStyle}>Set a direction — every journey needs a destination</p>
-
-      {/* Quick-add buttons */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
-        {GOAL_QUICK_ADDS.map(ga => (
-          <button
-            key={ga.title}
-            type="button"
-            onClick={() => {
-              updateData('goalTitle', ga.title);
-              updateData('goalDescription', ga.description);
-              updateData('goalIcon', ga.icon);
-              if (!data.goalTargetDate) {
-                updateData('goalTargetDate', defaultDate.toISOString().split('T')[0]);
-              }
-            }}
-            style={{
-              padding: '8px 14px',
-              borderRadius: '10px',
-              border: data.goalTitle === ga.title
-                ? '1px solid rgba(0, 212, 255, 0.5)'
-                : '1px solid rgba(255, 255, 255, 0.08)',
-              background: data.goalTitle === ga.title
-                ? 'rgba(0, 212, 255, 0.1)'
-                : 'rgba(255, 255, 255, 0.03)',
-              color: data.goalTitle === ga.title ? '#00D4FF' : '#8BA4BE',
-              fontFamily: 'Poppins, system-ui, sans-serif',
-              fontSize: '12px',
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              whiteSpace: 'nowrap' as const,
-            }}
-          >
-            {ga.label}
-          </button>
-        ))}
-      </div>
-
-      <label style={labelStyle} htmlFor="wiz-goal-title">Goal Title</label>
-      <input
-        id="wiz-goal-title"
-        type="text"
-        placeholder="e.g. Run a marathon, Learn piano..."
-        value={data.goalTitle}
-        onChange={e => updateData('goalTitle', e.target.value)}
-        onFocus={() => setInputFocus(prev => ({ ...prev, goal: true }))}
-        onBlur={() => setInputFocus(prev => ({ ...prev, goal: false }))}
-        style={{
-          ...inputStyle,
-          borderColor: inputFocus.goal ? 'rgba(0, 212, 255, 0.4)' : 'rgba(255, 255, 255, 0.08)',
-          boxShadow: inputFocus.goal ? '0 0 0 3px rgba(0, 212, 255, 0.1)' : 'none',
-          background: inputFocus.goal ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.04)',
-        }}
-        autoFocus
-      />
-
-      <label style={{ ...labelStyle, marginTop: '16px' }} htmlFor="wiz-goal-desc">Description (optional)</label>
-      <textarea
-        id="wiz-goal-desc"
-        placeholder="What does success look like?"
-        value={data.goalDescription}
-        onChange={e => updateData('goalDescription', e.target.value)}
-        rows={2}
-        style={{
-          ...inputStyle,
-          resize: 'vertical' as const,
-          minHeight: '72px',
-        }}
-      />
-
-      <label style={{ ...labelStyle, marginTop: '16px' }} htmlFor="wiz-goal-date">Target Date</label>
-      <input
-        id="wiz-goal-date"
-        type="date"
-        value={data.goalTargetDate}
-        onChange={e => updateData('goalTargetDate', e.target.value)}
-        style={{
-          ...inputStyle,
-          colorScheme: 'dark',
-        }}
-      />
-    </div>
-  );
-}
+// ─── Step 4: Summary (updated for V2) ───────────────────────────
 
 interface SummaryStepProps extends StepProps {
   submitting: boolean;
@@ -521,15 +586,51 @@ interface SummaryStepProps extends StepProps {
 }
 
 export function SummaryStep({ data, updateData, submitting, error, onComplete }: SummaryStepProps) {
-  // Re-use MODULES for display
-  const moduleTitles = [
-    { id: 'habits', title: 'Habits' },
-    { id: 'goals', title: 'Goals' },
-    { id: 'health', title: 'Health' },
-    { id: 'finances', title: 'Finances' },
-    { id: 'schedule', title: 'Schedule' },
-    { id: 'journal', title: 'Journal' },
-  ];
+  // Build radar chart for summary
+  const cx = 80, cy = 80, r = 62;
+  const numAreas = LIFE_AREAS.length;
+  const angleStep = (2 * Math.PI) / numAreas;
+  const startAngle = -Math.PI / 2;
+
+  const getPoint = (index: number, value: number) => {
+    const angle = startAngle + index * angleStep;
+    const ratio = value / 10;
+    return {
+      x: cx + r * ratio * Math.cos(angle),
+      y: cy + r * ratio * Math.sin(angle),
+    };
+  };
+
+  const radarPoints = LIFE_AREAS.map((area, i) => {
+    const pt = getPoint(i, data.lifeSnapshot[area.key] ?? 5);
+    return `${pt.x},${pt.y}`;
+  }).join(' ');
+
+  const gridPoints = LIFE_AREAS.map((_, i) => {
+    const pt = getPoint(i, 10);
+    return `${pt.x},${pt.y}`;
+  }).join(' ');
+
+  const axisLines = LIFE_AREAS.map((_, i) => {
+    const endPt = getPoint(i, 10);
+    return `M${cx},${cy} L${endPt.x},${endPt.y}`;
+  }).join(' ');
+
+  // Day template display
+  const dayTemplateLabel = data.dayTemplate === '9-5' ? '9-5 Worker'
+    : data.dayTemplate === 'custom' ? 'Custom'
+    : data.dayTemplate.charAt(0).toUpperCase() + data.dayTemplate.slice(1);
+
+  // Format wake time for display
+  const formatTime = (time: string) => {
+    if (!time) return '';
+    const [h, m] = time.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+  };
+
+  const validGoals = data.topGoals.filter(g => g.trim().length > 0);
 
   return (
     <div style={{ ...stepContentStyle, textAlign: 'center' as const }}>
@@ -549,60 +650,67 @@ export function SummaryStep({ data, updateData, submitting, error, onComplete }:
       </div>
 
       <h1 style={{ ...titleStyle, fontSize: '24px' }}>Your LifeOS is Ready!</h1>
-      <p style={subStyle}>Here&apos;s what we&apos;ve set up for you:</p>
+      <p style={subStyle}>Here&apos;s your setup summary:</p>
 
       <div style={{
         background: 'rgba(255, 255, 255, 0.03)',
         border: '1px solid rgba(255, 255, 255, 0.06)',
         borderRadius: '14px',
-        padding: '20px',
-        margin: '20px 0',
+        padding: '16px',
+        margin: '16px 0',
         textAlign: 'left',
       }}>
-        {/* Profile summary */}
+        {/* Profile */}
         <div style={summaryRowStyle}>
-          <span style={summaryIconStyle}>👤</span>
+          <span style={summaryIconStyle}><Zap size={16} color="#00D4FF" /></span>
           <span style={summaryTextStyle}>
             <strong style={{ color: '#fff' }}>{data.displayName || 'Commander'}</strong>
             <span style={{ color: '#8BA4BE', marginLeft: '6px' }}>· {data.timezone}</span>
           </span>
         </div>
 
-        {/* Modules */}
-        <div style={summaryRowStyle}>
-          <span style={summaryIconStyle}>⚡</span>
-          <span style={summaryTextStyle}>
-            {data.selectedModules.length > 0
-              ? data.selectedModules.map(m =>
-                  moduleTitles.find(mod => mod.id === m)?.title || m
-                ).join(', ')
-              : 'No modules selected'}
-          </span>
+        {/* Life Snapshot mini radar */}
+        <div style={{ ...summaryRowStyle, justifyContent: 'center', padding: '8px 0' }}>
+          <svg width="160" height="160" viewBox="0 0 160 160" style={{ overflow: 'visible' }}>
+            <path d={axisLines} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+            <polygon points={gridPoints} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+            <polygon
+              points={radarPoints}
+              fill="rgba(0, 212, 255, 0.12)"
+              stroke="#00D4FF"
+              strokeWidth="2"
+            />
+            {LIFE_AREAS.map((area, i) => {
+              const pt = getPoint(i, data.lifeSnapshot[area.key] ?? 5);
+              return (
+                <g key={area.key}>
+                  <circle cx={pt.x} cy={pt.y} r="3" fill={area.color} stroke="#050E1A" strokeWidth="1.5" />
+                  {/* Label abbreviated for summary */}
+                </g>
+              );
+            })}
+          </svg>
         </div>
 
-        {/* Habit */}
-        {data.habitTitle && (
+        {/* Top Goals */}
+        {validGoals.length > 0 && (
           <div style={summaryRowStyle}>
-            <span style={summaryIconStyle}>{data.habitIcon}</span>
+            <span style={summaryIconStyle}><Target size={16} color="#8B5CF6" /></span>
             <span style={summaryTextStyle}>
-              <strong style={{ color: '#fff' }}>{data.habitTitle}</strong>
-              <span style={{ color: '#8BA4BE', marginLeft: '6px' }}>· {data.habitFrequency}</span>
+              <strong style={{ color: '#fff' }}>Goals: </strong>
+              {validGoals.join(', ')}
             </span>
           </div>
         )}
 
-        {/* Goal */}
-        {data.goalTitle && (
-          <div style={summaryRowStyle}>
-            <span style={summaryIconStyle}>{data.goalIcon}</span>
-            <span style={summaryTextStyle}>
-              <strong style={{ color: '#fff' }}>{data.goalTitle}</strong>
-              {data.goalTargetDate && (
-                <span style={{ color: '#8BA4BE', marginLeft: '6px' }}>· by {data.goalTargetDate}</span>
-              )}
-            </span>
-          </div>
-        )}
+        {/* Daily Rhythm */}
+        <div style={summaryRowStyle}>
+          <span style={summaryIconStyle}><Clock size={16} color="#F59E0B" /></span>
+          <span style={summaryTextStyle}>
+            <strong style={{ color: '#fff' }}>Wake: {formatTime(data.wakeTime)}</strong>
+            <span style={{ color: '#8BA4BE', marginLeft: '6px' }}>· {dayTemplateLabel}</span>
+          </span>
+        </div>
       </div>
 
       {error && (
@@ -650,7 +758,7 @@ export function SummaryStep({ data, updateData, submitting, error, onComplete }:
           transition: 'opacity 0.2s',
         }}
       >
-        ✨ Enter the Realm — RPG Onboarding
+        Enter the Realm — RPG Onboarding
       </a>
     </div>
   );
