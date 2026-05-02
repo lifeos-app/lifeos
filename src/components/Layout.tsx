@@ -17,6 +17,8 @@ import { OverlayPortal } from './OverlayPortal';
 import { FeatureErrorBoundary } from './FeatureErrorBoundary';
 import { SmartNotificationToast } from './SmartNotificationToast';
 import { useNotifications } from '../hooks/useNotifications';
+import { useChurnPrevention } from '../hooks/useChurnPrevention';
+import { ReengagementModal } from './ReengagementModal';
 import './Layout.css';
 
 // Lazy load heavy overlay/modal components — not needed on initial render
@@ -41,6 +43,7 @@ function LayoutInner() {
   });
   const location = useLocation();
   const { highPriorityNotifications, dismiss } = useNotifications();
+  const { churnSignal, dismissChurn } = useChurnPrevention();
 
   // ResizeObserver: auto-collapse/expand sidebar if user hasn't set a preference
   useEffect(() => {
@@ -163,6 +166,14 @@ function LayoutInner() {
         </FeatureErrorBoundary>
       </Suspense>
     </OverlayPortal>
+
+    {/* Churn Prevention — re-engagement modal for returning users */}
+    {churnSignal && (
+      <ReengagementModal
+        signal={churnSignal}
+        onDismiss={dismissChurn}
+      />
+    )}
     </>
   );
 }

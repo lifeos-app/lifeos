@@ -1,7 +1,7 @@
 {
   "name": "lifeos-app",
   "private": true,
-  "version": "1.19.80",
+  "version": "1.19.81",
   "description": "LifeOS \u2014 Personal life operating system by Teddy's Cleaning Systems",
   "author": "Tewedros Gebrewubet <tewedros@teddyscleaning.com.au>",
   "type": "module",

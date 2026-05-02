@@ -34,7 +34,8 @@ export type SuggestionType =
   | 'predictive_schedule'
   | 'streak_shield_available'
   | 'evening_review'
-  | 'ambient';
+  | 'ambient'
+  | 'churn_warning';
 
 export interface ProactiveSuggestion {
   id: string;
@@ -643,6 +644,9 @@ function extractIdentifier(suggestion: ProactiveSuggestion): string {
   }
   if (suggestion.type === 'ambient') {
     return (data.location_context as string) || 'unknown';
+  }
+  if (suggestion.type === 'churn_warning') {
+    return (data.churn_level as string) || 'global';
   }
   // Fallback to id
   return suggestion.id;
