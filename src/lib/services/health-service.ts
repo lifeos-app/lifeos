@@ -33,6 +33,18 @@ export const HealthService = {
   logSleep(hours: number): Promise<void> {
     return upsertToday({ sleep_hours: hours });
   },
+  logWater(glasses: number): Promise<void> {
+    return upsertToday({ water_glasses: glasses });
+  },
+  logStress(score: number): Promise<void> {
+    return upsertToday({ stress_score: score });
+  },
+  logWeight(kg: number): Promise<void> {
+    return upsertToday({ weight_kg: kg });
+  },
+  logEnergy(score: number): Promise<void> {
+    return upsertToday({ energy_score: score });
+  },
   stats() {
     const m = useHealthStore.getState().todayMetrics;
     return {

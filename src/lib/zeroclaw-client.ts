@@ -641,9 +641,7 @@ export async function agentExecuteAction(userId: string, action: AgentAction): P
       }
 
       case 'log_mood': {
-        const { supabase } = await import('./supabase');
-        const { localDateStr } = await import('../utils/date');
-        const mood = String(action.payload.mood || 'neutral');
+        const { HealthService } = await import('./services/health-service');
         const moodMap: Record<string, number> = {
           great: 5,
           good: 4,
@@ -654,56 +652,44 @@ export async function agentExecuteAction(userId: string, action: AgentAction): P
           tired: 2,
           stressed: 2
         };
+        const mood = String(action.payload.mood || 'neutral');
         const moodScore = moodMap[mood] || 3;
-        const today = localDateStr();
-        const { error } = await supabase.from('health_metrics').upsert(
-          {
-            user_id: userId,
-            date: today,
-            mood_score: moodScore,
-            notes: action.payload.notes || undefined
-          },
-          { onConflict: 'user_id,date' }
-        );
-        if (error) return { success: false, message: `Failed to log mood: ${error.message}` };
+        await HealthService.logMood(moodScore);
+        if (action.payload.notes) {
+          const { localUpdate, localQuery } = await import('./local-db');
+          const { localDateStr } = await import('../utils/date');
+          const rows = await localQuery('health_metrics', 'date', localDateStr());
+          if (rows.length > 0) {
+            await localUpdate('health_metrics', rows[0].id, { notes: String(action.payload.notes) });
+          }
+        }
         window.dispatchEvent(new Event('lifeos-refresh'));
         return { success: true, message: `Logged mood: ${mood}` };
       }
 
       case 'log_health': {
-        const { supabase } = await import('./supabase');
-        const { localDateStr } = await import('../utils/date');
+        const { HealthService } = await import('./services/health-service');
         const metric = String(action.payload.metric || '');
         const value = Number(action.payload.value || 0);
-        const metricMap: Record<string, string> = {
-          energy: 'energy_score',
-          water: 'water_glasses',
-          sleep: 'sleep_hours',
-          stress: 'stress_score',
-          weight: 'weight_kg',
-          exercise: 'exercise_minutes',
-          mood: 'mood_score'
+        const metricActions: Record<string, () => Promise<void>> = {
+          energy: () => HealthService.logEnergy(value),
+          water: () => HealthService.logWater(value),
+          sleep: () => HealthService.logSleep(value),
+          stress: () => HealthService.logStress(value),
+          weight: () => HealthService.logWeight(value),
+          exercise: () => HealthService.logExercise(value),
+          mood: () => HealthService.logMood(value),
         };
-        const column = metricMap[metric];
-        if (!column) return { success: false, message: `Unknown health metric: ${metric}` };
-        const today = localDateStr();
-        const { error } = await supabase.from('health_metrics').upsert(
-          {
-            user_id: userId,
-            date: today,
-            [column]: value
-          },
-          { onConflict: 'user_id,date' }
-        );
-        if (error) return { success: false, message: `Failed to log health: ${error.message}` };
+        const action_fn = metricActions[metric];
+        if (!action_fn) return { success: false, message: `Unknown health metric: ${metric}` };
+        await action_fn();
         window.dispatchEvent(new Event('lifeos-refresh'));
         return { success: true, message: `Logged ${metric}: ${value}` };
       }
 
       case 'quick_journal': {
-        const { supabase } = await import('./supabase');
         const { localInsert } = await import('./local-db');
-        const { localDateStr } = await import('../utils/date');
+        const { genId, localDateStr } = await import('../utils/date');
         const entry = String(action.payload.entry || '');
         const mood = String(action.payload.mood || '');
         const moodMap: Record<string, number> = {
@@ -718,7 +704,8 @@ export async function agentExecuteAction(userId: string, action: AgentAction): P
         };
         const moodScore = mood ? (moodMap[mood] || null) : null;
         const today = localDateStr();
-        const journalEntry = {
+        await localInsert('journal_entries', {
+          id: genId(),
           user_id: userId,
           date: today,
           title: 'Quick Journal',
@@ -726,11 +713,9 @@ export async function agentExecuteAction(userId: string, action: AgentAction): P
           mood: moodScore,
           energy: null,
           tags: '',
-          is_deleted: false
-        };
-        const { data, error } = await supabase.from('journal_entries').insert(journalEntry).select().single();
-        if (error) return { success: false, message: `Failed to save journal: ${error.message}` };
-        if (data) await localInsert('journal_entries', { ...data, synced: true });
+          is_deleted: false,
+          synced: false,
+        });
         window.dispatchEvent(new Event('lifeos-refresh'));
         return { success: true, message: 'Journal entry saved.' };
       }
