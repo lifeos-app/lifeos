@@ -147,6 +147,11 @@
   cursor: pointer;
   transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
   box-shadow: 0 2px 12px rgba(255, 215, 0, 0.25);
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .daily-reward-claim-btn:hover {
