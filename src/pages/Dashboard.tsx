@@ -77,6 +77,7 @@ import {
   DashboardCorrelations,
   DashboardJunctionRecommender,
   DashboardTemporalPlayback,
+  DashboardGodMode,
 } from '../components/dashboard';
 import { ProactiveSuggestions } from '../components/dashboard/ProactiveSuggestions';
 import { HolyHermesOracle } from '../components/HolyHermesOracle';
@@ -534,6 +535,11 @@ export function Dashboard() {
               {isWidgetVisible('schedule-insights') && (
                 <FeatureErrorBoundary feature="Schedule Insights" compact>
                   <DashboardScheduleInsights />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('god-mode') && (
+                <FeatureErrorBoundary feature="God Mode" compact>
+                  <DashboardGodMode snapshots={temporalSnapshots} />
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('smart-schedule') && (

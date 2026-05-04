@@ -72,6 +72,9 @@ const W = {
   eveningReview:    'evening-review',
   worldAwareness:  'world-awareness',
   smartSchedule: 'smart-schedule',
+
+  // God mode — unified visualization
+  godMode:          'god-mode',
 } as const;
 
 type WidgetId = typeof W[keyof typeof W];
@@ -92,6 +95,7 @@ const MORNING_WIDGETS: ModeWidgetConfig[] = [
   { id: W.scheduleInsights, priority: 6,  collapsed: false },  // Schedule suggestions
   { id: W.smartSchedule,   priority: 6,  collapsed: false },  // Smart auto-schedule
   { id: W.habits,          priority: 5,  collapsed: false },  // Habit check-in
+  { id: W.godMode,         priority: 4,  collapsed: false },  // God Mode unified view
   { id: W.streakMomentum,  priority: 4,  collapsed: true },
   { id: W.holyHermes,      priority: 3,  collapsed: true },
   { id: W.quickActions,    priority: 2,  collapsed: true },
@@ -114,6 +118,7 @@ const ACTIVE_WIDGETS: ModeWidgetConfig[] = [
   { id: W.habits,          priority: 6,  collapsed: false },  // Habit progress
   { id: W.sleepProductivity, priority: 5,  collapsed: false },  // Sleep-productivity insights (active=5)
   { id: W.dailyProgress,   priority: 5,  collapsed: false },  // Goal progress
+  { id: W.godMode,         priority: 4,  collapsed: false },  // God Mode unified view
   { id: W.sleepQuickLog,   priority: 4,  collapsed: true },  // Sleep summary (collapsed)
   { id: W.morningBrief,    priority: 3,  collapsed: true },
   { id: W.streakMomentum,  priority: 2,  collapsed: true },
@@ -186,7 +191,7 @@ export function getHermeticBoost(widgetId: string): number {
   // Map each principle to the widget it governs
   const PRINCIPLE_WIDGET_BOOST: Record<string, string[]> = {
     mentalism:    [W.sageOracle, W.holyHermes, W.journal],
-    correspondence: [W.celestial, W.weeklyInsight, W.lifePulse, W.worldAwareness],
+    correspondence: [W.celestial, W.weeklyInsight, W.lifePulse, W.worldAwareness, W.godMode],
     vibration:   [W.streakMomentum, W.habits, W.health],
     polarity:    [W.health, W.financialPulse, W.proactiveSuggest],
     rhythm:      [W.schedule, W.scheduleInsights, W.sleepQuickLog, W.sleepProductivity],

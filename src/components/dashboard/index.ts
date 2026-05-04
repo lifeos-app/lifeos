@@ -41,3 +41,4 @@ export { DashboardCorrelations } from './DashboardCorrelations';
 export { DashboardJunctionRecommender } from './DashboardJunctionRecommender';
 export { DashboardTemporalPlayback } from './DashboardTemporalPlayback';
 export type { DaySnapshot } from './DashboardTemporalPlayback';
+export { DashboardGodMode } from './DashboardGodMode';
