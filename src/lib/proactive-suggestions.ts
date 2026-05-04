@@ -35,7 +35,8 @@ export type SuggestionType =
   | 'streak_shield_available'
   | 'evening_review'
   | 'ambient'
-  | 'churn_warning';
+  | 'churn_warning'
+  | 'smart_schedule_auto';
 
 export interface ProactiveSuggestion {
   id: string;
@@ -594,6 +595,63 @@ function generateEveningReview(input: SuggestionInput): ProactiveSuggestion[] {
 // ── Main Entry ────────────────────────────────────────────────────────
 
 /**
+ * Smart Schedule Auto: Detect overdue/unscheduled tasks and suggest
+ * auto-scheduling them. When accepted, triggers the smart scheduler
+ * and auto-applies all non-conflict slots.
+ */
+function generateSmartScheduleAuto(input: SuggestionInput): ProactiveSuggestion[] {
+  const key = cooldownKey('smart_schedule_auto', 'global');
+  if (isInCooldown(key)) return [];
+
+  // Count overdue tasks
+  const today = todayStr();
+  const overdueTasks = input.tasks.filter(t => {
+    if (t.is_deleted || t.status === 'done' || t.status === 'completed') return false;
+    return t.due_date && t.due_date < today;
+  });
+
+  // Count unscheduled tasks (no due_date and no suggested_week, and no scheduled_start)
+  const unscheduledTasks = input.tasks.filter(t => {
+    if (t.is_deleted || t.status === 'done' || t.status === 'completed') return false;
+    return !t.due_date && !t.suggested_week && !t.scheduled_start;
+  });
+
+  const totalActionable = overdueTasks.length + unscheduledTasks.length;
+  if (totalActionable === 0) return [];
+
+  // Only suggest if there are at least 2 tasks, or any overdue
+  if (overdueTasks.length === 0 && totalActionable < 2) return [];
+
+  const overduePart = overdueTasks.length > 0 ? `${overdueTasks.length} overdue` : '';
+  const unscheduledPart = unscheduledTasks.length > 0 ? `${unscheduledTasks.length} unscheduled` : '';
+  const parts = [overduePart, unscheduledPart].filter(Boolean).join(' and ');
+
+  return [{
+    id: genId(),
+    type: 'smart_schedule_auto' as SuggestionType,
+    priority: 2,
+    title: `Smart Schedule: ${totalActionable} task${totalActionable !== 1 ? 's' : ''} need scheduling`,
+    message: `You have ${parts} task${totalActionable !== 1 ? 's' : ''}. Auto-schedule will find optimal time slots and create calendar events for you.`,
+    action: {
+      label: 'Auto-Schedule',
+      intent: {
+        type: 'smart_schedule_auto',
+        data: {
+          user_id: input.userId,
+          overdue_count: overdueTasks.length,
+          unscheduled_count: unscheduledTasks.length,
+          total_count: totalActionable,
+        },
+        summary: `Auto-schedule ${totalActionable} task${totalActionable !== 1 ? 's' : ''}`,
+        confidence: 0.85,
+      },
+    },
+    dismissed: false,
+    timestamp: now().toISOString(),
+  }];
+}
+
+/**
  * Generate proactive suggestions from current store data.
  * Respects rate limits: max 3 suggestions, no repeats within 4h.
  * Sorted by priority (1 = highest).
@@ -609,6 +667,7 @@ export function generateProactiveSuggestions(input: SuggestionInput): ProactiveS
     ...generatePredictiveSchedule(input),
     ...generateStreakShieldAvailable(input),
     ...generateEveningReview(input),
+    ...generateSmartScheduleAuto(input),
   ];
 
   // Sort by priority (1 = highest) and limit
@@ -641,6 +700,9 @@ function extractIdentifier(suggestion: ProactiveSuggestion): string {
   if (suggestion.type === 'predictive_schedule') {
     const slotType = data.slot_type as string;
     return slotType || 'global';
+  }
+  if (suggestion.type === 'smart_schedule_auto') {
+    return 'global';
   }
   if (suggestion.type === 'ambient') {
     return (data.location_context as string) || 'unknown';

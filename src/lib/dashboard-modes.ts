@@ -71,6 +71,7 @@ const W = {
   dailyReward:      'daily-reward',
   eveningReview:    'evening-review',
   worldAwareness:  'world-awareness',
+  smartSchedule: 'smart-schedule',
 } as const;
 
 type WidgetId = typeof W[keyof typeof W];
@@ -89,6 +90,7 @@ const MORNING_WIDGETS: ModeWidgetConfig[] = [
   { id: W.triage,          priority: 7,  collapsed: false },  // Priority tasks
   { id: W.morningBrief,    priority: 6,  collapsed: false },  // Morning journal prompt
   { id: W.scheduleInsights, priority: 6,  collapsed: false },  // Schedule suggestions
+  { id: W.smartSchedule,   priority: 6,  collapsed: false },  // Smart auto-schedule
   { id: W.habits,          priority: 5,  collapsed: false },  // Habit check-in
   { id: W.streakMomentum,  priority: 4,  collapsed: true },
   { id: W.holyHermes,      priority: 3,  collapsed: true },
@@ -104,6 +106,7 @@ const ACTIVE_WIDGETS: ModeWidgetConfig[] = [
   { id: W.dailyReward,    priority: 5,  collapsed: false },  // Daily login reward (lower mid-day)
   { id: W.financialPulse,  priority: 9,  collapsed: false },  // Financial pulse
   { id: W.scheduleInsights, priority: 8,  collapsed: false },  // Schedule suggestions
+  { id: W.smartSchedule,   priority: 5,  collapsed: false },  // Smart auto-schedule
   { id: W.quickActions,    priority: 8,  collapsed: false },  // Quick actions
   { id: W.ambientSuggest,  priority: 8,  collapsed: false },  // Ambient suggestions (active=priority 8)
   { id: W.proactiveSuggest, priority: 7,  collapsed: false },  // Proactive AI suggestions

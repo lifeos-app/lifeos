@@ -21,7 +21,18 @@ import type {
   LearnerProfile,
   WizardInput,
   CurriculumLesson,
+  ReviewEntry,
 } from '../types/academy';
+import {
+  scheduleCard,
+  getDueCards,
+  formatInterval,
+  INITIAL_EASE,
+  LEARNING_STEPS,
+  type SRSCard,
+  type Rating,
+  type SchedulingOutcome,
+} from '../lib/srs-engine';
 
 // ── Types ──
 
@@ -42,6 +53,10 @@ interface AcademyStore2Actions {
   getGoalById: (id: string) => LearningGoal | undefined;
   getCompletedLessonIds: (goalId: string) => string[];
   getTodaysLesson: (date: string) => { goal: LearningGoal; lesson: CurriculumLesson } | null;
+  // SRS-driven review methods
+  getCardsDueForReview: (goalId: string) => CurriculumLesson[];
+  rateLesson: (goalId: string, lessonId: string, rating: Rating) => Promise<void>;
+  getNextReviewDate: (goalId: string, lessonId: string) => string | null;
 }
 
 // ── Constants ──
@@ -186,6 +201,20 @@ export const useAcademyStore2 = create<AcademyStore2State & AcademyStore2Actions
           if (lesson.id === lessonId && !lesson.completedAt) {
             lesson.completedAt = now;
             lessonTitle = lesson.title;
+            // Initialize SRS state — first review in 10 minutes
+            const firstReviewDelay = LEARNING_STEPS[0] * 60_000; // first learning step in ms
+            lesson.srsState = {
+              state: 'learning',
+              ease: INITIAL_EASE,
+              interval: 0,
+              due: Date.now() + firstReviewDelay,
+              lapses: 0,
+              reviews: 0,
+              lastReview: Date.now(),
+              elapsedDays: 0,
+            };
+            lesson.difficulty = 0.3;
+            lesson.stability = 0;
           }
         }
       }
@@ -302,6 +331,194 @@ export const useAcademyStore2 = create<AcademyStore2State & AcademyStore2Actions
             if (!lesson.completedAt) {
               return { goal, lesson };
             }
+          }
+        }
+      }
+    }
+    return null;
+  },
+
+  // ── SRS-driven review methods ──
+
+  /** Return all lessons in a goal that are due for SRS review (or new/unstarted). */
+  getCardsDueForReview: (goalId: string) => {
+    const goal = get().activeLearningGoals.find(g => g.id === goalId);
+    if (!goal?.curriculum) return [];
+
+    const now = Date.now();
+    const allLessons: CurriculumLesson[] = [];
+    for (const phase of goal.curriculum.phases) {
+      for (const topic of phase.topics) {
+        for (const lesson of topic.lessons) {
+          allLessons.push(lesson);
+        }
+      }
+    }
+
+    return allLessons.filter(lesson => {
+      // Only completed lessons enter SRS review
+      if (!lesson.completedAt) return false;
+      // No SRS state → brand new review card, show it
+      if (!lesson.srsState) return true;
+      // Due timestamp passed → review is due
+      if (lesson.srsState.due <= now) return true;
+      return false;
+    });
+  },
+
+  /** Rate a lesson's review and update its SRS state accordingly. */
+  rateLesson: async (goalId: string, lessonId: string, rating: Rating) => {
+    const { activeLearningGoals } = get();
+    const goal = activeLearningGoals.find(g => g.id === goalId);
+    if (!goal?.curriculum) return;
+
+    const now = Date.now();
+    const userId = getEffectiveUserId();
+
+    // Build an SRSCard from the lesson's current SRS state (or new defaults)
+    const lesson = (() => {
+      for (const phase of goal.curriculum.phases) {
+        for (const topic of phase.topics) {
+          for (const l of topic.lessons) {
+            if (l.id === lessonId) return l;
+          }
+        }
+      }
+      return null;
+    })();
+    if (!lesson) return;
+
+    const card: SRSCard = lesson.srsState
+      ? {
+          id: lesson.id,
+          deckId: goalId,
+          front: lesson.keyPoints?.[0] ?? lesson.title,
+          back: lesson.content,
+          tags: [],
+          difficulty: lesson.difficulty,
+          stability: lesson.stability,
+          ...lesson.srsState,
+        }
+      : {
+          // New card defaults
+          id: lesson.id,
+          deckId: goalId,
+          front: lesson.keyPoints?.[0] ?? lesson.title,
+          back: lesson.content,
+          tags: [],
+          difficulty: 0.3,
+          stability: 0,
+          state: 'new',
+          ease: INITIAL_EASE,
+          interval: 0,
+          due: 0,
+          lapses: 0,
+          reviews: 0,
+          lastReview: 0,
+          elapsedDays: 0,
+        };
+
+    // Schedule next review via SRS engine
+    const outcome: SchedulingOutcome = scheduleCard(card, rating, now);
+
+    // Calculate elapsed days since last review
+    const elapsedDays = card.lastReview > 0
+      ? Math.round((now - card.lastReview) / 86_400_000)
+      : 0;
+
+    // Update the lesson in a deep-cloned curriculum
+    const updatedCurriculum = JSON.parse(JSON.stringify(goal.curriculum));
+    let updatedLesson: CurriculumLesson | null = null;
+
+    for (const phase of updatedCurriculum.phases) {
+      for (const topic of phase.topics) {
+        for (const l of topic.lessons) {
+          if (l.id === lessonId) {
+            l.srsState = {
+              state: outcome.state,
+              ease: outcome.ease,
+              interval: outcome.interval,
+              due: outcome.due,
+              lapses: card.lapses + (rating === 'again' ? 1 : 0),
+              reviews: card.reviews + 1,
+              lastReview: now,
+              elapsedDays,
+            };
+            l.difficulty = rating === 'again' ? Math.min(1, (l.difficulty ?? 0.3) + 0.15)
+              : rating === 'easy' ? Math.max(0, (l.difficulty ?? 0.3) - 0.1)
+              : l.difficulty ?? 0.3;
+            l.stability = outcome.interval;
+
+            // Append to review history
+            const reviewEntry: ReviewEntry = {
+              date: new Date(now).toISOString(),
+              rating,
+              scheduledReview: new Date(outcome.due).toISOString(),
+              elapsedDays,
+            };
+            l.reviewHistory = [...(l.reviewHistory ?? []), reviewEntry];
+
+            updatedLesson = l;
+          }
+        }
+      }
+    }
+
+    // Persist updated curriculum
+    const updatedGoal: LearningGoal = {
+      ...goal,
+      curriculum: updatedCurriculum,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await localUpdate('learning_goals', goalId, {
+      curriculum: updatedCurriculum,
+      updatedAt: updatedGoal.updatedAt,
+    });
+
+    // Optimistic update
+    set({
+      activeLearningGoals: activeLearningGoals.map(g =>
+        g.id === goalId ? updatedGoal : g
+      ),
+    });
+
+    // Award XP for good/easy reviews
+    if (rating === 'good' || rating === 'easy') {
+      try {
+        const xpAction = rating === 'easy' ? 'academy_lesson_complete' : 'academy_lesson_complete';
+        await awardXP(null, userId, xpAction, {
+          description: `SRS review: ${lesson.title} (${rating})`,
+        });
+      } catch (err) {
+        logger.warn('[academy2] SRS review XP award failed:', err);
+      }
+    }
+
+    // Background sync
+    if (isOnline()) {
+      try {
+        const { data: { session } } = await useUserStore.getState().getSessionCached();
+        if (session?.user) {
+          syncNow(session.user.id).catch(e => logger.warn('[academy2] sync failed:', e));
+        }
+      } catch {
+        // Not authenticated
+      }
+    }
+  },
+
+  /** Get the next review date for a lesson, formatted as ISO string. Returns null if no review scheduled. */
+  getNextReviewDate: (goalId: string, lessonId: string) => {
+    const goal = get().activeLearningGoals.find(g => g.id === goalId);
+    if (!goal?.curriculum) return null;
+
+    for (const phase of goal.curriculum.phases) {
+      for (const topic of phase.topics) {
+        for (const lesson of topic.lessons) {
+          if (lesson.id === lessonId) {
+            if (!lesson.srsState) return null;
+            return new Date(lesson.srsState.due).toISOString();
           }
         }
       }

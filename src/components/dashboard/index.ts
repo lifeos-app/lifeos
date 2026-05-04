@@ -33,6 +33,7 @@ export { ChallengeCard } from './ChallengeCard';
 export { ProactiveSuggestions } from './ProactiveSuggestions';
 export { DashboardScheduleInsights } from './DashboardScheduleInsights';
 export { StreakShieldWidget } from './StreakShieldWidget';
+export { DashboardSmartSchedule } from './DashboardSmartSchedule';
 export { DashboardEveningReview } from './DashboardEveningReview';
 export { DashboardLifeScore } from './DashboardLifeScore';
 export type { LifeScoreInput } from './DashboardLifeScore';

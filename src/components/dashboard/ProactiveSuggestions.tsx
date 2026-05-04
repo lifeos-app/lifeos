@@ -39,6 +39,7 @@ const TYPE_STYLES: Record<string, { accent: string; icon: string }> = {
   streak_shield_available: { accent: '#F59E0B', icon: '🛡' },
   evening_review:    { accent: '#8B5CF6', icon: '🌙' },
   ambient:           { accent: '#00D4FF', icon: '📍' },
+  smart_schedule_auto: { accent: '#39FF14', icon: '⚡' },
 };
 
 const REFRESH_INTERVAL = 30 * 60 * 1000; // 30 minutes

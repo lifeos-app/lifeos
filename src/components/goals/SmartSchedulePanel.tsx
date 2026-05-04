@@ -5,7 +5,7 @@
  * checkboxes per slot, and apply/cancel actions.
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Calendar, Check, AlertTriangle, Clock, Loader2 } from 'lucide-react';
 import { groupSlotsByDate, type ScheduleSlot } from '../../lib/smart-scheduler';
@@ -17,14 +17,31 @@ interface SmartSchedulePanelProps {
   maxHoursPerDay: number;
   onApply: (selectedSlotIds: string[]) => Promise<void>;
   onClose: () => void;
+  autoApply?: boolean; // if true, auto-select all non-conflict slots and apply immediately
 }
 
-export function SmartSchedulePanel({ slots, maxHoursPerDay, onApply, onClose }: SmartSchedulePanelProps) {
-  const [selected, setSelected] = useState<Set<string>>(() => new Set(slots.map(s => s.taskId)));
+export function SmartSchedulePanel({ slots, maxHoursPerDay, onApply, onClose, autoApply }: SmartSchedulePanelProps) {
+  const [selected, setSelected] = useState<Set<string>>(() =>
+    autoApply
+      ? new Set(slots.filter(s => !s.conflict).map(s => s.taskId))
+      : new Set(slots.map(s => s.taskId))
+  );
   const [applying, setApplying] = useState(false);
+  const [autoMessage, setAutoMessage] = useState<string | null>(null);
 
   const grouped = useMemo(() => groupSlotsByDate(slots), [slots]);
   const conflicts = useMemo(() => slots.filter(s => s.conflict), [slots]);
+
+  // Auto-apply logic: when autoApply is true, automatically apply after a short delay
+  useEffect(() => {
+    if (!autoApply || applying || selected.size === 0) return;
+    const nonConflictCount = slots.filter(s => !s.conflict).length;
+    setAutoMessage(`Auto-scheduling ${nonConflictCount} task${nonConflictCount !== 1 ? 's' : ''}...`);
+    const timer = setTimeout(() => {
+      handleApply();
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [autoApply]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleSlot = (taskId: string) => {
     setSelected(prev => {
@@ -81,6 +98,14 @@ export function SmartSchedulePanel({ slots, maxHoursPerDay, onApply, onClose }: 
           <div className="ssp-conflicts">
             <AlertTriangle size={14} />
             <span>{conflicts.length} task{conflicts.length > 1 ? 's' : ''} couldn't fit before their due date</span>
+          </div>
+        )}
+
+        {/* Auto-apply message */}
+        {autoMessage && (
+          <div className="ssp-conflicts" style={{ borderColor: '#39FF14', color: '#39FF14' }}>
+            <Loader2 size={14} className="ssp-spinner" />
+            <span>{autoMessage}</span>
           </div>
         )}
 

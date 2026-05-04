@@ -427,6 +427,57 @@ export async function executeActions(actions: IntentAction[]): Promise<{
           successes.push(`🧠 Running AI tool: ${toolName}`);
           break;
         }
+        case 'smart_schedule_auto': {
+          // Auto-schedule overdue/unscheduled tasks using smart scheduler
+          const { data: { session } } = await useUserStore.getState().getSessionCached();
+          if (!session?.user) throw new Error('Not authenticated');
+          const scheduleUserId = session.user.id;
+
+          const { computeSmartSchedule, DEFAULT_CONSTRAINTS } = await import('../smart-scheduler');
+          const { scheduleTaskAtTime } = await import('../task-scheduler');
+
+          // Get tasks from schedule store
+          const allTasks = useScheduleStore.getState().tasks;
+          const allEvents = useScheduleStore.getState().events;
+
+          // Filter to overdue + unscheduled tasks
+          const todayStr = new Date().toISOString().split('T')[0];
+          const actionable = allTasks.filter((t: any) => {
+            if (t.is_deleted || t.status === 'done' || t.status === 'completed') return false;
+            const isOverdue = t.due_date && t.due_date < todayStr;
+            const isUnscheduled = !t.due_date && !t.suggested_week && !t.scheduled_start;
+            return isOverdue || isUnscheduled;
+          });
+
+          if (actionable.length === 0) {
+            successes.push('No tasks need scheduling');
+            break;
+          }
+
+          const slots = computeSmartSchedule(actionable, allEvents, DEFAULT_CONSTRAINTS);
+          let scheduled = 0;
+
+          for (const slot of slots) {
+            if (slot.conflict) continue; // Skip conflict slots in auto mode
+            const task = actionable.find((t: any) => t.id === slot.taskId);
+            if (!task) continue;
+            const startTime = `${slot.suggestedDate}T${slot.suggestedStartTime}:00`;
+            const endTime = `${slot.suggestedDate}T${slot.suggestedEndTime}:00`;
+            const result = await scheduleTaskAtTime(supabase, scheduleUserId, task, startTime, endTime);
+            if (result) scheduled++;
+          }
+
+          // Refresh UI
+          try { window.dispatchEvent(new Event('lifeos-refresh')); } catch { /* SSR safe */ }
+          useScheduleStore.getState().invalidate();
+
+          if (scheduled > 0) {
+            successes.push(`Auto-scheduled ${scheduled} task${scheduled !== 1 ? 's' : ''}`);
+          } else {
+            successes.push('No tasks could be auto-scheduled (all may have conflicts)');
+          }
+          break;
+        }
         case 'navigate':
         case 'info':
           successes.push(`ℹ️ ${action.summary}`);
@@ -489,6 +540,7 @@ export async function executeIntent(action: IntentAction): Promise<{ success: bo
     income:      ['amount', 'user_id'],
     expense:     ['amount', 'user_id'],
     event:       ['title', 'user_id'],
+    smart_schedule_auto: ['user_id'],
   };
 
   const required = requiredFields[action.type];

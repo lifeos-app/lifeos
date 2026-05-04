@@ -71,6 +71,7 @@ import {
   ChallengeCard,
   DashboardScheduleInsights,
   StreakShieldWidget,
+  DashboardSmartSchedule,
   DashboardEveningReview,
   DashboardLifeScore,
   DashboardCorrelations,
@@ -533,6 +534,11 @@ export function Dashboard() {
               {isWidgetVisible('schedule-insights') && (
                 <FeatureErrorBoundary feature="Schedule Insights" compact>
                   <DashboardScheduleInsights />
+                </FeatureErrorBoundary>
+              )}
+              {isWidgetVisible('smart-schedule') && (
+                <FeatureErrorBoundary feature="Smart Schedule" compact>
+                  <DashboardSmartSchedule />
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('weekly-insight') && (

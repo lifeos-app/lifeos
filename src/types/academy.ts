@@ -24,6 +24,13 @@ export interface LearnerProfile {
   lastUpdated: string;
 }
 
+export interface ReviewEntry {
+  date: string;              // ISO date
+  rating: 'again' | 'hard' | 'good' | 'easy';
+  scheduledReview: string;   // ISO date of the next scheduled review
+  elapsedDays: number;
+}
+
 export interface CurriculumLesson {
   id: string;
   title: string;
@@ -37,6 +44,23 @@ export interface CurriculumLesson {
   scheduledDate: string | null;
   completedAt: string | null;
   xpReward: number;
+  /** SRS scheduling state — undefined for unstarted lessons */
+  srsState?: {
+    state: 'new' | 'learning' | 'review' | 'relearning';
+    ease: number;
+    interval: number;
+    due: number;             // timestamp (ms) when next review is due
+    lapses: number;
+    reviews: number;
+    lastReview: number;      // timestamp (ms) of last review
+    elapsedDays: number;
+  };
+  /** Review history for retention analytics */
+  reviewHistory?: ReviewEntry[];
+  /** FSRS-style difficulty (0-1) */
+  difficulty?: number;
+  /** FSRS-style memory stability */
+  stability?: number;
 }
 
 export interface CurriculumTopic {
