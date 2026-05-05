@@ -207,7 +207,8 @@ export function GuildWars({ guildId, userId, userRole, guildName }: GuildWarsPro
         const { data } = await supabase
           .from('goal_groups')
           .select('id, name')
-          .in('id', Array.from(ids));
+          .in('id', Array.from(ids))
+          .limit(50);
 
         if (data) {
           const map: Record<string, string> = {};
@@ -219,9 +220,21 @@ export function GuildWars({ guildId, userId, userRole, guildName }: GuildWarsPro
           setGuildNames(map);
         }
       } catch {
-        // Fallback: just use IDs
-        if (guildName) {
-          setGuildNames({ [guildId]: guildName });
+        // Fallback: load from local IndexedDB
+        try {
+          const { localGetAll } = await import('../../lib/local-db');
+          const local = await localGetAll<{ id: string; name: string }>('goal_groups');
+          const map: Record<string, string> = {};
+          for (const g of local) {
+            if (ids.has(g.id)) map[g.id] = g.name;
+          }
+          if (guildName) map[guildId] = guildName;
+          if (Object.keys(map).length > 0) setGuildNames(map);
+        } catch {
+          // Ultimate fallback: just use IDs
+          if (guildName) {
+            setGuildNames({ [guildId]: guildName });
+          }
         }
       }
     };

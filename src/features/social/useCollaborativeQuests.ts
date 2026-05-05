@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/data-access';
 import { logger } from '../../utils/logger';
 import { awardXP } from '../../lib/gamification/xp-engine';
+import { localInsert, localGetAll, localUpdate, localDelete } from '../../lib/local-db';
 
 // ═══════════════════════════════════════════════════
 // TYPES
@@ -163,14 +164,23 @@ export function useCollaborativeQuests(guildId: string, userId: string): UseColl
     setLoading(true);
     setError(null);
     try {
-      const { data, error: fetchError } = await supabase
-        .from('guild_collaborative_quests')
-        .select('*')
-        .eq('guild_id', guildId)
-        .order('created_at', { ascending: false });
+      try {
+        const { data, error: fetchError } = await supabase
+          .from('guild_collaborative_quests')
+          .select('id,guild_id,created_by,name,description,type,difficulty,status,target,unit,current_progress,contributions,xp_reward,xp_distribution,deadline,completed_at,created_at,updated_at')
+          .eq('guild_id', guildId)
+          .order('created_at', { ascending: false })
+          .limit(100);
 
-      if (fetchError) throw fetchError;
-      setQuests((data ?? []) as CollaborativeQuest[]);
+        if (fetchError) throw fetchError;
+        setQuests((data ?? []) as CollaborativeQuest[]);
+      } catch (supabaseErr: any) {
+        // Fallback to local DB when offline
+        logger.warn('[useCollaborativeQuests] Supabase loadQuests failed, falling back to local:', supabaseErr);
+        const allQuests = await localGetAll<CollaborativeQuest>('collaborative_quests');
+        const filtered = allQuests.filter(q => q.guild_id === guildId);
+        setQuests(filtered);
+      }
     } catch (err: any) {
       logger.error('[useCollaborativeQuests] loadQuests error:', err);
       setError(err.message || 'Failed to load quests');
@@ -221,27 +231,28 @@ export function useCollaborativeQuests(guildId: string, userId: string): UseColl
     data: Omit<CollaborativeQuest, 'id' | 'created_at' | 'updated_at' | 'contributions' | 'current_progress' | 'status' | 'completed_at'>
   ): Promise<CollaborativeQuest | null> => {
     try {
-      const { data: quest, error: insertError } = await supabase
-        .from('guild_collaborative_quests')
-        .insert({
-          ...data,
-          current_progress: 0,
-          contributions: [],
-          status: 'active',
-          completed_at: null,
-        })
-        .select()
-        .single();
+      const now = new Date().toISOString();
+      const newQuest = {
+        ...data,
+        id: crypto.randomUUID(),
+        current_progress: 0,
+        contributions: [],
+        status: 'active' as QuestStatus,
+        completed_at: null,
+        created_at: now,
+        updated_at: now,
+        synced: 0,
+      } as any;
 
-      if (insertError) throw insertError;
+      await localInsert('collaborative_quests', newQuest);
 
       // Award XP for creating a quest
       try {
         await awardXP(supabase, userId, 'guild_contribute', { description: `Created collaborative quest: ${data.name}` });
       } catch { /* non-critical */ }
 
-      setQuests(prev => [quest as CollaborativeQuest, ...prev]);
-      return quest as CollaborativeQuest;
+      setQuests(prev => [newQuest as CollaborativeQuest, ...prev]);
+      return newQuest as CollaborativeQuest;
     } catch (err: any) {
       logger.error('[useCollaborativeQuests] createQuest error:', err);
       setError(err.message || 'Failed to create quest');
@@ -252,12 +263,7 @@ export function useCollaborativeQuests(guildId: string, userId: string): UseColl
   // ── Update Quest ──────────────────────────────────────────────────
   const updateQuest = useCallback(async (questId: string, updates: Partial<CollaborativeQuest>): Promise<boolean> => {
     try {
-      const { error: updateError } = await supabase
-        .from('guild_collaborative_quests')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', questId);
-
-      if (updateError) throw updateError;
+      await localUpdate('collaborative_quests', questId, { ...updates, updated_at: new Date().toISOString() });
       setQuests(prev => prev.map(q => q.id === questId ? { ...q, ...updates } : q));
       return true;
     } catch (err: any) {
@@ -296,16 +302,11 @@ export function useCollaborativeQuests(guildId: string, userId: string): UseColl
 
       const newProgress = Math.min(quest.current_progress + amount, quest.target);
 
-      const { error: contribError } = await supabase
-        .from('guild_collaborative_quests')
-        .update({
-          current_progress: newProgress,
-          contributions: newContributions,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', questId);
-
-      if (contribError) throw contribError;
+      await localUpdate('collaborative_quests', questId, {
+        current_progress: newProgress,
+        contributions: newContributions,
+        updated_at: new Date().toISOString(),
+      });
 
       // Award XP for contributing
       try {
@@ -328,16 +329,11 @@ export function useCollaborativeQuests(guildId: string, userId: string): UseColl
       const quest = quests.find(q => q.id === questId);
       if (!quest) return false;
 
-      const { error: completeError } = await supabase
-        .from('guild_collaborative_quests')
-        .update({
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', questId);
-
-      if (completeError) throw completeError;
+      await localUpdate('collaborative_quests', questId, {
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      });
 
       // Distribute XP
       const contributors = quest.contributions.filter(c => c.amount > 0);
@@ -381,12 +377,7 @@ export function useCollaborativeQuests(guildId: string, userId: string): UseColl
   // ── Delete Quest ──────────────────────────────────────────────────
   const deleteQuest = useCallback(async (questId: string): Promise<boolean> => {
     try {
-      const { error: deleteError } = await supabase
-        .from('guild_collaborative_quests')
-        .delete()
-        .eq('id', questId);
-
-      if (deleteError) throw deleteError;
+      await localDelete('collaborative_quests', questId);
       setQuests(prev => prev.filter(q => q.id !== questId));
       return true;
     } catch (err: any) {

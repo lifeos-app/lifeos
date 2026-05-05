@@ -163,14 +163,32 @@ export function WarDeclaration({ challengerGuildId, challengerGuildName, onDecla
           })));
         }
       } catch (err) {
-        // Demo fallback
-        setAvailableGuilds([
-          { id: 'demo1', name: 'Iron Titans', icon: '🏋️', member_count: 12 },
-          { id: 'demo2', name: 'Phoenix Rising', icon: '🔥', member_count: 8 },
-          { id: 'demo3', name: 'Night Owls', icon: '🦉', member_count: 15 },
-          { id: 'demo4', name: 'Morning Glory', icon: '🌅', member_count: 6 },
-          { id: 'demo5', name: 'Storm Riders', icon: '⛈️', member_count: 10 },
-        ]);
+        // Offline fallback: try local IndexedDB
+        try {
+          const { localGetAll } = await import('../../lib/local-db');
+          const local = await localGetAll<{ id: string; name: string; icon?: string; member_count?: number }>('goal_groups');
+          if (local.length > 0) {
+            setAvailableGuilds(
+              local
+                .filter(g => g.id !== challengerGuildId)
+                .map(g => ({
+                  id: g.id,
+                  name: g.name,
+                  icon: g.icon || '🏰',
+                  member_count: g.member_count || 0,
+                }))
+            );
+          }
+        } catch {
+          // Demo fallback
+          setAvailableGuilds([
+            { id: 'demo1', name: 'Iron Titans', icon: '🏰', member_count: 12 },
+            { id: 'demo2', name: 'Phoenix Rising', icon: '🏰', member_count: 8 },
+            { id: 'demo3', name: 'Night Owls', icon: '🏰', member_count: 15 },
+            { id: 'demo4', name: 'Morning Glory', icon: '🏰', member_count: 6 },
+            { id: 'demo5', name: 'Storm Riders', icon: '🏰', member_count: 10 },
+          ]);
+        }
       } finally {
         setLoadingGuilds(false);
       }

@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/data-access';
+import { localInsert, localGetAll, localUpdate, localDelete } from '../../lib/local-db';
 import { logger } from '../../utils/logger';
 import { awardXP } from '../../lib/gamification/xp-engine';
 
@@ -148,17 +149,24 @@ export function useGuildEvents(guildId: string, userId: string): UseGuildEventsR
     try {
       const { data, error: fetchError } = await supabase
         .from('guild_events')
-        .select('*')
+        .select('id,guild_id,created_by,name,description,type,start_time,end_time,recurrence,max_participants,rsvps,results,status,created_at,updated_at')
         .eq('guild_id', guildId)
-        .order('start_time', { ascending: true });
+        .order('start_time', { ascending: true })
+        .limit(100);
 
       if (fetchError) throw fetchError;
       setEvents((data ?? []) as GuildEvent[]);
     } catch (err: any) {
       logger.error('[useGuildEvents] loadEvents error:', err);
       setError(err.message || 'Failed to load events');
-      // Fallback: use empty array so UI still works offline
-      setEvents([]);
+      // Fallback: load from local IndexedDB when offline
+      try {
+        const localData = await localGetAll<GuildEvent>('guild_events');
+        const filtered = localData.filter(e => e.guild_id === guildId);
+        setEvents(filtered);
+      } catch {
+        setEvents([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -170,16 +178,24 @@ export function useGuildEvents(guildId: string, userId: string): UseGuildEventsR
     try {
       const { data, error: fetchError } = await supabase
         .from('guild_announcements')
-        .select('*')
+        .select('id,guild_id,author_id,content,is_pinned,reactions,mentions,poll,created_at,updated_at')
         .eq('guild_id', guildId)
         .order('is_pinned', { ascending: false })
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100);
 
       if (fetchError) throw fetchError;
       setAnnouncements((data ?? []) as GuildAnnouncement[]);
     } catch (err: any) {
       logger.error('[useGuildEvents] loadAnnouncements error:', err);
-      setAnnouncements([]);
+      // Fallback: load from local IndexedDB when offline
+      try {
+        const localData = await localGetAll<GuildAnnouncement>('guild_announcements');
+        const filtered = localData.filter(a => a.guild_id === guildId);
+        setAnnouncements(filtered);
+      } catch {
+        setAnnouncements([]);
+      }
     } finally {
       setLoadingAnnouncements(false);
     }
@@ -228,18 +244,19 @@ export function useGuildEvents(guildId: string, userId: string): UseGuildEventsR
     eventData: Omit<GuildEvent, 'id' | 'created_at' | 'updated_at' | 'rsvps' | 'results' | 'status'>
   ): Promise<GuildEvent | null> => {
     try {
-      const { data, error: insertError } = await supabase
-        .from('guild_events')
-        .insert({
-          ...eventData,
-          rsvps: [{ user_id: userId, status: 'going' as RSVPStatus }],
-          results: null,
-          status: 'upcoming',
-        })
-        .select()
-        .single();
+      const now = new Date().toISOString();
+      const newEvent = {
+        ...eventData,
+        id: crypto.randomUUID(),
+        rsvps: [{ user_id: userId, status: 'going' as RSVPStatus }],
+        results: null,
+        status: 'upcoming',
+        created_at: now,
+        updated_at: now,
+        synced: 0,
+      } as any;
 
-      if (insertError) throw insertError;
+      await localInsert('guild_events', newEvent);
 
       // Award XP for creating an event
       try {
@@ -248,10 +265,10 @@ export function useGuildEvents(guildId: string, userId: string): UseGuildEventsR
         // XP award failure is non-critical
       }
 
-      setEvents(prev => [...prev, data as GuildEvent].sort((a, b) =>
+      setEvents(prev => [...prev, newEvent as GuildEvent].sort((a, b) =>
         new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
       ));
-      return data as GuildEvent;
+      return newEvent as GuildEvent;
     } catch (err: any) {
       logger.error('[useGuildEvents] createEvent error:', err);
       setError(err.message || 'Failed to create event');
@@ -262,12 +279,7 @@ export function useGuildEvents(guildId: string, userId: string): UseGuildEventsR
   // ── Update Event ────────────────────────────────────────────────────
   const updateEvent = useCallback(async (eventId: string, updates: Partial<GuildEvent>): Promise<boolean> => {
     try {
-      const { error: updateError } = await supabase
-        .from('guild_events')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', eventId);
-
-      if (updateError) throw updateError;
+      await localUpdate('guild_events', eventId, { ...updates, updated_at: new Date().toISOString() });
       setEvents(prev => prev.map(e => e.id === eventId ? { ...e, ...updates } : e));
       return true;
     } catch (err: any) {
@@ -284,12 +296,7 @@ export function useGuildEvents(guildId: string, userId: string): UseGuildEventsR
   // ── Delete Event ────────────────────────────────────────────────────
   const deleteEvent = useCallback(async (eventId: string): Promise<boolean> => {
     try {
-      const { error: deleteError } = await supabase
-        .from('guild_events')
-        .delete()
-        .eq('id', eventId);
-
-      if (deleteError) throw deleteError;
+      await localDelete('guild_events', eventId);
       setEvents(prev => prev.filter(e => e.id !== eventId));
       return true;
     } catch (err: any) {
@@ -313,12 +320,7 @@ export function useGuildEvents(guildId: string, userId: string): UseGuildEventsR
         newRsvps = [...event.rsvps, { user_id: userId, status }];
       }
 
-      const { error: rsvpError } = await supabase
-        .from('guild_events')
-        .update({ rsvps: newRsvps, updated_at: new Date().toISOString() })
-        .eq('id', eventId);
-
-      if (rsvpError) throw rsvpError;
+      await localUpdate('guild_events', eventId, { rsvps: newRsvps, updated_at: new Date().toISOString() });
 
       // Award XP for RSVP
       if (status === 'going') {
@@ -338,16 +340,11 @@ export function useGuildEvents(guildId: string, userId: string): UseGuildEventsR
   // ── Complete Event (with results) ────────────────────────────────────
   const completeEvent = useCallback(async (eventId: string, results: GuildEventResult): Promise<boolean> => {
     try {
-      const { error: completeError } = await supabase
-        .from('guild_events')
-        .update({
-          status: 'completed',
-          results,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', eventId);
-
-      if (completeError) throw completeError;
+      await localUpdate('guild_events', eventId, {
+        status: 'completed',
+        results,
+        updated_at: new Date().toISOString(),
+      });
 
       // Award XP to winners
       for (const winnerId of results.winners) {
@@ -423,20 +420,20 @@ export function useGuildEvents(guildId: string, userId: string): UseGuildEventsR
       // Parse @mentions from content
       const mentionRegex = /@(\w+)/g;
       const mentions = Array.from(data.content.matchAll(mentionRegex)).map(m => m[1]);
+      const now = new Date().toISOString();
+      const newAnnouncement = {
+        ...data,
+        id: crypto.randomUUID(),
+        reactions: {},
+        mentions,
+        created_at: now,
+        updated_at: now,
+        synced: 0,
+      } as any;
 
-      const { data: announcement, error: insertError } = await supabase
-        .from('guild_announcements')
-        .insert({
-          ...data,
-          reactions: {},
-          mentions,
-        })
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
-      setAnnouncements(prev => [announcement as GuildAnnouncement, ...prev]);
-      return announcement as GuildAnnouncement;
+      await localInsert('guild_announcements', newAnnouncement);
+      setAnnouncements(prev => [newAnnouncement as GuildAnnouncement, ...prev]);
+      return newAnnouncement as GuildAnnouncement;
     } catch (err: any) {
       logger.error('[useGuildEvents] createAnnouncement error:', err);
       return null;
@@ -450,11 +447,7 @@ export function useGuildEvents(guildId: string, userId: string): UseGuildEventsR
         const mentionRegex = /@(\w+)/g;
         updates.mentions = Array.from(updates.content.matchAll(mentionRegex)).map(m => m[1]);
       }
-      const { error } = await supabase
-        .from('guild_announcements')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', id);
-      if (error) throw error;
+      await localUpdate('guild_announcements', id, { ...updates, updated_at: new Date().toISOString() });
       setAnnouncements(prev => prev.map(a => a.id === id ? { ...a, ...updates } : a));
       return true;
     } catch (err: any) {
@@ -465,8 +458,7 @@ export function useGuildEvents(guildId: string, userId: string): UseGuildEventsR
 
   const deleteAnnouncement = useCallback(async (id: string): Promise<boolean> => {
     try {
-      const { error } = await supabase.from('guild_announcements').delete().eq('id', id);
-      if (error) throw error;
+      await localDelete('guild_announcements', id);
       setAnnouncements(prev => prev.filter(a => a.id !== id));
       return true;
     } catch (err: any) {
@@ -489,11 +481,7 @@ export function useGuildEvents(guildId: string, userId: string): UseGuildEventsR
         reactions[emoji] = [...userIds, userId];
       }
 
-      const { error } = await supabase
-        .from('guild_announcements')
-        .update({ reactions, updated_at: new Date().toISOString() })
-        .eq('id', announcementId);
-      if (error) throw error;
+      await localUpdate('guild_announcements', announcementId, { reactions, updated_at: new Date().toISOString() });
 
       setAnnouncements(prev => prev.map(a =>
         a.id === announcementId ? { ...a, reactions } : a
@@ -526,14 +514,10 @@ export function useGuildEvents(guildId: string, userId: string): UseGuildEventsR
 
       const updatedPoll = { ...announcement.poll, options: updatedOptions };
 
-      const { error } = await supabase
-        .from('guild_announcements')
-        .update({
-          poll: updatedPoll,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', announcementId);
-      if (error) throw error;
+      await localUpdate('guild_announcements', announcementId, {
+        poll: updatedPoll,
+        updated_at: new Date().toISOString(),
+      });
 
       setAnnouncements(prev => prev.map(a =>
         a.id === announcementId ? { ...a, poll: updatedPoll } : a

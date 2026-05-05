@@ -9,6 +9,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { genId } from '../utils/date';
 import { logger } from '../utils/logger';
+import { localInsert, localGetAll, localUpdate } from '../lib/local-db';
 
 // ═══════════════════════════════════════════════════
 // TYPES
@@ -476,8 +477,9 @@ export const useGuildWarStore = create<GuildWarState>()(
           const { supabase } = await import('../lib/data-access');
           const { data, error } = await supabase
             .from('guild_wars')
-            .select('*')
-            .order('created_at', { ascending: false });
+            .select('id,challenger_guild_id,defender_guild_id,type,status,start_time,end_time,duration_days,challenger_score,defender_score,winner_id,message,wager_description,created_at,updated_at')
+            .order('created_at', { ascending: false })
+            .limit(100);
 
           if (error) throw error;
           if (data) {
@@ -485,7 +487,13 @@ export const useGuildWarStore = create<GuildWarState>()(
           }
         } catch (err: any) {
           logger.error('[guildWarStore] refreshFromServer error:', err);
-          // Keep local data — offline-first
+          // Offline fallback: load from local IndexedDB
+          try {
+            const local = await localGetAll<GuildWar>('guild_wars');
+            if (local.length > 0) {
+              set({ wars: local });
+            }
+          } catch { /* no local data either */ }
         } finally {
           set({ loading: false });
         }

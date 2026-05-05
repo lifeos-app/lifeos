@@ -121,6 +121,14 @@ const SYNC_TABLES: TableName[] = [
   'unified_events',    // Activity log entries
   'event_completions', // XP award records for live activity
   'ai_insights',       // AI-generated insights
+
+  // Tier 4: Social
+  'guild_events',
+  'guild_announcements',
+  'social_feed_items',
+  'collaborative_quests',
+  'guild_wars',
+  'guild_war_participants',
 ];
 
 // Tables that were previously synced but no longer are — clean up their retry queue entries

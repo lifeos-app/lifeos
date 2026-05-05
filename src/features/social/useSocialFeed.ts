@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/data-access';
 import { logger } from '../../utils/logger';
+import { localInsert, localGetAll, localUpdate, localDelete } from '../../lib/local-db';
 
 // ═══════════════════════════════════════════════════
 // TYPES
@@ -156,39 +157,51 @@ export function useSocialFeed(userId: string, guildId?: string): UseSocialFeedRe
     setLoading(true);
     setError(null);
     try {
-      let query = supabase
-        .from('social_feed_items')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(PAGE_SIZE);
+      try {
+        let query = supabase
+          .from('social_feed_items')
+          .select('id,user_id,user_name,user_avatar_url,user_level,user_class_icon,event_type,title,body,icon,milestone_value,visibility,guild_id,reactions,comments,created_at,updated_at')
+          .order('created_at', { ascending: false })
+          .limit(PAGE_SIZE);
 
-      // Privacy filter
-      if (guildId) {
-        query = query.or(`visibility.eq.everyone,visibility.eq.friends,visibility.eq.guild.and.guild_id.eq.${guildId}`);
-      } else {
-        query = query.in('visibility', ['everyone', 'friends']);
-      }
+        // Privacy filter
+        if (guildId) {
+          query = query.or(`visibility.eq.everyone,visibility.eq.friends,visibility.eq.guild.and.guild_id.eq.${guildId}`);
+        } else {
+          query = query.in('visibility', ['everyone', 'friends']);
+        }
 
-      if (!resetCursor && cursor) {
-        query = query.lt('created_at', cursor);
-      }
+        if (!resetCursor && cursor) {
+          query = query.lt('created_at', cursor);
+        }
 
-      const { data, error: fetchError } = await query;
+        const { data, error: fetchError } = await query;
 
-      if (fetchError) throw fetchError;
+        if (fetchError) throw fetchError;
 
-      const items = (data ?? []) as SocialFeedItem[];
+        const items = (data ?? []) as SocialFeedItem[];
 
-      if (resetCursor) {
-        setFeedItems(sortFeedItems(items));
-      } else {
-        setFeedItems(prev => sortFeedItems([...prev, ...items]));
-      }
+        if (resetCursor) {
+          setFeedItems(sortFeedItems(items));
+        } else {
+          setFeedItems(prev => sortFeedItems([...prev, ...items]));
+        }
 
-      if (items.length < PAGE_SIZE) {
+        if (items.length < PAGE_SIZE) {
+          setHasMore(false);
+        } else {
+          setCursor(items[items.length - 1]?.created_at ?? null);
+        }
+      } catch (supabaseErr: any) {
+        // Fallback to local DB when offline
+        logger.warn('[useSocialFeed] Supabase loadFeed failed, falling back to local:', supabaseErr);
+        const allItems = await localGetAll<SocialFeedItem>('social_feed_items');
+        const filtered = guildId
+          ? allItems.filter(i => i.visibility === 'everyone' || i.visibility === 'friends' || (i.visibility === 'guild' && i.guild_id === guildId))
+          : allItems.filter(i => i.visibility === 'everyone' || i.visibility === 'friends');
+        const sorted = sortFeedItems(filtered);
+        setFeedItems(sorted);
         setHasMore(false);
-      } else {
-        setCursor(items[items.length - 1]?.created_at ?? null);
       }
     } catch (err: any) {
       logger.error('[useSocialFeed] loadFeed error:', err);
@@ -264,12 +277,7 @@ export function useSocialFeed(userId: string, guildId?: string): UseSocialFeedRe
 
       reactions[emoji] = [...currentUsers, userId];
 
-      const { error: reactionError } = await supabase
-        .from('social_feed_items')
-        .update({ reactions, updated_at: new Date().toISOString() })
-        .eq('id', itemId);
-
-      if (reactionError) throw reactionError;
+      await localUpdate('social_feed_items', itemId, { reactions, updated_at: new Date().toISOString() });
 
       setFeedItems(prev => prev.map(i => i.id === itemId ? { ...i, reactions } : i));
       return true;
@@ -289,12 +297,7 @@ export function useSocialFeed(userId: string, guildId?: string): UseSocialFeedRe
       const currentUsers = reactions[emoji] || [];
       reactions[emoji] = currentUsers.filter(id => id !== userId);
 
-      const { error: reactionError } = await supabase
-        .from('social_feed_items')
-        .update({ reactions, updated_at: new Date().toISOString() })
-        .eq('id', itemId);
-
-      if (reactionError) throw reactionError;
+      await localUpdate('social_feed_items', itemId, { reactions, updated_at: new Date().toISOString() });
 
       setFeedItems(prev => prev.map(i => i.id === itemId ? { ...i, reactions } : i));
       return true;
@@ -320,12 +323,7 @@ export function useSocialFeed(userId: string, guildId?: string): UseSocialFeedRe
 
       const comments = [...item.comments, newComment];
 
-      const { error: commentError } = await supabase
-        .from('social_feed_items')
-        .update({ comments, updated_at: new Date().toISOString() })
-        .eq('id', itemId);
-
-      if (commentError) throw commentError;
+      await localUpdate('social_feed_items', itemId, { comments, updated_at: new Date().toISOString() });
 
       setFeedItems(prev => prev.map(i => i.id === itemId ? { ...i, comments } : i));
       return true;
@@ -346,32 +344,31 @@ export function useSocialFeed(userId: string, guildId?: string): UseSocialFeedRe
   ): Promise<SocialFeedItem | null> => {
     try {
       const config = FEED_EVENT_CONFIG[eventType];
-      const { data, error: insertError } = await supabase
-        .from('social_feed_items')
-        .insert({
-          user_id: userId,
-          user_name: '',  // Will be filled by DB
-          user_avatar_url: null,
-          user_level: 0,
-          user_class_icon: config?.icon || '🌟',
-          event_type: eventType,
-          title,
-          body,
-          icon: config?.icon || '🌟',
-          milestone_value: milestoneValue || null,
-          visibility,
-          guild_id: guildId || null,
-          reactions: {},
-          comments: [],
-        })
-        .select()
-        .single();
+      const now = new Date().toISOString();
+      const newItem = {
+        id: crypto.randomUUID(),
+        user_id: userId,
+        user_name: '',  // Will be filled by DB
+        user_avatar_url: null,
+        user_level: 0,
+        user_class_icon: config?.icon || '🌟',
+        event_type: eventType,
+        title,
+        body,
+        icon: config?.icon || '🌟',
+        milestone_value: milestoneValue || null,
+        visibility,
+        guild_id: guildId || null,
+        reactions: {} as Record<ReactionEmoji, string[]>,
+        comments: [] as FeedComment[],
+        created_at: now,
+        updated_at: now,
+        synced: 0,
+      } as any;
 
-      if (insertError) throw insertError;
-
-      const newItem = data as SocialFeedItem;
-      setFeedItems(prev => sortFeedItems([newItem, ...prev]));
-      return newItem;
+      await localInsert('social_feed_items', newItem);
+      setFeedItems(prev => sortFeedItems([newItem as SocialFeedItem, ...prev]));
+      return newItem as SocialFeedItem;
     } catch (err: any) {
       logger.error('[useSocialFeed] shareEvent error:', err);
       return null;
@@ -381,12 +378,7 @@ export function useSocialFeed(userId: string, guildId?: string): UseSocialFeedRe
   // ── Delete Item ──────────────────────────────────────────────────
   const deleteItem = useCallback(async (itemId: string): Promise<boolean> => {
     try {
-      const { error: deleteError } = await supabase
-        .from('social_feed_items')
-        .delete()
-        .eq('id', itemId);
-
-      if (deleteError) throw deleteError;
+      await localDelete('social_feed_items', itemId);
       setFeedItems(prev => prev.filter(i => i.id !== itemId));
       return true;
     } catch (err: any) {
@@ -432,7 +424,6 @@ export function useSocialFeed(userId: string, guildId?: string): UseSocialFeedRe
  * Call this when an achievement is unlocked, a level is gained, etc.
  */
 export async function autoGenerateFeedItem(
-  supabaseClient: typeof supabase,
   userId: string,
   eventType: FeedEventType,
   title: string,
@@ -443,25 +434,26 @@ export async function autoGenerateFeedItem(
 ): Promise<SocialFeedItem | null> {
   try {
     const config = FEED_EVENT_CONFIG[eventType];
-    const { data, error } = await supabaseClient
-      .from('social_feed_items')
-      .insert({
-        user_id: userId,
-        event_type: eventType,
-        title,
-        body,
-        icon: config?.icon || '🌟',
-        milestone_value: milestoneValue || null,
-        visibility,
-        guild_id: guildId || null,
-        reactions: {},
-        comments: [],
-      })
-      .select()
-      .single();
+    const now = new Date().toISOString();
+    const newItem = {
+      id: crypto.randomUUID(),
+      user_id: userId,
+      event_type: eventType,
+      title,
+      body,
+      icon: config?.icon || '🌟',
+      milestone_value: milestoneValue || null,
+      visibility,
+      guild_id: guildId || null,
+      reactions: {} as Record<ReactionEmoji, string[]>,
+      comments: [] as FeedComment[],
+      created_at: now,
+      updated_at: now,
+      synced: 0,
+    } as any;
 
-    if (error) throw error;
-    return data as SocialFeedItem;
+    await localInsert('social_feed_items', newItem);
+    return newItem as SocialFeedItem;
   } catch (err: any) {
     logger.error('[useSocialFeed] autoGenerateFeedItem error:', err);
     return null;

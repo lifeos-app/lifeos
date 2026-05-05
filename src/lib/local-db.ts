@@ -17,7 +17,7 @@ import { genId } from '../utils/date';
 import { logger } from '../utils/logger';
 
 const DB_NAME = 'lifeos-local';
-const DB_VERSION = 10;
+const DB_VERSION = 11;
 
 // All object stores (tables)
 const STORES = {
@@ -90,6 +90,14 @@ const STORES = {
 
   // AI
   ai_insights: 'id',
+
+  // Social
+  guild_events: 'id',
+  guild_announcements: 'id',
+  social_feed_items: 'id',
+  collaborative_quests: 'id',
+  guild_wars: 'id',
+  guild_war_participants: 'id',
 
   // Meta (sync state)
   sync_meta: 'table_name',
