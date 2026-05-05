@@ -249,7 +249,7 @@
 
 ## Priority 1: BROKEN — New Items from Phase 5 Audit
 
-- [ ] [P1-101] Voice-first wake word + continuous mode — 🔨 PARTIAL — VoiceFirst feature (2,309 lines) exists with VoiceCommandHistory, VoiceSettings, VoiceWaveform, but wake word detection and continuous mode not implemented, voice-to-intent bridge incomplete — [Vision: VISION-v2-ori §8.1 "Wake word detection using Web Speech API continuous mode", "All intent engine actions available via voice"] — [Impact: 4/5]
+- [x] [P1-101] Voice-first wake word + continuous mode — ✅ DONE — Commit: (v1.19.85) — useSpeechRecognition rewritten with continuous auto-restart + restart() + onAudioData. useVoiceCommand rewritten with startWakeWordListening/stopWakeWordListening, wake-listening state, handleFinalTranscript auto-processing. VoiceFirstMode wired with wake-listening UI config + dynamic subtitle.
 - [ ] [P1-102] Gmail integration — 📦 STUB — gmail.ts (90 lines) is API scaffolding calling non-existent google-proxy.php — [Vision: VISION-v2-ori §8.2 Google integration] — [Impact: 2/5]
 - [x] [P1-103] Adaptive/dynamic bottom navigation — ✅ DONE — Commit: 591d2ef — v1.19.80 — usePageVisitTracker.ts (168 lines) + useAdaptiveNav.ts (353 lines) with visit-based reorder after 7+ days, Most Used labels, dashboard always pinned first. MobileNav + Sidebar both consume adaptive nav. FeatureModule.visitCount added.
 - [ ] [P1-104] Flipper Zero workstation activation — 🔨 PARTIAL — FlipperCheckin.tsx (355 lines) exists for WebUSB game overlay, but native flipper-activate.sh and launchd daemon absent — [Vision: MASTER_BUILD_PLAN §2] — [Impact: 1/5]
@@ -312,7 +312,7 @@
 - [ ] [TD-032] Bundle size growing uncontrolled — 979+ TS files, 20+ feature directories, lazy loading only for routes — [Impact: 3/5]
 - [x] [TD-033] No rate limiting on AI endpoints — ✅ DONE — Commit: a0c1989 — v1.20.11 — ai-rate-limiter.ts with checkRateLimit (5 free/15 pro msgs + $0.50/$2.00 cost caps), RateLimitError class, llm-proxy wired, useAIRateLimit hook, ChatInput remaining indicator, Settings AI tab daily usage card
 - [ ] [TD-034] Zero integration/E2E tests for new features — 20,000+ lines of new code with zero test coverage — [Impact: 4/5]
-- [ ] [TD-035] Supabase query patterns bypass store layer — New features in src/features/ make direct Supabase calls — [Impact: 3/5]
+- [x] [TD-035] Supabase query patterns bypass store layer — ✅ DONE — Commit: de47c2f — v1.19.86 — Migrated useGuildEvents, useSocialFeed, useCollaborativeQuests to localInsert/localGetAll pattern. guildWarStore: explicit columns + limit + local fallback. GuildWars.tsx + WarDeclaration.tsx: local fallback for guild name lookups. All emoji removed from fallback data. Zero direct Supabase calls remaining in src/features/social/.
 - [ ] [TD-036] Feature registry not driving visibility — canAccess() returns true for everything, no progressive disclosure — [DUPLICATE of TD-020] — [Impact: 3/5]
 - [ ] [TD-037] Telegram/Webapp parity not complete — Bot can't do: decompose_objective, start_focus, etc. Webapp can't do: log_mood separate, etc. — [Impact: 2/5]
 

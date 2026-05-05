@@ -5,7 +5,7 @@
  * Uses FullscreenPage for consistent immersive experience.
  */
 
-import React, { useState, useEffect, useMemo, useRef, useCallback, startTransition } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback, startTransition, Suspense } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   LayoutDashboard, Calendar, Target, Flame, BarChart3,
@@ -36,49 +36,63 @@ import { shouldShowRealmInvite } from '../components/dashboard/DashboardRealmInv
 import { TaskDetail } from '../components/TaskDetail';
 import { FullscreenPage } from '../components/FullscreenPage';
 
+// Eager imports — critical for initial render
 import {
   DashboardGreeting,
-  DashboardMorningBrief,
   DashboardQuickActions,
   DashboardSchedule,
   DashboardStatsRow,
   DashboardInsights,
-  DashboardAchievements,
-  DashboardRealmPreview,
-  DashboardJournal,
   DashboardTasks,
   DashboardHabits,
   DashboardHealth,
   DashboardFinances,
   DashboardGoals,
-  DashboardSuggestions,
   DashboardOverdue,
   DashboardTriage,
+  DashboardAchievements,
+  DashboardRealmPreview,
+  DashboardJournal,
+  DashboardSuggestions,
   DashboardCompletionRates,
   FreeTimeSuggestions,
   DashboardNPCInsight,
   DashboardLifePulse,
   DashboardStreakWarnings,
   DashboardRealmInvite,
-  DashboardCelestial,
   DashboardStreakMomentum,
   DashboardDailyProgress,
   DashboardWeeklyInsight,
   DashboardFinancialPulse,
   SleepQuickLog,
   SageWidget,
-  DailyRewardToast,
   ChallengeCard,
-  DashboardScheduleInsights,
   StreakShieldWidget,
-  DashboardSmartSchedule,
-  DashboardEveningReview,
   DashboardLifeScore,
   DashboardCorrelations,
   DashboardJunctionRecommender,
-  DashboardTemporalPlayback,
-  DashboardGodMode,
 } from '../components/dashboard';
+
+// Lazy-loaded for bundle splitting (TD-032)
+const DashboardEveningReview = React.lazy(() => import('../components/dashboard/DashboardEveningReview').then(m => ({ default: m.DashboardEveningReview })));
+// Lazy-loaded for bundle splitting (TD-032)
+const DashboardGodMode = React.lazy(() => import('../components/dashboard/DashboardGodMode').then(m => ({ default: m.DashboardGodMode })));
+// Lazy-loaded for bundle splitting (TD-032)
+const DashboardMorningBrief = React.lazy(() => import('../components/dashboard/DashboardMorningBrief').then(m => ({ default: m.DashboardMorningBrief })));
+// Lazy-loaded for bundle splitting (TD-032)
+const DashboardCelestial = React.lazy(() => import('../components/dashboard/DashboardCelestial').then(m => ({ default: m.DashboardCelestial })));
+// Lazy-loaded for bundle splitting (TD-032)
+const DashboardScheduleInsights = React.lazy(() => import('../components/dashboard/DashboardScheduleInsights').then(m => ({ default: m.DashboardScheduleInsights })));
+// Lazy-loaded for bundle splitting (TD-032)
+const DashboardSmartSchedule = React.lazy(() => import('../components/dashboard/DashboardSmartSchedule').then(m => ({ default: m.DashboardSmartSchedule })));
+// Lazy-loaded for bundle splitting (TD-032)
+const SleepProductivityInsights = React.lazy(() => import('../components/dashboard/SleepProductivityInsights').then(m => ({ default: m.SleepProductivityInsights })));
+// Lazy-loaded for bundle splitting (TD-032)
+const AmbientSuggestions = React.lazy(() => import('../components/dashboard/AmbientSuggestions').then(m => ({ default: m.AmbientSuggestions })));
+// Lazy-loaded for bundle splitting (TD-032)
+const DashboardTemporalPlayback = React.lazy(() => import('../components/dashboard/DashboardTemporalPlayback').then(m => ({ default: m.DashboardTemporalPlayback })));
+// Lazy-loaded for bundle splitting (TD-032)
+const DailyRewardToast = React.lazy(() => import('../components/dashboard/DailyRewardToast').then(m => ({ default: m.DailyRewardToast })));
 import { ProactiveSuggestions } from '../components/dashboard/ProactiveSuggestions';
 import { HolyHermesOracle } from '../components/HolyHermesOracle';
 import { DailyHermeticAffirmation } from '../components/dashboard/DailyHermeticAffirmation';
@@ -387,7 +401,7 @@ export function Dashboard() {
       headerExtra={modeBadge}
     >
       <div className="dash" style={{ '--dash-accent': dashMode.accent } as React.CSSProperties}>
-        <DailyRewardToast />
+        <Suspense fallback={null}><DailyRewardToast /></Suspense>
         <ChallengeCard />
         <AgentNudgeBar />
         {fetchError && <ErrorCard message={fetchError} onRetry={fetchAll} />}
@@ -483,12 +497,12 @@ export function Dashboard() {
               )}
               {isWidgetVisible('morning-brief') && (
                 <FeatureErrorBoundary feature="Morning Brief" compact>
-                  <DashboardMorningBrief />
+                  <Suspense fallback={null}><DashboardMorningBrief /></Suspense>
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('evening-review') && (
                 <FeatureErrorBoundary feature="Evening Review" compact>
-                  <DashboardEveningReview />
+                  <Suspense fallback={null}><DashboardEveningReview /></Suspense>
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('stats') && (
@@ -534,17 +548,17 @@ export function Dashboard() {
               )}
               {isWidgetVisible('schedule-insights') && (
                 <FeatureErrorBoundary feature="Schedule Insights" compact>
-                  <DashboardScheduleInsights />
+                  <Suspense fallback={null}><DashboardScheduleInsights /></Suspense>
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('god-mode') && (
                 <FeatureErrorBoundary feature="God Mode" compact>
-                  <DashboardGodMode snapshots={temporalSnapshots} />
+                  <Suspense fallback={null}><DashboardGodMode snapshots={temporalSnapshots} /></Suspense>
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('smart-schedule') && (
                 <FeatureErrorBoundary feature="Smart Schedule" compact>
-                  <DashboardSmartSchedule />
+                  <Suspense fallback={null}><DashboardSmartSchedule /></Suspense>
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('weekly-insight') && (
@@ -572,7 +586,7 @@ export function Dashboard() {
               )}
               {isWidgetVisible('celestial') && (
                 <FeatureErrorBoundary feature="Celestial" compact>
-                  <DashboardCelestial />
+                  <Suspense fallback={null}><DashboardCelestial /></Suspense>
                 </FeatureErrorBoundary>
               )}
               {isWidgetVisible('holy-hermes') && (
@@ -700,7 +714,7 @@ export function Dashboard() {
                 <DashboardCorrelations limit={3} />
               </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Temporal Playback" compact>
-                <DashboardTemporalPlayback snapshots={temporalSnapshots} />
+                <Suspense fallback={null}><DashboardTemporalPlayback snapshots={temporalSnapshots} /></Suspense>
               </FeatureErrorBoundary>
               <FeatureErrorBoundary feature="Insights" compact>
                 <DashboardInsights isToday={isToday} todayStr={todayStr} dayTaskProgress={dayTaskProgress}

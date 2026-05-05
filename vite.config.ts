@@ -305,6 +305,22 @@ export default defineConfig(({ mode }) => {
           if (id.includes('/pages/Habits.tsx') || id.includes('/pages/Habits.')) {
             return 'page-habits';
           }
+          // ── App: Mini-games feature (TD-032) ──
+          if (id.includes('/features/mini-games/')) {
+            return 'mini-games';
+          }
+          // ── App: Dream journal feature (TD-032) ──
+          if (id.includes('/features/dream-journal/')) {
+            return 'dream-journal';
+          }
+          // ── App: Location feature (TD-032) ──
+          if (id.includes('/features/location/')) {
+            return 'location';
+          }
+          // ── App: Social features — guilds, partners, messaging (TD-032) ──
+          if (id.includes('/features/social/')) {
+            return 'social-features';
+          }
         },
       },
     },
