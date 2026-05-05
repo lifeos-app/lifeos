@@ -72,6 +72,12 @@ const STATE_CONFIG: Record<VoiceState, {
     label: 'Error',
     subtitle: 'Something went wrong',
   },
+  'wake-listening': {
+    color: '#39FF14',
+    gradient: 'linear-gradient(135deg, rgba(57,255,20,0.12), rgba(0,212,255,0.08))',
+    label: 'Listening',
+    subtitle: '', // Will be set dynamically
+  },
 };
 
 type Tab = 'actions' | 'history' | 'settings';
@@ -87,6 +93,7 @@ export function VoiceFirstMode() {
     settings,
     isSupported,
     isListening,
+    isWakeListening,
     transcript,
     interimTranscript,
     amplitude,
@@ -100,6 +107,8 @@ export function VoiceFirstMode() {
     rerunCommand,
     setSettings,
     getAlternatives,
+    startWakeWordListening,
+    stopWakeWordListening,
   } = useVoiceCommand();
 
   const [activeTab, setActiveTab] = useState<Tab>('actions');
@@ -107,6 +116,10 @@ export function VoiceFirstMode() {
   const [alternatives, setAlternatives] = useState<VoiceCommandResult[]>([]);
 
   const config = STATE_CONFIG[state] || STATE_CONFIG.idle;
+  // Dynamic subtitle for wake-listening state
+  const displaySubtitle = state === 'wake-listening' && settings.wakeWord
+    ? `Say "${settings.wakeWord}" to activate...`
+    : config.subtitle;
   const displayText = interimTranscript || transcript;
 
   // When a new result arrives, check for alternatives
@@ -201,7 +214,7 @@ export function VoiceFirstMode() {
               Voice Command
             </h1>
             <p className="text-xs" style={{ color: '#8BA4BE' }}>
-              {config.subtitle}
+              {displaySubtitle}
             </p>
           </div>
         </div>

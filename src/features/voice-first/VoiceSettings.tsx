@@ -119,7 +119,7 @@ export function VoiceSettings({ settings, onChange }: VoiceSettingsProps) {
       {/* Header */}
       <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(30,58,91,0.3)' }}>
         <h2 className="text-sm font-semibold" style={{ color: '#00D4FF' }}>
-          ⚙️ Voice Settings
+          Voice Settings
         </h2>
         <p className="text-xs mt-0.5" style={{ color: '#8BA4BE' }}>
           Configure how LifeOS listens and responds
@@ -245,7 +245,7 @@ export function VoiceSettings({ settings, onChange }: VoiceSettingsProps) {
         {/* Info footer */}
         <div className="p-3 rounded-lg mt-2" style={{ background: 'rgba(0,212,255,0.05)', border: '1px solid rgba(0,212,255,0.1)' }}>
           <p className="text-xs leading-relaxed" style={{ color: '#8BA4BE' }}>
-            🎙️ Voice commands work with Web Speech API (Chrome, Edge). Offline mode parses basic patterns without internet. Always-on mode uses more battery.
+            Voice commands work with Web Speech API (Chrome, Edge). Offline mode parses basic patterns without internet. Always-on mode uses more battery.
           </p>
         </div>
       </div>

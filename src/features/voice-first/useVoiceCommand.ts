@@ -5,6 +5,11 @@
  * feeds transcripts to the Intent Engine for parsing, and returns
  * structured VoiceCommandResults with actions the UI can execute.
  *
+ * Supports:
+ * - Wake word detection (always-on continuous listening)
+ * - Auto-processing of final transcripts
+ * - Voice-to-intent bridge (shorthand + full LLM)
+ *
  * Think driving between cleaning jobs and logging everything by voice.
  */
 
@@ -23,7 +28,7 @@ import { useUserStore } from '../../stores/useUserStore';
 
 // ─── Types ───────────────────────────────────────────────────────
 
-export type VoiceState = 'idle' | 'listening' | 'processing' | 'confirming' | 'success' | 'error';
+export type VoiceState = 'idle' | 'listening' | 'processing' | 'confirming' | 'success' | 'error' | 'wake-listening';
 
 export interface VoiceCommandResult {
   transcript: string;
@@ -168,6 +173,36 @@ const VOICE_COMMAND_PATTERNS: {
   },
 ];
 
+// ─── Wake Word Detection ─────────────────────────────────────────
+
+/**
+ * Check if a transcript contains a wake word and return the command
+ * portion after the wake word. Returns null if no wake word detected.
+ */
+function extractWakeWordCommand(transcript: string, wakeWord: string): string | null {
+  if (!wakeWord) return null;
+  const normalized = transcript.toLowerCase().trim();
+  const wakeNormalized = wakeWord.toLowerCase().trim();
+
+  // Check if transcript starts with wake word
+  if (normalized.startsWith(wakeNormalized)) {
+    const afterWake = normalized.slice(wakeNormalized.length).trim();
+    // Remove common separators after wake word ("hey LifeOS, log..." or "hey LifeOS log...")
+    const command = afterWake.replace(/^[,\s]+/, '').trim();
+    return command || '';
+  }
+
+  // Also check wake word anywhere in short commands
+  // (less reliable but catches "log habit, hey LifeOS" edge cases)
+  const wakeIndex = normalized.indexOf(wakeNormalized);
+  if (wakeIndex >= 0) {
+    const afterWake = normalized.slice(wakeIndex + wakeNormalized.length).trim().replace(/^[,\s]+/, '').trim();
+    return afterWake || '';
+  }
+
+  return null;
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────
 
 function generateId(): string {
@@ -204,10 +239,12 @@ export function useVoiceCommand() {
   });
   const [error, setError] = useState<string | null>(null);
   const [amplitude, setAmplitude] = useState(0);
+  const [isWakeListening, setIsWakeListening] = useState(false);
 
   const contextRef = useRef<IntentContext | null>(null);
   const historyRef = useRef(history);
   historyRef.current = history;
+  const processingRef = useRef(false);
 
   const setSettings = useCallback((updater: Partial<VoiceSettings> | ((prev: VoiceSettings) => VoiceSettings)) => {
     setSettingsState(prev => {
@@ -236,9 +273,36 @@ export function useVoiceCommand() {
   }, [history]);
 
   // ── Speech recognition ─────────────────────────────────────────
+
+  // Handler for when speech recognition produces a final transcript.
+  // This is the voice-to-intent bridge: it auto-processes commands
+  // when in alwaysOn mode or when the user is actively listening.
   const handleFinalTranscript = useCallback((transcript: string) => {
-    // Will be processed in processCommand
-  }, []);
+    if (!transcript.trim() || processingRef.current) return;
+
+    // Wake word mode: only process if wake word detected
+    if (settings.alwaysOn && settings.wakeWord) {
+      const command = extractWakeWordCommand(transcript, settings.wakeWord);
+      if (command !== null) {
+        // Wake word detected — process the command after the wake word
+        if (command) {
+          processCommand(command);
+        } else {
+          // Just the wake word with no command — enter active listening
+          setState('listening');
+          const utterance = new SpeechSynthesisUtterance('Yes?');
+          utterance.rate = settings.voiceSpeed;
+          utterance.lang = settings.language;
+          window.speechSynthesis.speak(utterance);
+        }
+      }
+      // If no wake word detected in alwaysOn mode, ignore the transcript
+      return;
+    }
+
+    // Regular mode (or alwaysOn without wake word): auto-process
+    processCommand(transcript.trim());
+  }, [settings.alwaysOn, settings.wakeWord, settings.voiceSpeed, settings.language]);
 
   const handleError = useCallback((err: string) => {
     setState('error');
@@ -258,9 +322,11 @@ export function useVoiceCommand() {
     start: startListening,
     stop: stopListening,
     abort: abortListening,
+    restart: restartListening,
   } = useSpeechRecognition({
     lang: settings.language,
-    continuous: true,
+    continuous: settings.alwaysOn,
+    alwaysOn: settings.alwaysOn,
     onFinalTranscript: handleFinalTranscript,
     onError: handleError,
   });
@@ -291,6 +357,7 @@ export function useVoiceCommand() {
 
     setState('processing');
     setError(null);
+    processingRef.current = true;
 
     try {
       // Try offline parse first for speed
@@ -301,6 +368,7 @@ export function useVoiceCommand() {
       if (!user?.id) {
         setError('Not authenticated');
         setState('error');
+        processingRef.current = false;
         return null;
       }
 
@@ -377,15 +445,18 @@ export function useVoiceCommand() {
       // Auto-confirm if enabled and confidence high enough
       if (settings.autoConfirm && result && result.confidence >= settings.autoConfirmThreshold && result.action) {
         await confirmCommand(result);
+        processingRef.current = false;
         return result;
       }
 
       setState(result ? 'confirming' : 'idle');
+      processingRef.current = false;
       return result;
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to process command';
       setError(msg);
       setState('error');
+      processingRef.current = false;
 
       // Add to history as failed
       addToHistory({
@@ -427,7 +498,11 @@ export function useVoiceCommand() {
       speakConfirmation(cmd.confirmation);
 
       setTimeout(() => {
-        setState('idle');
+        setState(prev => {
+          // In alwaysOn mode, go back to wake-listening after success
+          if (settings.alwaysOn && settings.wakeWord) return 'wake-listening';
+          return 'idle';
+        });
         setCurrentResult(null);
       }, 2000);
     } catch (err) {
@@ -445,11 +520,14 @@ export function useVoiceCommand() {
       });
 
       setTimeout(() => {
-        setState('idle');
+        setState(prev => {
+          if (settings.alwaysOn && settings.wakeWord) return 'wake-listening';
+          return 'idle';
+        });
         setCurrentResult(null);
       }, 3000);
     }
-  }, [currentResult]);
+  }, [currentResult, settings.alwaysOn, settings.wakeWord]);
 
   // ── Reject a command ───────────────────────────────────────────
   const rejectCommand = useCallback(() => {
@@ -463,9 +541,12 @@ export function useVoiceCommand() {
         actionDescription: 'Cancelled',
       });
     }
-    setState('idle');
+    setState(prev => {
+      if (settings.alwaysOn && settings.wakeWord) return 'wake-listening';
+      return 'idle';
+    });
     setCurrentResult(null);
-  }, [currentResult]);
+  }, [currentResult, settings.alwaysOn, settings.wakeWord]);
 
   // ── Start / Stop helpers ────────────────────────────────────────
   const startVoice = useCallback(() => {
@@ -488,9 +569,37 @@ export function useVoiceCommand() {
 
   const cancelVoice = useCallback(() => {
     abortListening();
-    setState('idle');
+    setState(prev => {
+      if (settings.alwaysOn && settings.wakeWord) return 'wake-listening';
+      return 'idle';
+    });
     setCurrentResult(null);
+  }, [abortListening, settings.alwaysOn, settings.wakeWord]);
+
+  // ── Always-on wake word mode ───────────────────────────────────
+  const startWakeWordListening = useCallback(() => {
+    if (!settings.alwaysOn || !settings.wakeWord) return;
+    setIsWakeListening(true);
+    startListening();
+    setState('wake-listening');
+  }, [settings.alwaysOn, settings.wakeWord, startListening]);
+
+  const stopWakeWordListening = useCallback(() => {
+    setIsWakeListening(false);
+    abortListening();
+    setState('idle');
   }, [abortListening]);
+
+  // Auto-start wake word listening when alwaysOn is enabled
+  useEffect(() => {
+    if (settings.alwaysOn && settings.wakeWord && state === 'idle') {
+      startWakeWordListening();
+    }
+    // When alwaysOn is turned off, stop wake word listening
+    if (!settings.alwaysOn && isWakeListening) {
+      stopWakeWordListening();
+    }
+  }, [settings.alwaysOn, settings.wakeWord]);
 
   // ── Text Input (for manual entry or testing) ──────────────────
   const processText = useCallback((text: string) => {
@@ -570,6 +679,7 @@ export function useVoiceCommand() {
     settings,
     isSupported,
     isListening,
+    isWakeListening,
     transcript,
     interimTranscript,
     amplitude,
@@ -586,6 +696,9 @@ export function useVoiceCommand() {
     setSettings,
     getAlternatives,
     speakConfirmation,
+    startWakeWordListening,
+    stopWakeWordListening,
+    processCommand,
   };
 }
 

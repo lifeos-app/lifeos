@@ -16,6 +16,7 @@ interface SpeechRecognitionInstance extends EventTarget {
   continuous: boolean;
   interimResults: boolean;
   lang: string;
+  maxAlternatives: number;
   start(): void;
   stop(): void;
   abort(): void;
@@ -41,6 +42,7 @@ function getSpeechRecognitionClass(): SpeechRecognitionConstructor | null {
 export interface UseSpeechRecognitionOptions {
   lang?: string;
   continuous?: boolean;
+  alwaysOn?: boolean;
   onFinalTranscript?: (transcript: string) => void;
   onError?: (error: string) => void;
 }
@@ -51,6 +53,7 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
   const {
     lang = 'en-AU',
     continuous = false,
+    alwaysOn = false,
     onFinalTranscript,
     onError,
   } = options;
@@ -62,6 +65,7 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
 
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const isSupported = !!getSpeechRecognitionClass();
+  const intentionalStopRef = useRef(false);
 
   // Store callbacks in refs so they don't cause re-creates
   const onFinalRef = useRef(onFinalTranscript);
@@ -69,9 +73,16 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
   useEffect(() => { onFinalRef.current = onFinalTranscript; }, [onFinalTranscript]);
   useEffect(() => { onErrorRef.current = onError; }, [onError]);
 
+  // Store options in refs for the always-on restart logic
+  const continuousRef = useRef(continuous);
+  const alwaysOnRef = useRef(alwaysOn);
+  useEffect(() => { continuousRef.current = continuous; }, [continuous]);
+  useEffect(() => { alwaysOnRef.current = alwaysOn; }, [alwaysOn]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      intentionalStopRef.current = true;
       if (recognitionRef.current) {
         try { recognitionRef.current.abort(); } catch { /* ignore */ }
         recognitionRef.current = null;
@@ -93,8 +104,9 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
       try { recognitionRef.current.abort(); } catch { /* ignore */ }
     }
 
+    intentionalStopRef.current = false;
     const recognition = new SpeechRecognition();
-    recognition.continuous = continuous;
+    recognition.continuous = continuousRef.current;
     recognition.interimResults = true;
     recognition.lang = lang;
 
@@ -158,6 +170,16 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
     recognition.onend = () => {
       setIsListening(false);
       recognitionRef.current = null;
+
+      // Auto-restart in always-on or continuous mode (unless intentionally stopped)
+      // Browsers stop recognition after ~60s; this keeps it alive
+      if ((alwaysOnRef.current || continuousRef.current) && !intentionalStopRef.current) {
+        setTimeout(() => {
+          if (!intentionalStopRef.current) {
+            start();
+          }
+        }, 200);
+      }
     };
 
     recognitionRef.current = recognition;
@@ -169,9 +191,19 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
       setError(msg);
       onErrorRef.current?.(msg);
     }
-  }, [lang, continuous]);
+  }, [lang]);
+
+  const restart = useCallback(() => {
+    if (recognitionRef.current) {
+      try { recognitionRef.current.abort(); } catch { /* ignore */ }
+      recognitionRef.current = null;
+    }
+    intentionalStopRef.current = false;
+    start();
+  }, [start]);
 
   const stop = useCallback(() => {
+    intentionalStopRef.current = true;
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
@@ -180,6 +212,7 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
   }, []);
 
   const abort = useCallback(() => {
+    intentionalStopRef.current = true;
     if (recognitionRef.current) {
       try {
         recognitionRef.current.abort();
@@ -199,5 +232,6 @@ export function useSpeechRecognition(options: UseSpeechRecognitionOptions = {}) 
     start,
     stop,
     abort,
+    restart,
   };
 }
