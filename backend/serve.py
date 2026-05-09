@@ -52,6 +52,29 @@ def patch_app_for_static():
     @app.route('/')
     def serve_index():
         return send_file(str(DIST_DIR / 'index.html'))
+
+    @app.route('/debug')
+    def serve_debug():
+        """Index.html with a visible JS error overlay — for diagnosing old-browser issues."""
+        from flask import Response
+        html = open(str(DIST_DIR / 'index.html')).read()
+        overlay = """
+<style>#_err{position:fixed;top:0;left:0;right:0;bottom:0;background:#0a0a0a;color:#ff6b6b;
+font-family:monospace;font-size:14px;padding:20px;overflow:auto;z-index:99999;display:none;
+white-space:pre-wrap;word-break:break-all}</style>
+<div id="_err"><b>JS ERRORS:</b>\n</div>
+<script>
+window.onerror=function(m,s,l,c,e){
+  var d=document.getElementById('_err');d.style.display='block';
+  d.innerText+=m+'\\nat '+s+':'+l+'\\n\\n';return false;
+};
+window.addEventListener('unhandledrejection',function(e){
+  var d=document.getElementById('_err');d.style.display='block';
+  d.innerText+='UNHANDLED: '+(e.reason||e)+'\\n\\n';
+});
+</script>"""
+        html = html.replace('<div id="root">', overlay + '<div id="root">', 1)
+        return Response(html, mimetype='text/html')
     
     @app.route('/<path:path>')
     def serve_static(path):

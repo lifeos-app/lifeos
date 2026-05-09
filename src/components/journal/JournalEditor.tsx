@@ -8,12 +8,14 @@ import {
   Loader2, X, Save, Check, Tag, Mic, MicOff,
   Heart, MessageCircle, Lightbulb,
   Battery, BatteryLow, BatteryMedium, BatteryFull, BatteryCharging,
+  PenLine,
 } from 'lucide-react';
 import { MOODS, TAG_PRESETS, TEMPLATES } from './types';
 import type { JournalEntry } from './types';
 import { normalizeTags, tagsToInputString } from './helpers';
 import remarkGfm from 'remark-gfm';
 import { logger } from '../../utils/logger';
+import { InkCanvas } from './InkCanvas';
 
 const ReactMarkdown = lazy(() => import('react-markdown'));
 
@@ -53,6 +55,7 @@ export function JournalEditor({
   onSave, onDelete,
 }: JournalEditorProps) {
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
+  const [showInkCanvas, setShowInkCanvas] = useState(false);
 
   // Voice-to-text state
   const [isRecording, setIsRecording] = useState(false);
@@ -133,7 +136,20 @@ export function JournalEditor({
   const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
   const tagPills = normalizeTags(tags);
 
+  const handleInkTranscribed = (text: string) => {
+    onContentChange(content ? `${content}\n\n${text}` : text);
+    setShowInkCanvas(false);
+  };
+
   return (
+    <>
+    {showInkCanvas && (
+      <InkCanvas
+        date={entry?.date ?? new Date().toISOString().slice(0, 10)}
+        onTranscribed={handleInkTranscribed}
+        onClose={() => setShowInkCanvas(false)}
+      />
+    )}
     <div className="jnl-editor" style={mood ? {
       borderTop: `4px solid ${MOODS.find(m => m.value === mood)?.color}`,
     } : undefined}>
@@ -209,6 +225,13 @@ export function JournalEditor({
           <label>Entry</label>
           <div className="jnl-content-tools">
             <span className="jnl-word-count">{wordCount} words</span>
+            <button
+              className="jnl-voice-btn"
+              onClick={() => setShowInkCanvas(true)}
+              title="S Pen ink journal"
+            >
+              <PenLine size={14} /> Ink
+            </button>
             {voiceSupported && (
               <button
                 className={`jnl-voice-btn ${isRecording ? 'recording' : ''}`}
@@ -289,5 +312,6 @@ export function JournalEditor({
         )}
       </div>
     </div>
+    </>
   );
 }

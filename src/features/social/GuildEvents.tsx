@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Calendar, Clock, Users, Trophy, X, Plus, ChevronLeft, ChevronRight,
-  Flame, Swords, BookOpen, Dragon, PartyPopper, CheckCircle2, Star, Timer, Repeat
+  Flame, Swords, BookOpen, Crown, PartyPopper, CheckCircle2, Star, Timer, Repeat
 } from 'lucide-react';
 import { useGuildEvents, EVENT_TYPE_CONFIG } from './useGuildEvents';
 import type { GuildEvent, GuildEventType, RSVPStatus, EventRecurrence, GuildEventResult } from './useGuildEvents';

@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { visualizer } from 'rollup-plugin-visualizer'
+import legacy from '@vitejs/plugin-legacy'
 import { writeFileSync, readdirSync, existsSync } from 'fs'
 import { resolve } from 'path'
 import { readFileSync } from 'fs'
@@ -125,6 +126,15 @@ export default defineConfig(({ mode }) => {
     __DATA_ENV__: JSON.stringify(_dataEnv),
   },
   plugins: [
+    legacy({
+      targets: ['chrome >= 50', 'android >= 5'],
+      additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
+      additionalBabelPlugins: [
+        '@babel/plugin-transform-optional-chaining',
+        '@babel/plugin-transform-nullish-coalescing-operator',
+        '@babel/plugin-transform-logical-assignment-operators',
+      ],
+    }),
     tailwindcss(),
     react(),
     academyServePlugin(),

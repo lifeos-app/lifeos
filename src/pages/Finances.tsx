@@ -36,7 +36,7 @@ const LazyFinanceAI = lazy(() => import('../components/finances/FinanceAI').then
 const LazyFinanceAIHolo = lazy(() => import('../components/ai/FinanceAI').then(m => ({ default: m.FinanceAIHolo })));
 import type {
   Tab, FormMode, IncomeEntry, ExpenseEntry, Bill, Business, Client,
-  ExpenseCategory, Transaction, FinanceGoal, FinanceTask,
+  ExpenseCategory, Transaction, TransactionEntry, FinanceGoal, FinanceTask,
 } from '../components/finances/types';
 import './Finances.css';
 
@@ -66,6 +66,7 @@ export function Finances() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactionEntries, setTransactionEntries] = useState<TransactionEntry[]>([]);
   const [budgets, setBudgets] = useState<{ id?: string; month: string; category_id: string; amount: number }[]>([]);
   const [tasks, setTasks] = useState<FinanceTask[]>([]);
   const [goals, setGoals] = useState<FinanceGoal[]>([]);
@@ -105,6 +106,7 @@ export function Finances() {
     setBusinesses(finStore.businesses as unknown as Business[]);
     setCategories(finStore.categories as unknown as ExpenseCategory[]);
     setTransactions(finStore.transactions as unknown as Transaction[]);
+    setTransactionEntries(finStore.transactionEntries as unknown as TransactionEntry[]);
     setBudgets(finStore.budgets as unknown as { id?: string; month: string; category_id: string; amount: number }[]);
     setTasks(schedStore.tasks.filter((t: { financial_amount?: number }) => t.financial_amount != null) as unknown as FinanceTask[]);
     setGoals(goalStore.goals as unknown as FinanceGoal[]);
@@ -146,7 +148,7 @@ export function Finances() {
   const actions = useFinanceActions(fetchAll);
   const computed = useFinanceComputed({
     income, expenses, bills, clients, businesses, categories,
-    transactions, budgets, tasks, goals, monthlyData,
+    transactions, transactionEntries, budgets, tasks, goals, monthlyData,
   });
 
   // ── Modal close+refresh helper ──
@@ -162,7 +164,7 @@ export function Finances() {
   // CONTEXT VALUE
   // ══════════════════════════════════════════════════════════════════════════════
   const ctxValue: FinancesCtxValue = {
-    income, expenses, bills, clients, businesses, categories, transactions, budgets, tasks, goals, monthlyData, loading,
+    income, expenses, bills, clients, businesses, categories, transactions, transactionEntries, budgets, tasks, goals, monthlyData, loading,
     tab, switchTab, formMode: actions.formMode, setFormMode: actions.setFormMode,
     saving: actions.saving, error: actions.error, setError: actions.setError,
     expandedBusiness, setExpandedBusiness, expandedTx, setExpandedTx,

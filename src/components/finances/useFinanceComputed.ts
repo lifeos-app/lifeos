@@ -8,7 +8,7 @@ import { startOfMonth, thisMonth } from '../../utils/date';
 import { normalizeToMonthly } from './types';
 import type {
   IncomeEntry, ExpenseEntry, Bill, Business, Client,
-  ExpenseCategory, Transaction, FinanceGoal, FinanceTask,
+  ExpenseCategory, Transaction, TransactionEntry, FinanceGoal, FinanceTask,
 } from './types';
 
 export interface FinanceComputedInput {
@@ -19,6 +19,7 @@ export interface FinanceComputedInput {
   businesses: Business[];
   categories: ExpenseCategory[];
   transactions: Transaction[];
+  transactionEntries: TransactionEntry[];
   budgets: { id?: string; month: string; category_id: string; amount: number }[];
   tasks: FinanceTask[];
   goals: FinanceGoal[];
@@ -33,7 +34,7 @@ function matchSourceToBusiness(source: string, bizList: Business[]): string | nu
 }
 
 export function useFinanceComputed(input: FinanceComputedInput) {
-  const { income, expenses, bills, clients, businesses, categories, transactions, budgets, tasks, goals, monthlyData } = input;
+  const { income, expenses, bills, clients, businesses, categories, transactions, transactionEntries, budgets, tasks, goals, monthlyData } = input;
 
   const som = startOfMonth();
   const monthIncome = income.filter(i => i.date >= som).reduce((s, i) => s + i.amount, 0);

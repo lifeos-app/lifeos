@@ -7,7 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import { useFinanceStore } from '../../stores/useFinanceStore';
-import type { IncomeEntry, ExpenseEntry, ExpenseCategory, Transaction, FormMode } from './types';
+import type { IncomeEntry, ExpenseEntry, ExpenseCategory, Transaction, TransactionEntry, FormMode } from './types';
 
 export function useFinanceActions(fetchAll: () => Promise<void>) {
   const store = useFinanceStore;

@@ -1429,6 +1429,90 @@ def ai_chat():
 
 
 # ═══════════════════════════════════════════════════════════════
+# Ink Journal — S Pen handwriting → Moondream OCR → journal entry
+# ═══════════════════════════════════════════════════════════════
+
+INK_UPLOAD_DIR = os.path.join(os.path.dirname(__file__), 'ink_uploads')
+os.makedirs(INK_UPLOAD_DIR, exist_ok=True)
+
+@app.route('/api/journal/ink', methods=['POST'])
+def journal_ink():
+    """Receive an S Pen ink PNG, transcribe via moondream, store in journal_entries."""
+    image_file = request.files.get('image')
+    date_str = request.form.get('date', date.today().isoformat())
+
+    if not image_file:
+        return jsonify({'error': 'No image provided'}), 400
+
+    # Save the PNG
+    filename = f"ink-{date_str}-{uuid.uuid4().hex[:8]}.png"
+    save_path = os.path.join(INK_UPLOAD_DIR, filename)
+    image_file.save(save_path)
+
+    # Transcribe via Ollama moondream (vision model)
+    transcribed_text = ''
+    try:
+        import base64
+        with open(save_path, 'rb') as f:
+            img_b64 = base64.b64encode(f.read()).decode()
+
+        ollama_resp = http_requests.post(
+            'http://localhost:11434/api/generate',
+            json={
+                'model': 'moondream:latest',
+                'prompt': (
+                    'This is a handwritten journal entry. '
+                    'Transcribe every word exactly as written. '
+                    'Output only the transcribed text, nothing else.'
+                ),
+                'images': [img_b64],
+                'stream': False,
+            },
+            timeout=60,
+        )
+        if ollama_resp.ok:
+            transcribed_text = ollama_resp.json().get('response', '').strip()
+    except Exception as e:
+        app.logger.warning(f"Moondream transcription failed: {e}")
+
+    # Append to or create today's journal entry
+    db = get_db()
+    row = db.execute(
+        "SELECT id, content FROM journal_entries WHERE user_id=? AND date=? LIMIT 1",
+        (DEFAULT_USER_ID, date_str)
+    ).fetchone()
+
+    ink_note = f'\n\n---\n*S Pen — {filename}*'
+    if transcribed_text:
+        ink_note += f'\n\n{transcribed_text}'
+
+    if row:
+        new_content = (row['content'] or '') + ink_note
+        db.execute(
+            "UPDATE journal_entries SET content=?, updated_at=? WHERE id=?",
+            (new_content, now_iso(), row['id'])
+        )
+        entry_id = row['id']
+    else:
+        entry_id = new_id()
+        db.execute(
+            "INSERT INTO journal_entries (id, user_id, date, title, content, created_at, updated_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (entry_id, DEFAULT_USER_ID, date_str,
+             f'Ink Journal — {date_str}', ink_note.strip(), now_iso(), now_iso())
+        )
+
+    db.commit()
+
+    return jsonify({
+        'entry_id': entry_id,
+        'filename': filename,
+        'text': transcribed_text,
+        'date': date_str,
+    })
+
+
+# ═══════════════════════════════════════════════════════════════
 # Sync Endpoint — For Frontend Compatibility
 # ═══════════════════════════════════════════════════════════════
 

@@ -304,7 +304,7 @@
 - [ ] [TD-024] Web Push notifications have no backend (VAPID key + push endpoint missing) — [DEPLOYMENT ACTION for backend, but client code needs VAPID key config] — [Impact: 3/5]
 - [ ] [TD-025] RLS migration not applied — [DUPLICATE of TD-010/P7-003, DEPLOYMENT ACTION] — [Impact: 5/5]
 - [x] [TD-026] Workout→Schedule integration broken — ✅ DONE — Commit: 214026b — v1.20.12 — syncToSchedule() rewritten with workout_template_id dedup, auto-sync on template save, deleteTemplate removes linked events, OverviewTab shows unsynced templates banner with one-tap sync
-- [ ] [TD-027] Multi-tab sync edge cases untested — CRDT engine added but detection-only, not resolution — [Impact: 3/5]
+- [x] [TD-027] Multi-tab sync edge cases untested — ✅ DONE — CRDT engine (1,061 lines) fully implements resolution, not just detection. sync-conflict.ts resolveConflict() uses CRDTEngine with G-Counter/LWW-Register/OR-Set merge, sync-engine.ts calls resolveConflict() on every conflict. USE_CRDT=true by default. Date: 2026-05-10
 - [ ] [TD-028] Social features untested with real users — All client-side, never validated with concurrent users — [Impact: 2/5]
 - [ ] [TD-029] Google proxy endpoint missing — Both gcal-sync.ts and gmail.ts route through google-proxy.php which doesn't exist — [Impact: 3/5]
 - [ ] [TD-030] Dual financial table schema not migrated — Code routes through store but DB still has income+expenses tables — [DUPLICATE of P2-102] — [Impact: 4/5]

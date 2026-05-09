@@ -207,6 +207,47 @@ export interface Transaction {
   updated_at?: string;
 }
 
+/**
+ * TransactionEntry — Unified financial record (P2-102).
+ *
+ * Merges the fields of IncomeEntry and ExpenseEntry into a single type,
+ * distinguished by the `transaction_type` field.
+ * - For 'income' records: source, description, client_id, is_recurring, is_deductible, etc.
+ *   map from IncomeEntry fields.
+ * - For 'expense' records: category_id, is_deductible, travel_km, receipt_url, etc.
+ *   map from ExpenseEntry fields.
+ *
+ * This is the primary type for the unified `transactions` table.
+ * IncomeEntry and ExpenseEntry are kept as backward-compatible aliases.
+ */
+export interface TransactionEntry {
+  id: string;
+  user_id: string;
+  transaction_type: 'income' | 'expense';
+  amount: number;
+  date: string;
+  title?: string | null;
+  description?: string | null;
+  source?: string | null;               // IncomeEntry: source
+  category_id?: string | null;          // ExpenseEntry: category_id
+  business_id?: string | null;
+  client_id?: string | null;
+  task_id?: string | null;
+  event_id?: string | null;
+  notes?: string | null;
+  is_recurring?: boolean;
+  is_deleted?: boolean;
+  is_deductible?: boolean;              // ExpenseEntry-specific
+  recurrence_rule?: string | null;
+  travel_km?: number | null;            // ExpenseEntry-specific
+  payment_method?: string | null;
+  receipt_url?: string | null;
+  sync_status?: string | null;
+  gst_included?: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
 export interface RecurringTransaction {
   id: string;
   user_id: string;

@@ -5,7 +5,7 @@
 import { createContext, useContext } from 'react';
 import type {
   IncomeEntry, ExpenseEntry, Bill, Business, Client,
-  ExpenseCategory, Transaction, FinanceGoal, FinanceTask,
+  ExpenseCategory, Transaction, TransactionEntry, FinanceGoal, FinanceTask,
   FormMode, Tab,
 } from './types';
 
@@ -18,6 +18,7 @@ export interface FinancesCtxValue {
   businesses: Business[];
   categories: ExpenseCategory[];
   transactions: Transaction[];
+  transactionEntries: TransactionEntry[];
   budgets: { id?: string; month: string; category_id: string; amount: number }[];
   tasks: FinanceTask[];
   goals: FinanceGoal[];

@@ -122,6 +122,80 @@ export interface Transaction {
   [key: string]: unknown;
 }
 
+/**
+ * TransactionEntry — Unified financial record type (P2-102).
+ * The primary type for reading/writing to the `transactions` local DB store.
+ * Mirrors the TransactionEntry from database.ts but with index signature for flexibility.
+ */
+export interface TransactionEntry {
+  id: string;
+  user_id: string;
+  transaction_type: 'income' | 'expense';
+  amount: number;
+  date: string;
+  title?: string | null;
+  description?: string | null;
+  source?: string | null;
+  category_id?: string | null;
+  business_id?: string | null;
+  client_id?: string | null;
+  task_id?: string | null;
+  event_id?: string | null;
+  notes?: string | null;
+  is_recurring?: boolean;
+  is_deleted?: boolean;
+  is_deductible?: boolean;
+  recurrence_rule?: string | null;
+  travel_km?: number | null;
+  payment_method?: string | null;
+  receipt_url?: string | null;
+  sync_status?: string | null;
+  gst_included?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: unknown;
+}
+
+/** Helper: Convert a TransactionEntry to an IncomeEntry-compatible shape */
+export function transactionToIncome(tx: TransactionEntry): IncomeEntry {
+  return {
+    id: tx.id,
+    user_id: tx.user_id,
+    amount: tx.amount,
+    date: tx.date,
+    description: tx.description || tx.title || '',
+    source: tx.source || 'Other',
+    client_id: tx.client_id ?? null,
+    is_recurring: tx.is_recurring ?? false,
+    is_deleted: tx.is_deleted ?? false,
+    business_id: tx.business_id ?? null,
+    created_at: tx.created_at,
+    ...(tx as Record<string, unknown>),
+  } as IncomeEntry;
+}
+
+/** Helper: Convert a TransactionEntry to an ExpenseEntry-compatible shape */
+export function transactionToExpense(tx: TransactionEntry): ExpenseEntry {
+  return {
+    id: tx.id,
+    user_id: tx.user_id,
+    amount: tx.amount,
+    description: tx.description || tx.title || '',
+    category_id: tx.category_id ?? null,
+    date: tx.date,
+    is_deductible: tx.is_deductible ?? false,
+    is_deleted: tx.is_deleted ?? false,
+    is_recurring: tx.is_recurring ?? false,
+    travel_km: tx.travel_km ?? null,
+    receipt_url: tx.receipt_url ?? null,
+    payment_method: tx.payment_method ?? null,
+    business_id: tx.business_id ?? null,
+    created_at: tx.created_at,
+    updated_at: tx.updated_at,
+    ...(tx as Record<string, unknown>),
+  } as ExpenseEntry;
+}
+
 export interface FinanceGoal {
   id: string;
   title: string;
@@ -151,6 +225,7 @@ export interface FinanceData {
   businesses: Business[];
   categories: ExpenseCategory[];
   transactions: Transaction[];
+  transactionEntries: TransactionEntry[];
   budgets: { month: string; category_id: string; amount: number }[];
   tasks: FinanceTask[];
   goals: FinanceGoal[];

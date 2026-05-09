@@ -168,7 +168,7 @@ const STATIC_COLUMNS: Record<string, Set<string>> = {
   businesses: new Set(['id','user_id','name','type','icon','color','status','notes','created_at','updated_at','is_deleted']),
   clients: new Set(['id','user_id','name','email','phone','address','latitude','longitude','rate','rate_type','notes','sop','access_codes','color','is_active','created_at','updated_at','is_deleted','sync_status','business_id']),
   expense_categories: new Set(['id','user_id','name','icon','color','scope','budget_monthly','sort_order','created_at','updated_at']),
-  transactions: new Set(['id','user_id','type','amount','title','date','category_id','business_id','client_id','task_id','event_id','notes','recurring','created_at','updated_at']),
+  transactions: new Set(['id','user_id','type','amount','title','description','source','date','category_id','business_id','client_id','task_id','event_id','notes','recurring','is_deleted','is_deductible','is_recurring','recurrence_rule','travel_km','payment_method','receipt_url','sync_status','gst_included','transaction_type','created_at','updated_at']),
   budgets: new Set(['id','user_id','category_id','month','amount','notes','created_at','updated_at']),
   journal_entries: new Set(['id','user_id','date','title','content','mood','energy','tags','created_at','updated_at','is_deleted','sync_status','image_url']),
   user_xp: new Set(['user_id','total_xp','level','title','stats','created_at','updated_at']),

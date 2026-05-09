@@ -17,7 +17,7 @@ import { genId } from '../utils/date';
 import { logger } from '../utils/logger';
 
 const DB_NAME = 'lifeos-local';
-const DB_VERSION = 11;
+const DB_VERSION = 12;
 
 // All object stores (tables)
 const STORES = {
@@ -136,6 +136,20 @@ export async function openLocalDB(): Promise<IDBDatabase> {
         }
       }
       
+      // v11 → v12: Add indices to transactions store for unified schema (P2-102)
+      if (oldVersion >= 1 && oldVersion < 12) {
+        if (db.objectStoreNames.contains('transactions')) {
+          const store = request.transaction!.objectStore('transactions');
+          // Add new indices if they don't exist
+          if (!store.indexNames.contains('date')) {
+            store.createIndex('date', 'date', { unique: false });
+          }
+          if (!store.indexNames.contains('transaction_type')) {
+            store.createIndex('transaction_type', 'transaction_type', { unique: false });
+          }
+        }
+      }
+      
       // Create all object stores (skips existing)
       for (const [storeName, keyPath] of Object.entries(STORES)) {
         if (!db.objectStoreNames.contains(storeName)) {
@@ -153,6 +167,10 @@ export async function openLocalDB(): Promise<IDBDatabase> {
           // Table-specific indices
           if (storeName === 'tasks' || storeName === 'events' || storeName === 'expenses' || storeName === 'income' || storeName === 'bills') {
             store.createIndex('date', storeName === 'tasks' ? 'due_date' : storeName === 'events' ? 'start_time' : storeName === 'bills' ? 'due_date' : 'date', { unique: false });
+          }
+          if (storeName === 'transactions') {
+            store.createIndex('date', 'date', { unique: false });
+            store.createIndex('transaction_type', 'transaction_type', { unique: false });
           }
           if (storeName === 'habit_logs') {
             store.createIndex('habit_id', 'habit_id', { unique: false });

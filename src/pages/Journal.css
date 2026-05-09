@@ -1,3 +1,69 @@
+/* ── Ink Canvas Overlay ───────────────────────────────────────── */
+.ink-canvas-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; flex-direction: column;
+  background: #0D1B2A;
+}
+.ink-canvas-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; background: #0B1622;
+  border-bottom: 1px solid rgba(139,164,190,0.15);
+  flex-shrink: 0;
+}
+.ink-canvas-title {
+  display: flex; align-items: center; gap: 8px;
+  color: #8BA4BE; font-size: 14px; font-weight: 500;
+}
+.ink-canvas-tools { display: flex; align-items: center; gap: 8px; }
+.ink-tool-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 8px;
+  background: rgba(139,164,190,0.08); border: 1px solid rgba(139,164,190,0.15);
+  color: #8BA4BE; cursor: pointer; transition: all 0.15s;
+}
+.ink-tool-btn:hover:not(:disabled) { background: rgba(139,164,190,0.16); color: #E2EBF5; }
+.ink-tool-btn:disabled { opacity: 0.35; cursor: default; }
+.ink-submit-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  background: #1A6FD4; border: none; color: #fff; cursor: pointer; transition: all 0.15s;
+}
+.ink-submit-btn:hover:not(:disabled) { background: #2080E8; }
+.ink-submit-btn:disabled { opacity: 0.45; cursor: default; }
+.ink-submit-btn.done { background: #16A34A; }
+.ink-close-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 6px;
+  background: transparent; border: 1px solid rgba(139,164,190,0.2);
+  color: #8BA4BE; cursor: pointer; font-size: 16px;
+}
+.ink-close-btn:hover { background: rgba(220,50,50,0.15); color: #F87171; }
+.ink-transcription-banner {
+  padding: 8px 14px; background: rgba(22,163,74,0.12);
+  border-bottom: 1px solid rgba(22,163,74,0.25);
+  color: #86EFAC; font-size: 13px; flex-shrink: 0;
+}
+.ink-transcription-hint { color: #6EE7B7; font-size: 12px; }
+.ink-error-banner {
+  padding: 8px 14px; background: rgba(220,50,50,0.12);
+  border-bottom: 1px solid rgba(220,50,50,0.25);
+  color: #F87171; font-size: 13px; flex-shrink: 0;
+}
+.ink-canvas-area {
+  flex: 1; position: relative; overflow: hidden;
+}
+.ink-canvas {
+  display: block; width: 100%; height: 100%;
+  cursor: crosshair;
+}
+.ink-canvas-hint {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 12px;
+  pointer-events: none; color: rgba(139,164,190,0.35);
+  font-size: 14px;
+}
+/* ─────────────────────────────────────────────────────────────── */
+
 .journal { max-width: 800px; }
 .jnl-back-btn {
   display: flex; align-items: center; gap: 6px; padding: 6px 12px; margin-bottom: 8px;

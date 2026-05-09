@@ -4,7 +4,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   Target, X, Plus, Clock, Users, Trophy, Flame, Star, Crown,
-  Swords, Link2, BookOpen, Dragon, ChevronRight, Zap
+  Swords, Link2, BookOpen, ChevronRight, Zap
 } from 'lucide-react';
 import {
   useCollaborativeQuests,
