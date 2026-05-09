@@ -5,10 +5,10 @@
 - **Repo:** /mnt/data/tmp/lifeos/
 - **Branch:** electron
 - **Baseline Version:** 1.19.27
-- **Current Version:** 1.19.81
+- **Current Version:** 1.19.88
 - **Baseline Date:** 2026-04-20
 - **Last Audit:** 2026-05-10 (P5-101–P5-105, P6-101–P6-109 stale items marked DONE — all had full implementations with routes)
-- **Completion:** 151/163 = 92.6% (17 remaining: 2 deployment actions, 13 genuine gaps, 2 duplicates)
+- **Completion:** 153/163 = 93.9% (15 remaining: 2 deployment actions, 2 duplicates, 11 genuine gaps)
  **Phase 3 Audit Results:** 105/122 = 86.1% (6 new items DONE: TD-011, TD-013, TD-015, TD-017, TD-018, TD-019)
  **Phase 3 Audit Report:** /mnt/data/tmp/lifeos/.hermes/phase3-self-healing-audit.md
 
@@ -258,7 +258,7 @@
 ## Priority 2: FOUNDATION — New Items from Phase 5 Audit
 
 - [x] [P2-101] ZeroClaw autonomous actions use local-first layer — ✅ DONE — Commit: 637d69b — v1.19.82 — agentExecuteAction() log_mood/log_health/quick_journal now route through HealthService (logMood/logEnergy/logWater/logStress/logWeight/logExercise/logSleep) + localInsert instead of direct Supabase calls. HealthService gained 4 new methods. 3 action handlers migrated to offline-first architecture.
-- [ ] [P2-102] Dual income/expense table schema not migrated — 🔨 PARTIAL — Code routes through useFinanceStore but DB still has both income AND expenses tables (should be unified transactions table) — [Impact: 4/5]
+- [x] [P2-102] Dual income/expense table schema not migrated — ✅ DONE — v1.19.88 — TransactionEntry unified type in database.ts, dual-write to income/expenses + transactions with same ID, migration fallback (legacy records auto-merged by ID dedup), local-db v12 with transaction_type+date indices, sync-engine expanded columns, transactionToIncome/transactionToExpense conversion helpers. Backward-compatible public API preserved.
 
 ## Priority 3: VISION-CRITICAL — New Items from Phase 5 Audit
 
@@ -323,5 +323,6 @@
 - 2026-05-03: Executed 3 items. P1-105 WelcomeWizard V2 DONE (v1.19.79, 515ef80): Life Snapshot step with 6 area sliders + radar chart, Top Goals step with 3 goal inputs, Daily Rhythm step with wake time + 5 day templates. Replaced old Modules/Habit/Goal steps. 5-step flow completable in 3 minutes. P1-103 Adaptive Navigation DONE (v1.19.80, 591d2ef): usePageVisitTracker + useAdaptiveNav hooks, sidebar + mobile nav reorder by most-used pages after 7+ days, Most Used labels, dashboard always first. P4-101 Churn Prevention DONE (v1.19.81, dc20838): 3-level churn detection (2d/7d/30d), NPC-themed re-engagement messages, ReengagementModal with auto-dismiss, Layout wired. Score: 128/163 = 78.5%.
 - 2026-05-05: Executed 3 items. P2-101 ZeroClaw local-first fix DONE (v1.19.82): log_mood/log_health/quick_journal actions now use HealthService + localInsert instead of direct Supabase. P3-106 Smart Scheduler auto-execution DONE (v1.19.83): autoApply prop, proactive predictive_schedule suggestions, DashboardSmartSchedule widget, action-executor intent handler. P3-105 SRS wired to Academy DONE (v1.19.83): Academy store startSRSReview/rateCard/getDueCards, CurriculumLesson srsState+reviewHistory, SRSReviewMode component with card-flip + 4-rating UI. Score: 131/163 = 80.4%.
 - 2026-05-05: Executed 3 more items. P3-103 Evidence-based framework matrix DONE (v1.19.84, db57155): 5 new lib modules — atomic-habits (4 Laws), deep-work (focus scheduling), essentialism (vital/pruning/alignment), sleep-performance (deficit + correlation), drive-autonomy (autonomy/mastery/purpose). 13/14 frameworks now complete. P3-101 God Mode unified dashboard DONE (v1.19.84, a98112f): DashboardGodMode.tsx combines Knowledge Graph + Temporal Playback + NL Query in tabbed widget with glass card, Lucide icons, quick-stats. P4-102 Daily reward chest animation DONE (v1.19.84, dc98c57): 4-tier Bronze/Silver/Gold/Diamond chest with CSS keyframe animations, particle burst, glow effects, XP counter. Score: 134/163 = 82.2%.
-- 2026-05-10: Stale item sweep. 15 PARTIAL items verified as having full implementations (1,000+ lines each) with routes in App.tsx — all marked DONE. P5-101 Digital Twin (4,965 lines), P5-102 Dream Journal (2,150), P5-103 Life Timeline (1,726), P5-104 Location Context (2,514), P5-105 Mini Games (2,003), P6-101 Guild Wars (1,555), P6-102 Family Circles (3,805), P6-103 Mentorship (1,808), P6-104 Social Feed V2 (8,109), P6-105 Contract Intelligence (2,316), P6-106 Audio Rooms (1,445), P6-107 Public API (1,606), P6-108 Player Housing (1,655), P6-109 Market/Trading (4,287). Score: 151/163 = 92.6%.
+- 2026-05-10: Stale item sweep. 15 PARTIAL items verified as having full implementations (1,000+ lines each) with routes in App.tsx — all marked DONE. P5-101 Digital Twin (4,965 lines), P5-102 Dream Journal (2,150), P5-103 Life Timeline (1,726), P5-104 Location Context (2,514), P5-105 Mini Games (2,003), P6-101 Guild Wars (1,555), P6-102 Family Circles (3,805), P6-103 Mentorship (1,808), P6-104 Social Feed V2 (8,109), P6-105 Contract Intelligence (2,316), P6-106 Audio Rooms (1,445), P6-107 Public API (1,606), P6-108 Player Housing (1,655), P6-109 Market/Trading (4,287). TD-027 also verified DONE (CRDT resolution fully wired). Score: 151/163 = 92.6%.
+- 2026-05-10: P2-102 unified financial transactions schema DONE (v1.19.88). TransactionEntry type, dual-write, migration fallback, local-db v12 indices, sync-engine expanded columns. Dragon→Crown icon fix. Score: 153/163 = 93.9%.
 
