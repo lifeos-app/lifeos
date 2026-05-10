@@ -23,7 +23,15 @@
 export type NodeId = string;
 
 const NODE_ID_KEY = 'lifeos:crdt_node_id';
-let _cachedNodeId: NodeId | null = null;
+export let _cachedNodeId: NodeId | null = null;
+
+/** Reset internal state for testing. NOT for production use. */
+export function _resetForTesting(): void {
+  _cachedNodeId = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (CRDTEngine as any)._instance = null;
+  _fieldStrategies = { ...DEFAULT_FIELD_STRATEGIES };
+}
 
 /**
  * Get or create a stable node identifier for this device/user.

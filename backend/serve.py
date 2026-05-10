@@ -53,6 +53,55 @@ def patch_app_for_static():
     def serve_index():
         return send_file(str(DIST_DIR / 'index.html'))
 
+    @app.route('/test')
+    def serve_test():
+        from flask import Response
+        html = """<!DOCTYPE html><html><head><meta charset=UTF-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<style>body{background:#0a1628;color:#e0e0e0;font-family:monospace;padding:20px;font-size:15px}
+.ok{color:#4ade80}.fail{color:#f87171}.warn{color:#fbbf24}
+h2{color:#60a5fa;margin-top:20px}pre{white-space:pre-wrap;word-break:break-all}</style>
+</head><body>
+<h2>Browser Capability Test</h2>
+<div id=ua></div><div id=out></div>
+<script>
+document.getElementById('ua').textContent = navigator.userAgent;
+var out = document.getElementById('out');
+function row(name, ok, detail) {
+  var el = document.createElement('div');
+  el.className = ok ? 'ok' : 'fail';
+  el.textContent = (ok ? '✓ ' : '✗ ') + name + (detail ? ' — ' + detail : '');
+  out.appendChild(el);
+}
+// Feature tests
+row('Promises', typeof Promise !== 'undefined');
+row('fetch', typeof fetch !== 'undefined');
+row('async/await', (function(){try{eval('(async function(){})()');return true}catch(e){return false}})());
+row('Optional chaining ?.', (function(){try{eval('({})?.x');return true}catch(e){return false}})(), 'needed for app');
+row('Nullish coalescing ??', (function(){try{eval('null??1');return true}catch(e){return false}})(), 'needed for app');
+row('WeakRef', typeof WeakRef !== 'undefined', 'needed by React 19');
+row('FinalizationRegistry', typeof FinalizationRegistry !== 'undefined');
+row('Object spread', (function(){try{eval('var x={...{}}');return true}catch(e){return false}})());
+row('ES modules type=module', (function(){try{var s=document.createElement('script');return 'noModule' in s}catch(e){return false}})());
+row('CSS custom properties', (function(){try{var s=document.createElement('style');s.textContent=':root{--x:1}';document.head.appendChild(s);var ok=getComputedStyle(document.documentElement).getPropertyValue('--x').trim()==='1';document.head.removeChild(s);return ok}catch(e){return false}})());
+row('localStorage', (function(){try{localStorage.setItem('_t','1');localStorage.removeItem('_t');return true}catch(e){return false}})());
+row('ServiceWorker', 'serviceWorker' in navigator);
+// Try loading the actual legacy bundle
+var h2=document.createElement('h2'); h2.textContent='Legacy Bundle Load Test'; out.appendChild(h2);
+var start=Date.now();
+window.onerror=function(m,s,l,c,e){
+  row('LEGACY BUNDLE ERROR', false, m + ' at line ' + l);
+};
+window.addEventListener('unhandledrejection',function(e){
+  row('UNHANDLED REJECTION', false, String(e.reason).slice(0,120));
+});
+</script>
+<script nomodule crossorigin src="/assets/polyfills-legacy-CLaWmHYi.js"
+  onerror="document.getElementById('out').innerHTML+='<div class=fail>✗ polyfills-legacy failed to load</div>'">
+</script>
+</body></html>"""
+        return Response(html, mimetype='text/html')
+
     @app.route('/debug')
     def serve_debug():
         """Index.html with a visible JS error overlay — for diagnosing old-browser issues."""
