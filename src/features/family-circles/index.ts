@@ -12,6 +12,7 @@ export { SharedGoalsPanel } from './SharedGoalsPanel';
 export { SharedBudgetPanel } from './SharedBudgetPanel';
 export { MemberManager } from './MemberManager';
 export { FamilyAchievements } from './FamilyAchievements';
+export { FamilyInsightsPanel } from './FamilyInsightsPanel';
 export { useFamilyCircles } from './useFamilyCircles';
 export type {
   FamilyMember,

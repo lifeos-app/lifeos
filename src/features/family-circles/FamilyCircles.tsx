@@ -13,9 +13,10 @@ import { SharedGoalsPanel } from './SharedGoalsPanel';
 import { SharedBudgetPanel } from './SharedBudgetPanel';
 import { MemberManager } from './MemberManager';
 import { FamilyAchievements } from './FamilyAchievements';
+import { FamilyInsightsPanel } from './FamilyInsightsPanel';
 import type { MemberRole } from '../../stores/familyStore';
 
-type Tab = 'overview' | 'goals' | 'budget' | 'members' | 'achievements';
+type Tab = 'overview' | 'goals' | 'budget' | 'members' | 'achievements' | 'insights';
 
 const ROLE_BADGES: Record<MemberRole, { label: string; color: string; bg: string }> = {
   parent: { label: 'Parent', color: '#F59E0B', bg: 'bg-amber-900/40 border-amber-500/30' },
@@ -392,6 +393,7 @@ export function FamilyCircles() {
             { id: 'overview' as Tab, label: 'Overview', emoji: '📊' },
             { id: 'goals' as Tab, label: 'Goals', emoji: '🎯' },
             { id: 'budget' as Tab, label: 'Budget', emoji: '💰' },
+            { id: 'insights' as Tab, label: 'Insights', emoji: '🧠' },
             { id: 'members' as Tab, label: 'Members', emoji: '👥' },
             { id: 'achievements' as Tab, label: 'Trophies', emoji: '🏆' },
           ]).map(tab => (
@@ -458,6 +460,7 @@ export function FamilyCircles() {
         {activeTab === 'overview' && <CircleDashboard />}
         {activeTab === 'goals' && <SharedGoalsPanel />}
         {activeTab === 'budget' && <SharedBudgetPanel />}
+        {activeTab === 'insights' && <FamilyInsightsPanel />}
         {activeTab === 'members' && <MemberManager />}
         {activeTab === 'achievements' && <FamilyAchievements />}
       </div>
