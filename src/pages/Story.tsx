@@ -16,6 +16,13 @@ import { formatDateShort } from '../utils/date';
 import './Story.css';
 import { EmptyState } from '../components/EmptyState';
 import { logger } from '../utils/logger';
+import {
+  generateChronicleEntry,
+  saveChronicleEntry,
+  fetchJournalEntriesForChronicle,
+  getUserJunction,
+  type ChronicleEntryResult,
+} from '../lib/bookforge';
 
 interface UserBook {
   id: string;
@@ -46,6 +53,7 @@ interface BookEntry {
   junction_id: string | null;
   junction_tradition_name: string | null;
   word_count: number;
+  ai_generated: boolean | null;
   created_at: string;
 }
 
@@ -60,6 +68,8 @@ export function Story() {
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
 
   // Fetch book and entries
   const fetchBook = useCallback(async () => {
@@ -153,6 +163,111 @@ export function Story() {
     window.print();
   };
 
+  // Generate chronicle entry from recent journal entries
+  const handleGenerateChronicle = async () => {
+    if (!user || !book) return;
+
+    setGenerating(true);
+    setGenerateError(null);
+
+    try {
+      // Fetch recent journal entries for the user
+      const { data: recentJournals, error: fetchErr } = await supabase
+        .from('journal_entries')
+        .select('id, content, mood, tags, date')
+        .eq('user_id', user.id)
+        .eq('is_deleted', false)
+        .order('date', { ascending: false })
+        .limit(7);
+
+      if (fetchErr || !recentJournals?.length) {
+        setGenerateError('No journal entries found to chronicle');
+        return;
+      }
+
+      // Get entries that haven't already been chronicled
+      const existingJournalIds = new Set(
+        entries.flatMap(e => e.raw_journal_ids || [])
+      );
+      const unchronicled = recentJournals.filter(
+        (e: any) => !existingJournalIds.has(e.id)
+      );
+
+      const entriesToProcess = unchronicled.length > 0
+        ? unchronicled
+        : recentJournals.slice(0, 3);
+
+      if (!entriesToProcess.length) {
+        setGenerateError('All recent entries are already chronicled');
+        return;
+      }
+
+      // Format for bookforge
+      const journalInputs = entriesToProcess.map((e: any) => ({
+        id: e.id,
+        content: e.content || '',
+        mood: e.mood,
+        themes: Array.isArray(e.tags)
+          ? e.tags
+          : (typeof e.tags === 'string'
+            ? e.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
+            : []),
+        entry_date: e.date,
+      }));
+
+      // Get tradition context
+      const junction = await getUserJunction(user.id);
+
+      // Generate chronicle via LLM
+      const result: ChronicleEntryResult = await generateChronicleEntry(
+        journalInputs,
+        junction,
+      );
+
+      // Save to book_entries
+      const newEntryId = await saveChronicleEntry(
+        book.id,
+        user.id,
+        result,
+        journalInputs.map(e => e.id),
+        book.junction_id,
+        junction?.name,
+      );
+
+      if (newEntryId) {
+        // Add to local state and select it
+        const wordCount = result.content.split(/\s+/).filter(Boolean).length;
+        const newEntry: BookEntry = {
+          id: newEntryId,
+          book_id: book.id,
+          user_id: user.id,
+          title: result.title,
+          content: result.content,
+          raw_journal_ids: journalInputs.map(e => e.id),
+          entry_date: new Date().toISOString().slice(0, 10),
+          entry_time: null,
+          mood: result.mood_summary,
+          location: null,
+          themes: result.themes,
+          junction_id: book.junction_id,
+          junction_tradition_name: junction?.name || null,
+          word_count: wordCount,
+          ai_generated: true,
+          created_at: new Date().toISOString(),
+        };
+        setEntries(prev => [newEntry, ...prev]);
+        setSelectedEntryId(newEntryId);
+      } else {
+        setGenerateError('Failed to save chronicle entry');
+      }
+    } catch (err) {
+      logger.error('[Story] Chronicle generation failed:', err);
+      setGenerateError(err instanceof Error ? err.message : 'Generation failed');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const selectedEntry = entries.find(e => e.id === selectedEntryId);
   const isOwner = user && book && user.id === book.user_id;
 
@@ -215,6 +330,9 @@ export function Story() {
                 >
                   <div className="story-nav-date">
                     {formatDateShort(entry.entry_date)}
+                    {entry.ai_generated && (
+                      <span className="story-ai-badge">AI</span>
+                    )}
                   </div>
                   <div className="story-nav-title">
                     {entry.title || 'Untitled Entry'}
@@ -257,6 +375,12 @@ export function Story() {
                     <span className="story-junction-badge">{selectedEntry.junction_tradition_name}</span>
                   </>
                 )}
+                {selectedEntry.ai_generated && (
+                  <>
+                    <span className="story-meta-sep">•</span>
+                    <span className="story-ai-label">AI Generated</span>
+                  </>
+                )}
               </div>
               
               {selectedEntry.title && (
@@ -294,9 +418,32 @@ export function Story() {
         {/* Toolbar */}
         {isOwner && (
           <div className="story-toolbar">
+            <button
+              onClick={handleGenerateChronicle}
+              className="story-toolbar-btn story-generate-btn"
+              disabled={generating}
+              aria-label="Generate chronicle entry from journal"
+            >
+              {generating ? (
+                <Loader2 size={16} className="spinner" />
+              ) : (
+                <Sparkles size={16} />
+              )}
+              {generating ? 'Generating...' : 'Generate Chronicle'}
+            </button>
             <button onClick={exportPDF} className="story-toolbar-btn" aria-label="Export story as PDF">
               <Download size={16} />
               Export PDF
+            </button>
+          </div>
+        )}
+
+        {/* Generation error */}
+        {generateError && (
+          <div className="story-generate-error">
+            {generateError}
+            <button onClick={() => setGenerateError(null)} className="story-generate-error-close" aria-label="Dismiss">
+              ×
             </button>
           </div>
         )}
